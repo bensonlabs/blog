@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title>justinbenson.io</title>
+    <link href="https://bensonlabs.github.io/blog/feed.xml" rel="self" />
+    <link href="https://bensonlabs.github.io/blog" />
+    <updated>2020-05-05T16:32:51-07:00</updated>
+    <author>
+        <name>Justin Benson</name>
+    </author>
+    <id>https://bensonlabs.github.io/blog</id>
+
+    <entry>
+        <title>DirectAccess stuck connecting</title>
+        <author>
+            <name>Justin Benson</name>
+        </author>
+        <link href="https://bensonlabs.github.io/blog/directaccess-stuck-trying-to-connect.html"/>
+        <id>https://bensonlabs.github.io/blog/directaccess-stuck-trying-to-connect.html</id>
+
+        <updated>2020-05-05T11:22:08-07:00</updated>
+            <summary>
+                <![CDATA[
+                    Remote into computer with DirectAccess issues.Copy the install folder of your VPN over remote connection.Install and connect through VPN and run this 2 times in CMD with admin privileges: GPUPDATE /FORCESign out/sign inUninstall the VPN (DirectAccess might not let you connect to folders until VPN is&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                <ol>
+<li>Remote into computer with DirectAccess issues.</li>
+<li>Copy the install folder of your VPN over remote connection.</li>
+<li>Install and connect through VPN and run this 2 times in CMD with admin privileges: GPUPDATE /FORCE</li>
+<li>Sign out/sign in</li>
+<li>Uninstall the VPN (DirectAccess might not let you connect to folders until VPN is disconnected.  Better to just uninstall it.</li>
+</ol>
+            ]]>
+        </content>
+    </entry>
+</feed>

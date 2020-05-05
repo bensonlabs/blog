@@ -1,0 +1,28 @@
+{
+    "version": "https://jsonfeed.org/version/1",
+    "title": "justinbenson.io",
+    "description": "",
+    "home_page_url": "https://bensonlabs.github.io/blog",
+    "feed_url": "https://bensonlabs.github.io/blog/feed.json",
+    "user_comment": "",
+    "icon": "https://bensonlabs.github.io/blog/media/website/TinkerMade-NoBg.png",
+    "author": {
+        "name": "Justin Benson"
+    },
+    "items": [
+        {
+            "id": "https://bensonlabs.github.io/blog/directaccess-stuck-trying-to-connect.html",
+            "url": "https://bensonlabs.github.io/blog/directaccess-stuck-trying-to-connect.html",
+            "title": "DirectAccess stuck connecting",
+            "summary": "Remote into computer with DirectAccess issues.Copy the install folder of your VPN over remote connection.Install and connect through VPN and run this 2 times in CMD with admin privileges: GPUPDATE /FORCESign out/sign inUninstall the VPN (DirectAccess might not let you connect to folders until VPN is&hellip;",
+            "content_html": "<ol>\n<li>Remote into computer with DirectAccess issues.</li>\n<li>Copy the install folder of your VPN over remote connection.</li>\n<li>Install and connect through VPN and run this 2 times in CMD with admin privileges: GPUPDATE /FORCE</li>\n<li>Sign out/sign in</li>\n<li>Uninstall the VPN (DirectAccess might not let you connect to folders until VPN is disconnected.  Better to just uninstall it.</li>\n</ol>",
+            "author": {
+                "name": "Justin Benson"
+            },
+            "tags": [
+            ],
+            "date_published": "2020-05-05T11:06:23-07:00",
+            "date_modified": "2020-05-05T11:22:08-07:00"
+        }
+    ]
+}
