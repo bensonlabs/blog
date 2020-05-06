@@ -3,12 +3,43 @@
     <title>bensonlabs.org</title>
     <link href="https://bensonlabs.github.io/blog/feed.xml" rel="self" />
     <link href="https://bensonlabs.github.io/blog" />
-    <updated>2020-05-06T11:33:28-07:00</updated>
+    <updated>2020-05-06T14:46:04-07:00</updated>
     <author>
         <name>Justin Benson</name>
     </author>
     <id>https://bensonlabs.github.io/blog</id>
 
+    <entry>
+        <title>macOS - Remove SearchMine malware script</title>
+        <author>
+            <name>Justin Benson</name>
+        </author>
+        <link href="https://bensonlabs.github.io/blog/macos-remove-searchmine-malware-script.html"/>
+        <id>https://bensonlabs.github.io/blog/macos-remove-searchmine-malware-script.html</id>
+
+        <updated>2020-05-06T14:45:08-07:00</updated>
+            <summary>
+                <![CDATA[
+                    Save these steps somewhere safe and close Chrome.Click the "Preferences" icon in your Mac's menu bar and select "Profiles".Select all "AdminPrefs" profile(s) and delete it/them by clicking the minus (-) icon at the bottom.Once you've removed the unwanted "adminprefs" profile(s), you should be able to&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                <ol>
+<li>Save these steps somewhere safe and close Chrome.</li>
+<li>Click the "Preferences" icon in your Mac's menu bar and select "Profiles".</li>
+<li>Select all "AdminPrefs" profile(s) and delete it/them by clicking the minus (-) icon at the bottom.</li>
+<li>Once you've removed the unwanted "adminprefs" profile(s), you should be able to follow these steps:</li>
+<li>Open the Terminal app (Go &gt; Utilities &gt; Terminal or press Command+Space and search Terminal)</li>
+<li>Enter the commands below and hit the Enter key after each one:</li>
+</ol>
+<p>(or put it into a .sh script, then run as sudo):</p>
+<pre>#!/bin/bash<br><br>defaults write com.google.Chrome HomepageIsNewTabPage -bool false<br>defaults write com.google.Chrome NewTabPageLocation -string https://www.google.com/"<br>defaults write com.google.Chrome HomepageLocation -string “https://www.google.com/”<br>defaults delete com.google.Chrome DefaultSearchProviderSearchURL<br>defaults delete com.google.Chrome DefaultSearchProviderNewTabURL<br>defaults delete com.google.Chrome DefaultSearchProviderName</pre>
+<p>Now restart Chrome and the issue should be resolved. If not, you may need to restart your Mac.</p>
+<p>Reference: https://support.google.com/chrome/thread/9350623?hl=en</p>
+            ]]>
+        </content>
+    </entry>
     <entry>
         <title>DirectAccess stuck connecting</title>
         <author>
