@@ -11,6 +11,20 @@
     },
     "items": [
         {
+            "id": "https://bensonlabs.github.io/blog/powershell-log-ip-status.html",
+            "url": "https://bensonlabs.github.io/blog/powershell-log-ip-status.html",
+            "title": "Powershell - Log IP status",
+            "summary": "#Gets a list of computer names or IPs from a .txt file. $names = Get-content \"&lt;location of .txt file full of IP addresses&gt;\" #Sets the name and the location of your output .CSV file. $IPstatus = \"&lt;location of .csv file&gt;\" $date = Get-Date #Pings each&hellip;",
+            "content_html": "<p>#Gets a list of computer names or IPs from a .txt file.<br>$names = Get-content \"&lt;location of .txt file full of IP addresses&gt;\"<br><br>#Sets the name and the location of your output .CSV file.<br>$IPstatus = \"&lt;location of .csv file&gt;\"<br><br>$date = Get-Date<br><br>#Pings each device in your list. <br>foreach ($name in $names){<br> if (Test-Connection -ComputerName $name -Count 1 -ErrorAction SilentlyContinue){</p>\n<p># logs all UP IPs with time stamp<br> Add-Content -Value \"$name,up,$date\" -Path $IPstatus<br> }</p>\n<p># logs all DOWN IPs with timestamp<br> else{<br> Add-Content -Value \"$name,down,$date\" -Path $IPstatus<br> }<br>}</p>",
+            "author": {
+                "name": "Justin Benson"
+            },
+            "tags": [
+            ],
+            "date_published": "2020-05-07T07:32:27-07:00",
+            "date_modified": "2020-05-07T07:32:27-07:00"
+        },
+        {
             "id": "https://bensonlabs.github.io/blog/macos-remove-searchmine-malware-script.html",
             "url": "https://bensonlabs.github.io/blog/macos-remove-searchmine-malware-script.html",
             "title": "macOS - Remove SearchMine malware script",
