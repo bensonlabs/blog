@@ -118,10 +118,62 @@
                            macOS - Remove SearchMine malware script
                         </a>
                      </div>
+                     <div class="post__nav-next">
+                        <a href="https://bensonlabs.github.io/blog/httpskeybaseiobensonlabs.html" class="invert post__nav-link" rel="next">
+                           <span>Next</span>
+                           https://keybase.io/bensonlabs
+                        </a>
+                        <svg width="1.041em" height="0.416em" aria-hidden="true">
+                           <use xlink:href="https://bensonlabs.github.io/blog/assets/svg/svg-map.svg#arrow-next"/>
+                        </svg>
+                     </div>
                </div>
             </nav>
 
 
+         <div class="post__comments">
+            <div class="wrapper">
+               <h2 class="h5">
+                  Comments
+               </h2>
+               <div id="disqus_thread"></div>
+               <script>
+                   var disqus_config = function () {
+                       this.page.url = 'https://bensonlabs.github.io/blog/powershell-log-ip-status.html';
+               		this.page.identifier = '3';
+                       this.page.title = ' Powershell - Log IP status';
+                   };
+               
+                   var disqus_loaded = false;
+               
+                   function publiiLoadDisqus() {
+                       if(disqus_loaded) {
+                           return false;
+                       }
+               
+                       var top = document.getElementById('disqus_thread').offsetTop;
+               
+                       if (!disqus_loaded && (window.scrollY || window.pageYOffset) + window.innerHeight > top) {
+                           disqus_loaded = true;
+               
+                           (function () {
+                               var d = document, s = d.createElement('script');
+                               s.src = 'https://.disqus.com/embed.js';
+                               s.setAttribute('data-timestamp', +new Date());
+                               (d.head || d.body).appendChild(s);
+                           })();
+                       }
+                   }
+               
+                   publiiLoadDisqus();
+               
+                   window.onscroll = function() {
+                       publiiLoadDisqus();
+                   };
+               </script>
+               <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" target="_blank" rel="nofollow noopener noreferrer">comments powered by Disqus.</a></noscript>
+            </div>
+         </div>
 
 
 </main>

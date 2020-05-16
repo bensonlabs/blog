@@ -3,12 +3,32 @@
     <title>bensonlabs.org</title>
     <link href="https://bensonlabs.github.io/blog/feed.xml" rel="self" />
     <link href="https://bensonlabs.github.io/blog" />
-    <updated>2020-05-07T07:32:36-07:00</updated>
+    <updated>2020-05-15T21:07:56-07:00</updated>
     <author>
         <name>Justin Benson</name>
     </author>
     <id>https://bensonlabs.github.io/blog</id>
 
+    <entry>
+        <title>https://keybase.io/bensonlabs</title>
+        <author>
+            <name>Justin Benson</name>
+        </author>
+        <link href="https://bensonlabs.github.io/blog/httpskeybaseiobensonlabs.html"/>
+        <id>https://bensonlabs.github.io/blog/httpskeybaseiobensonlabs.html</id>
+
+        <updated>2020-05-15T21:07:49-07:00</updated>
+            <summary>
+                <![CDATA[
+                    ================================================================== https://keybase.io/bensonlabs -------------------------------------------------------------------- I hereby claim: * I am an admin of https://bensonlabs.org * I am bensonlabs (https://keybase.io/bensonlabs) on keybase. * I have a public key ASBgebub6-TlpJyX-iR3U_ikibehmUxQxTqEX9jk44R0Zwo To do so, I am signing this object: { "body": { "key": { "eldest_kid": "0120afc8a26e3736d5aa47559448a31b4fc10296c7be1008fd1f97fd81b951715e730a", "host": "keybase.io", "kid":&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                ==================================================================<br>https://keybase.io/bensonlabs<br>--------------------------------------------------------------------<br><br>I hereby claim:<br><br> * I am an admin of https://bensonlabs.org<br> * I am bensonlabs (https://keybase.io/bensonlabs) on keybase.<br> * I have a public key ASBgebub6-TlpJyX-iR3U_ikibehmUxQxTqEX9jk44R0Zwo<br><br>To do so, I am signing this object:<br><br>{<br> "body": {<br> "key": {<br> "eldest_kid": "0120afc8a26e3736d5aa47559448a31b4fc10296c7be1008fd1f97fd81b951715e730a",<br> "host": "keybase.io",<br> "kid": "01206079bb9bebe4e5a49c97fa247753f8a489b7a1994c50c53a845fd8e4e38474670a",<br> "uid": "5bd9e86ba49538278ae8237420d07819",<br> "username": "bensonlabs"<br> },<br> "merkle_root": {<br> "ctime": 1589602013,<br> "hash": "1259932301c25bc99f9a28f1d96cf91bdf5a3cd4a0b155a3f9f7667ad1a063bc9f3ae533c467cae79ac0b2b6cde2dbdcd5a9d597231d096f6576b9a10a897b4d",<br> "hash_meta": "0119777020dd38214a86c2b1dd48fa205a3be612dff49a386ea7ab240cdd1b26",<br> "seqno": 16313225<br> },<br> "service": {<br> "entropy": "nLF0zyKFajowELNL7oKAZVI6",<br> "hostname": "bensonlabs.org",<br> "protocol": "https:"<br> },<br> "type": "web_service_binding",<br> "version": 2<br> },<br> "client": {<br> "name": "keybase.io go client",<br> "version": "5.4.2"<br> },<br> "ctime": 1589602031,<br> "expire_in": 504576000,<br> "prev": "21004629b4bf1dd4d1488f9206e624893a6356c4490c4559cd8ceb05969782bd",<br> "seqno": 24,<br> "tag": "signature"<br>}<br><br>which yields the signature:<br><br>hKRib2R5hqhkZXRhY2hlZMOpaGFzaF90eXBlCqNrZXnEIwEgYHm7m+vk5aScl/okd1P4pIm3oZlMUMU6hF/Y5OOEdGcKp3BheWxvYWTESpcCGMQgIQBGKbS/HdTRSI+SBuYkiTpjVsRJDEVZzYzrBZaXgr3EIDkctElludI1Ro/z8H4/Q3k1+3AILCoJyWcNOs9VThcUAgHCo3NpZ8RAQO+U6z6wSI4gxRiQvHwhKgdEamEIiVXxX5jW+PRlydvGtMxLcMdK8zXZ/so7907w2bIJ3iUrJTIXH95FeyEmBKhzaWdfdHlwZSCkaGFzaIKkdHlwZQildmFsdWXEIG/BvcrojMRLAG/D1vFTdVncOTsQIZ0YkinT1JJdk96fo3RhZ80CAqd2ZXJzaW9uAQ==<br><br>And finally, I am proving ownership of this host by posting or<br>appending to this document.<br><br>View my publicly-auditable identity here: https://keybase.io/bensonlabs<br><br>==================================================================
+            ]]>
+        </content>
+    </entry>
     <entry>
         <title>Powershell - Log IP status</title>
         <author>
