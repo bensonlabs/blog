@@ -3,7 +3,7 @@
     <title>bensonlabs.org</title>
     <link href="https://bensonlabs.github.io/blog/feed.xml" rel="self" />
     <link href="https://bensonlabs.github.io/blog" />
-    <updated>2020-05-28T08:33:37-07:00</updated>
+    <updated>2020-05-28T08:52:51-07:00</updated>
     <author>
         <name>Justin Benson</name>
     </author>
@@ -14,10 +14,10 @@
         <author>
             <name>Justin Benson</name>
         </author>
-        <link href="https://bensonlabs.github.io/blog/lastpass-fix-slow-sync-bt-phone-and-computer.html"/>
-        <id>https://bensonlabs.github.io/blog/lastpass-fix-slow-sync-bt-phone-and-computer.html</id>
+        <link href="https://bensonlabs.github.io/blog/lastpass-fix-slow-sync-bt-phone-and-computer-2.html"/>
+        <id>https://bensonlabs.github.io/blog/lastpass-fix-slow-sync-bt-phone-and-computer-2.html</id>
 
-        <updated>2020-05-28T08:32:15-07:00</updated>
+        <updated>2020-05-28T08:51:46-07:00</updated>
             <summary>
                 <![CDATA[
                     LastPass is great, but when you need a password in a hurry and it's not syncing between your phone and computer fast enough, here's how to quickly force the sync: On a computer (browser extension): 1. Click on LastPass extension 2. Account Options 3. Advanced&hellip;
@@ -25,10 +25,9 @@
             </summary>
         <content type="html">
             <![CDATA[
-                <p>LastPass is great, but when you need a password in a hurry and it's not syncing between your phone and computer fast enough, here's how to quickly force the sync:<br><br><strong>On a computer (browser extension):</strong><br><br>1.  Click on LastPass extension<br>2.  Account Options<br>3.  Advanced<br>4.  click on Refresh Sites</p>
-<p><strong>On iPhone app:</strong></p>
-<p>1.  Settings<br>2.  Actions<br>3.  Refresh Vault</p>
-<p>#misc info: iOS 13.4.1, LastPass from Chrome Web Store</p>
+                <p>LastPass is great, but when you need a password in a hurry and it's not syncing between your phone and computer fast enough, here's how to quickly force the sync:<br><br><strong>On a computer (browser extension):</strong><br>1.  Click on LastPass extension<br>2.  Account Options<br>3.  Advanced<br>4.  click on Refresh Sites<br><br><strong>On iPhone app:</strong><br>1.  Settings<br>2.  Actions<br>3.  Refresh Vault</p>
+<p> </p>
+<address><span style="color: #95a5a6;">#misc info:  LastPass from Chrome Web Store, iOS 13.4.1</span></address>
             ]]>
         </content>
     </entry>
