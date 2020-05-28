@@ -11,6 +11,20 @@
     },
     "items": [
         {
+            "id": "https://bensonlabs.github.io/blog/lastpass-fix-slow-sync-bt-phone-and-computer.html",
+            "url": "https://bensonlabs.github.io/blog/lastpass-fix-slow-sync-bt-phone-and-computer.html",
+            "title": "LastPass - fix slow sync b/t phone and computer",
+            "summary": "LastPass is great, but when you need a password in a hurry and it's not syncing between your phone and computer fast enough, here's how to quickly force the sync: On a computer (browser extension): 1. Click on LastPass extension 2. Account Options 3. Advanced&hellip;",
+            "content_html": "<p>LastPass is great, but when you need a password in a hurry and it's not syncing between your phone and computer fast enough, here's how to quickly force the sync:<br><br><strong>On a computer (browser extension):</strong><br><br>1.  Click on LastPass extension<br>2.  Account Options<br>3.  Advanced<br>4.  click on Refresh Sites</p>\n<p><strong>On iPhone app:</strong></p>\n<p>1.  Settings<br>2.  Actions<br>3.  Refresh Vault</p>\n<p>#misc info: iOS 13.4.1, LastPass from Chrome Web Store</p>",
+            "author": {
+                "name": "Justin Benson"
+            },
+            "tags": [
+            ],
+            "date_published": "2020-05-28T08:23:37-07:00",
+            "date_modified": "2020-05-28T08:32:15-07:00"
+        },
+        {
             "id": "https://bensonlabs.github.io/blog/powershell-log-ip-status.html",
             "url": "https://bensonlabs.github.io/blog/powershell-log-ip-status.html",
             "title": "Powershell - Log IP status",
