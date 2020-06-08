@@ -3,12 +3,37 @@
     <title>bensonlabs.org</title>
     <link href="https://bensonlabs.github.io/blog/feed.xml" rel="self" />
     <link href="https://bensonlabs.github.io/blog" />
-    <updated>2020-05-28T11:39:26-07:00</updated>
+    <updated>2020-06-08T08:24:14-07:00</updated>
     <author>
         <name>Justin Benson</name>
     </author>
     <id>https://bensonlabs.github.io/blog</id>
 
+    <entry>
+        <title>Ubuntu 20 - black screen using xrdp from Windows 10</title>
+        <author>
+            <name>Justin Benson</name>
+        </author>
+        <link href="https://bensonlabs.github.io/blog/ubuntu-20-black-screen-using-xrdp-from-windows-10.html"/>
+        <id>https://bensonlabs.github.io/blog/ubuntu-20-black-screen-using-xrdp-from-windows-10.html</id>
+
+        <updated>2020-06-08T08:24:10-07:00</updated>
+            <summary>
+                <![CDATA[
+                    I installed xrdp by sudo apt install xrdp, but when I connect from a domain joined Windows 10 computer, it just gives me a black screen after I authenticate through the xorg session login. After much failed sleuthing, I think I figured it out: 1.
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                <p>I installed <strong>xrdp</strong> by <code>sudo apt install xrdp</code>, but when I connect from a domain joined  Windows 10 computer, it just gives me a black screen after I authenticate through the <strong>xorg</strong> session login.</p>
+<p>After much failed sleuthing, I think I figured it out:</p>
+<p>1. Terminate any open RDP attempts into Ubuntu</p>
+<p>2. Log out of your Ubuntu session</p>
+<p>3. Run mstsc.exe from Windows back into Ubuntu, which should be at the Ubuntu log in screen.  It should work this time.</p>
+<p>#Root cause unknown/not understood</p>
+            ]]>
+        </content>
+    </entry>
     <entry>
         <title>Hyper-V - Ubuntu 20 LTS no network connections</title>
         <author>

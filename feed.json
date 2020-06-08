@@ -11,6 +11,20 @@
     },
     "items": [
         {
+            "id": "https://bensonlabs.github.io/blog/ubuntu-20-black-screen-using-xrdp-from-windows-10.html",
+            "url": "https://bensonlabs.github.io/blog/ubuntu-20-black-screen-using-xrdp-from-windows-10.html",
+            "title": "Ubuntu 20 - black screen using xrdp from Windows 10",
+            "summary": "I installed xrdp by sudo apt install xrdp, but when I connect from a domain joined Windows 10 computer, it just gives me a black screen after I authenticate through the xorg session login. After much failed sleuthing, I think I figured it out: 1.",
+            "content_html": "<p>I installed <strong>xrdp</strong> by <code>sudo apt install xrdp</code>, but when I connect from a domain joined  Windows 10 computer, it just gives me a black screen after I authenticate through the <strong>xorg</strong> session login.</p>\n<p>After much failed sleuthing, I think I figured it out:</p>\n<p>1. Terminate any open RDP attempts into Ubuntu</p>\n<p>2. Log out of your Ubuntu session</p>\n<p>3. Run mstsc.exe from Windows back into Ubuntu, which should be at the Ubuntu log in screen.  It should work this time.</p>\n<p>#Root cause unknown/not understood</p>",
+            "author": {
+                "name": "Justin Benson"
+            },
+            "tags": [
+            ],
+            "date_published": "2020-06-08T08:23:22-07:00",
+            "date_modified": "2020-06-08T08:24:10-07:00"
+        },
+        {
             "id": "https://bensonlabs.github.io/blog/hyper-v-ubuntu-20-lts-no-network-connections.html",
             "url": "https://bensonlabs.github.io/blog/hyper-v-ubuntu-20-lts-no-network-connections.html",
             "title": "Hyper-V - Ubuntu 20 LTS no network connections",
