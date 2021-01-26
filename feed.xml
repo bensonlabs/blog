@@ -3,7 +3,7 @@
     <title>bensonlabs.org</title>
     <link href="https://bensonlabs.github.io/blog/feed.xml" rel="self" />
     <link href="https://bensonlabs.github.io/blog" />
-    <updated>2020-06-08T08:31:01-07:00</updated>
+    <updated>2020-06-08T08:24:10-07:00</updated>
     <author>
         <name>Justin Benson</name>
     </author>
@@ -67,7 +67,7 @@
 <li>deleted the Gen 1 VM and created a Gen 2 VM instead</li>
 <li>had to turn off Secure Boot in settings for it to boot at all.  This is a test VM, so security was not a consideration.  Plan accordingly.</li>
 </ul>
-<p><img class="post__image post__image--center" src="https://bensonlabs.github.io/blog/media/posts/7/hyperV-2.png" alt=""></p>
+<figure class="post__image post__image--center"><img loading="lazy"  src="https://bensonlabs.github.io/blog/media/posts/7/hyperV-2.png" sizes="(max-width: 48em) 100vw, 768px" srcset="https://bensonlabs.github.io/blog/media/posts/7/responsive/hyperV-2-xs.png 300w ,https://bensonlabs.github.io/blog/media/posts/7/responsive/hyperV-2-sm.png 480w ,https://bensonlabs.github.io/blog/media/posts/7/responsive/hyperV-2-md.png 768w ,https://bensonlabs.github.io/blog/media/posts/7/responsive/hyperV-2-lg.png 1024w ,https://bensonlabs.github.io/blog/media/posts/7/responsive/hyperV-2-xl.png 1360w ,https://bensonlabs.github.io/blog/media/posts/7/responsive/hyperV-2-2xl.png 1600w"  alt=""></figure>
 <p><strong>Extras:</strong></p>
 <ul>
 <li>Enhanced session with linux-vm-tools: <a href="https://github.com/Microsoft/linux-vm-tools/wiki/Onboarding:-Ubuntu">https://github.com/Microsoft/linux-vm-tools/wiki/Onboarding:-Ubuntu</a></li>
