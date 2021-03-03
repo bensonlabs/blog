@@ -11,6 +11,20 @@
     },
     "items": [
         {
+            "id": "https://bensonlabs.github.io/blog/re-establish-domain-relationship-trust-using-powershell.html",
+            "url": "https://bensonlabs.github.io/blog/re-establish-domain-relationship-trust-using-powershell.html",
+            "title": "Re-Establish Domain Relationship trust using PowerShell",
+            "summary": "Log on Windows 10 using local Administrator accountOpen Powershell terminal as adminRun $credential = Get-Credential and press EnterEnter YOUR account (which as admin rights) and password and then click OKRunReset-ComputerMachinePassword -Credential $credential and press EnterClose PowerShellRestart Log on Windows 10 using domain user account",
+            "content_html": "<ol>\n<li>Log on Windows 10 using local Administrator account</li>\n<li>Open Powershell terminal as admin</li>\n<li>Run <strong><code>$credential = Get-Credential</code> </strong>and press Enter</li>\n<li>Enter YOUR account (which as admin rights) and password and then click OK</li>\n<li>Run<strong><code>Reset-ComputerMachinePassword -Credential $credential</code> </strong>and press Enter</li>\n<li>Close PowerShell</li>\n<li>Restart </li>\n<li>Log on Windows 10 using domain user account</li>\n</ol>",
+            "author": {
+                "name": "Justin Benson"
+            },
+            "tags": [
+            ],
+            "date_published": "2021-03-03T08:23:19-08:00",
+            "date_modified": "2021-03-03T08:26:59-08:00"
+        },
+        {
             "id": "https://bensonlabs.github.io/blog/ubuntu-20-black-screen-using-xrdp-from-windows-10.html",
             "url": "https://bensonlabs.github.io/blog/ubuntu-20-black-screen-using-xrdp-from-windows-10.html",
             "title": "Ubuntu 20 - black screen using xrdp from Windows 10",

@@ -3,12 +3,41 @@
     <title>bensonlabs.org</title>
     <link href="https://bensonlabs.github.io/blog/feed.xml" rel="self" />
     <link href="https://bensonlabs.github.io/blog" />
-    <updated>2020-06-08T08:24:10-07:00</updated>
+    <updated>2021-03-03T08:26:59-08:00</updated>
     <author>
         <name>Justin Benson</name>
     </author>
     <id>https://bensonlabs.github.io/blog</id>
 
+    <entry>
+        <title>Re-Establish Domain Relationship trust using PowerShell</title>
+        <author>
+            <name>Justin Benson</name>
+        </author>
+        <link href="https://bensonlabs.github.io/blog/re-establish-domain-relationship-trust-using-powershell.html"/>
+        <id>https://bensonlabs.github.io/blog/re-establish-domain-relationship-trust-using-powershell.html</id>
+
+        <updated>2021-03-03T08:26:59-08:00</updated>
+            <summary>
+                <![CDATA[
+                    Log on Windows 10 using local Administrator accountOpen Powershell terminal as adminRun $credential = Get-Credential and press EnterEnter YOUR account (which as admin rights) and password and then click OKRunReset-ComputerMachinePassword -Credential $credential and press EnterClose PowerShellRestart Log on Windows 10 using domain user account
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                <ol>
+<li>Log on Windows 10 using local Administrator account</li>
+<li>Open Powershell terminal as admin</li>
+<li>Run <strong><code>$credential = Get-Credential</code> </strong>and press Enter</li>
+<li>Enter YOUR account (which as admin rights) and password and then click OK</li>
+<li>Run<strong><code>Reset-ComputerMachinePassword -Credential $credential</code> </strong>and press Enter</li>
+<li>Close PowerShell</li>
+<li>Restart </li>
+<li>Log on Windows 10 using domain user account</li>
+</ol>
+            ]]>
+        </content>
+    </entry>
     <entry>
         <title>Ubuntu 20 - black screen using xrdp from Windows 10</title>
         <author>
