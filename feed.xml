@@ -3,12 +3,32 @@
     <title>bensonlabs.org</title>
     <link href="https://bensonlabs.github.io/blog/feed.xml" rel="self" />
     <link href="https://bensonlabs.github.io/blog" />
-    <updated>2021-03-03T08:26:59-08:00</updated>
+    <updated>2021-05-11T12:21:07-07:00</updated>
     <author>
         <name>Justin Benson</name>
     </author>
     <id>https://bensonlabs.github.io/blog</id>
 
+    <entry>
+        <title>macOS - Remove SafeMine profile</title>
+        <author>
+            <name>Justin Benson</name>
+        </author>
+        <link href="https://bensonlabs.github.io/blog/macos-remove-safemine-profile.html"/>
+        <id>https://bensonlabs.github.io/blog/macos-remove-safemine-profile.html</id>
+
+        <updated>2021-05-11T12:21:07-07:00</updated>
+            <summary>
+                <![CDATA[
+                    # Save these steps somewhere safe and close Chrome. # Click the "Preferences" icon in your Mac's menu bar and select "Profiles". #Select all "AdminPrefs" profile(s) and delete it/them by clicking the minus (-) icon at the bottom. #Once you've removed the unwanted "adminprefs" profile(s),&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                <p># Save these steps somewhere safe and close Chrome.<br># Click the "Preferences" icon in your Mac's menu bar and select "Profiles".<br>#Select all "AdminPrefs" profile(s) and delete it/them by clicking the minus (-) icon at the bottom.<br>#Once you've removed the unwanted "adminprefs" profile(s), you should be able to follow these steps:<br>#Open the Terminal app (Go &gt; Utilities &gt; Terminal or press Command+Space and search Terminal)<br>#Enter the commands below and hit the Enter key after each one:<br><br><br>defaults write com.google.Chrome HomepageIsNewTabPage -bool false<br>defaults write com.google.Chrome NewTabPageLocation -string "https://www.google.com/"<br>defaults write com.google.Chrome HomepageLocation -string "https://www.google.com/"<br>defaults delete com.google.Chrome DefaultSearchProviderSearchURL<br>defaults delete com.google.Chrome DefaultSearchProviderNewTabURL<br>defaults delete com.google.Chrome DefaultSearchProviderName<br><br><br>echo "Now restart Chrome and the issue should be resolved. If not, you may need to restart your Mac."<br><br><br>#https://support.google.com/chrome/thread/9350623?hl=en</p>
+            ]]>
+        </content>
+    </entry>
     <entry>
         <title>Re-Establish Domain Relationship trust using PowerShell</title>
         <author>
