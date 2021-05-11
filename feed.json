@@ -11,6 +11,20 @@
     },
     "items": [
         {
+            "id": "https://bensonlabs.github.io/blog/powershell-remove-dell-supportassist-msi.html",
+            "url": "https://bensonlabs.github.io/blog/powershell-remove-dell-supportassist-msi.html",
+            "title": "Powershell - Remove Dell SupportAssist msi ",
+            "summary": "#Remove Dell SupportAssist msi Uninstall-Package -ProviderName msi -Name 'Dell SupportAssist' #Remove Dell SupportAssist Windows Store app Get-AppxPackage *SupportAssist* | Remove-AppPackage",
+            "content_html": "<p>#Remove Dell SupportAssist msi <br>Uninstall-Package -ProviderName msi -Name 'Dell SupportAssist'<br><br>#Remove Dell SupportAssist Windows Store app<br>Get-AppxPackage *SupportAssist* | Remove-AppPackage</p>",
+            "author": {
+                "name": "Justin Benson"
+            },
+            "tags": [
+            ],
+            "date_published": "2021-05-11T12:23:49-07:00",
+            "date_modified": "2021-05-11T12:23:49-07:00"
+        },
+        {
             "id": "https://bensonlabs.github.io/blog/macos-remove-safemine-profile.html",
             "url": "https://bensonlabs.github.io/blog/macos-remove-safemine-profile.html",
             "title": "macOS - Remove SafeMine profile",
@@ -28,7 +42,7 @@
             "id": "https://bensonlabs.github.io/blog/re-establish-domain-relationship-trust-using-powershell.html",
             "url": "https://bensonlabs.github.io/blog/re-establish-domain-relationship-trust-using-powershell.html",
             "title": "Re-Establish Domain Relationship trust using PowerShell",
-            "summary": "Log on Windows 10 using local Administrator accountOpen Powershell terminal as adminRun $credential = Get-Credential and press EnterEnter YOUR account (which as admin rights) and password and then click OKRunReset-ComputerMachinePassword -Credential $credential and press EnterClose PowerShellRestart Log on Windows 10 using domain user account",
+            "summary": " Log on Windows 10 using local Administrator account Open Powershell terminal as admin Run $credential = Get-Credential and press Enter Enter YOUR account (which as admin rights) and password and then click OK RunReset-ComputerMachinePassword -Credential $credential and press Enter Close PowerShell Restart Log on Windows 10 using domain user account ",
             "content_html": "<ol>\n<li>Log on Windows 10 using local Administrator account</li>\n<li>Open Powershell terminal as admin</li>\n<li>Run <strong><code>$credential = Get-Credential</code> </strong>and press Enter</li>\n<li>Enter YOUR account (which as admin rights) and password and then click OK</li>\n<li>Run<strong><code>Reset-ComputerMachinePassword -Credential $credential</code> </strong>and press Enter</li>\n<li>Close PowerShell</li>\n<li>Restart </li>\n<li>Log on Windows 10 using domain user account</li>\n</ol>",
             "author": {
                 "name": "Justin Benson"
@@ -98,7 +112,7 @@
             "id": "https://bensonlabs.github.io/blog/macos-remove-searchmine-malware-script.html",
             "url": "https://bensonlabs.github.io/blog/macos-remove-searchmine-malware-script.html",
             "title": "macOS - Remove SearchMine malware script",
-            "summary": "Save these steps somewhere safe and close Chrome.Click the \"Preferences\" icon in your Mac's menu bar and select \"Profiles\".Select all \"AdminPrefs\" profile(s) and delete it/them by clicking the minus (-) icon at the bottom.Once you've removed the unwanted \"adminprefs\" profile(s), you should be able to&hellip;",
+            "summary": " Save these steps somewhere safe and close Chrome. Click the \"Preferences\" icon in your Mac's menu bar and select \"Profiles\". Select all \"AdminPrefs\" profile(s) and delete it/them by clicking the minus (-) icon at the bottom. Once you've removed the unwanted \"adminprefs\" profile(s), you&hellip;",
             "content_html": "<ol>\n<li>Save these steps somewhere safe and close Chrome.</li>\n<li>Click the \"Preferences\" icon in your Mac's menu bar and select \"Profiles\".</li>\n<li>Select all \"AdminPrefs\" profile(s) and delete it/them by clicking the minus (-) icon at the bottom.</li>\n<li>Once you've removed the unwanted \"adminprefs\" profile(s), you should be able to follow these steps:</li>\n<li>Open the Terminal app (Go &gt; Utilities &gt; Terminal or press Command+Space and search Terminal)</li>\n<li>Enter the commands below and hit the Enter key after each one:</li>\n</ol>\n<p>(or put it into a .sh script, then run as sudo):</p>\n<pre>#!/bin/bash<br><br>defaults write com.google.Chrome HomepageIsNewTabPage -bool false<br>defaults write com.google.Chrome NewTabPageLocation -string https://www.google.com/\"<br>defaults write com.google.Chrome HomepageLocation -string “https://www.google.com/”<br>defaults delete com.google.Chrome DefaultSearchProviderSearchURL<br>defaults delete com.google.Chrome DefaultSearchProviderNewTabURL<br>defaults delete com.google.Chrome DefaultSearchProviderName</pre>\n<p>Now restart Chrome and the issue should be resolved. If not, you may need to restart your Mac.</p>\n<p>Reference: https://support.google.com/chrome/thread/9350623?hl=en</p>",
             "author": {
                 "name": "Justin Benson"
@@ -112,7 +126,7 @@
             "id": "https://bensonlabs.github.io/blog/directaccess-stuck-trying-to-connect.html",
             "url": "https://bensonlabs.github.io/blog/directaccess-stuck-trying-to-connect.html",
             "title": "DirectAccess stuck connecting",
-            "summary": "Remote into computer with DirectAccess issues.Copy the install folder of your VPN over remote connection.Install and connect through VPN and run this 2 times in CMD with admin privileges: GPUPDATE /FORCESign out/sign inUninstall the VPN (DirectAccess might not let you connect to folders until VPN is&hellip;",
+            "summary": " Remote into computer with DirectAccess issues. Copy the install folder of your VPN over remote connection. Install and connect through VPN and run this 2 times in CMD with admin privileges: GPUPDATE /FORCE Sign out/sign in Uninstall the VPN (DirectAccess might not let you connect&hellip;",
             "content_html": "<ol>\n<li>Remote into computer with DirectAccess issues.</li>\n<li>Copy the install folder of your VPN over remote connection.</li>\n<li>Install and connect through VPN and run this 2 times in CMD with admin privileges: GPUPDATE /FORCE</li>\n<li>Sign out/sign in</li>\n<li>Uninstall the VPN (DirectAccess might not let you connect to folders until VPN is disconnected.  Better to just uninstall it.</li>\n</ol>",
             "author": {
                 "name": "Justin Benson"

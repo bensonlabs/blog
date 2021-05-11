@@ -3,12 +3,32 @@
     <title>bensonlabs.org</title>
     <link href="https://bensonlabs.github.io/blog/feed.xml" rel="self" />
     <link href="https://bensonlabs.github.io/blog" />
-    <updated>2021-05-11T12:21:07-07:00</updated>
+    <updated>2021-05-11T12:23:49-07:00</updated>
     <author>
         <name>Justin Benson</name>
     </author>
     <id>https://bensonlabs.github.io/blog</id>
 
+    <entry>
+        <title>Powershell - Remove Dell SupportAssist msi </title>
+        <author>
+            <name>Justin Benson</name>
+        </author>
+        <link href="https://bensonlabs.github.io/blog/powershell-remove-dell-supportassist-msi.html"/>
+        <id>https://bensonlabs.github.io/blog/powershell-remove-dell-supportassist-msi.html</id>
+
+        <updated>2021-05-11T12:23:49-07:00</updated>
+            <summary>
+                <![CDATA[
+                    #Remove Dell SupportAssist msi Uninstall-Package -ProviderName msi -Name 'Dell SupportAssist' #Remove Dell SupportAssist Windows Store app Get-AppxPackage *SupportAssist* | Remove-AppPackage
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                <p>#Remove Dell SupportAssist msi <br>Uninstall-Package -ProviderName msi -Name 'Dell SupportAssist'<br><br>#Remove Dell SupportAssist Windows Store app<br>Get-AppxPackage *SupportAssist* | Remove-AppPackage</p>
+            ]]>
+        </content>
+    </entry>
     <entry>
         <title>macOS - Remove SafeMine profile</title>
         <author>
@@ -40,7 +60,7 @@
         <updated>2021-03-03T08:26:59-08:00</updated>
             <summary>
                 <![CDATA[
-                    Log on Windows 10 using local Administrator accountOpen Powershell terminal as adminRun $credential = Get-Credential and press EnterEnter YOUR account (which as admin rights) and password and then click OKRunReset-ComputerMachinePassword -Credential $credential and press EnterClose PowerShellRestart Log on Windows 10 using domain user account
+                     Log on Windows 10 using local Administrator account Open Powershell terminal as admin Run $credential = Get-Credential and press Enter Enter YOUR account (which as admin rights) and password and then click OK RunReset-ComputerMachinePassword -Credential $credential and press Enter Close PowerShell Restart Log on Windows 10 using domain user account 
                 ]]>
             </summary>
         <content type="html">
@@ -179,7 +199,7 @@
         <updated>2020-05-06T14:45:08-07:00</updated>
             <summary>
                 <![CDATA[
-                    Save these steps somewhere safe and close Chrome.Click the "Preferences" icon in your Mac's menu bar and select "Profiles".Select all "AdminPrefs" profile(s) and delete it/them by clicking the minus (-) icon at the bottom.Once you've removed the unwanted "adminprefs" profile(s), you should be able to&hellip;
+                     Save these steps somewhere safe and close Chrome. Click the "Preferences" icon in your Mac's menu bar and select "Profiles". Select all "AdminPrefs" profile(s) and delete it/them by clicking the minus (-) icon at the bottom. Once you've removed the unwanted "adminprefs" profile(s), you&hellip;
                 ]]>
             </summary>
         <content type="html">
@@ -210,7 +230,7 @@
         <updated>2020-05-05T11:22:08-07:00</updated>
             <summary>
                 <![CDATA[
-                    Remote into computer with DirectAccess issues.Copy the install folder of your VPN over remote connection.Install and connect through VPN and run this 2 times in CMD with admin privileges: GPUPDATE /FORCESign out/sign inUninstall the VPN (DirectAccess might not let you connect to folders until VPN is&hellip;
+                     Remote into computer with DirectAccess issues. Copy the install folder of your VPN over remote connection. Install and connect through VPN and run this 2 times in CMD with admin privileges: GPUPDATE /FORCE Sign out/sign in Uninstall the VPN (DirectAccess might not let you connect&hellip;
                 ]]>
             </summary>
         <content type="html">
