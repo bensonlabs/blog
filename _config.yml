@@ -1,0 +1,38 @@
+title: "Benson Labs Blog"
+description: "Troubleshooting fixes and personal notes"
+url: "https://bensonlabs.org"
+baseurl: ""
+author:
+  name: "Justin Benson"
+  twitter: "@bensonlab"
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+permalink: /:title/
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+# Feed
+feed:
+  path: feed.xml
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+      author: "Justin Benson"
+
+# Exclude from build
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - .jekyll-cache
