@@ -1,3 +1,3 @@
 User-agent: *
 Disallow:
-Sitemap: https://bensonlabs.github.io/blog/sitemap.xml
+Sitemap: https://bensonlabs.org/sitemap.xml
