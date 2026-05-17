@@ -1,4 +1,4 @@
-# Benson Labs Blog
+# bensonlabs.org blog
 
 Personal blog at [bensonlabs.org](https://bensonlabs.org) — troubleshooting fixes and technical notes.
 
