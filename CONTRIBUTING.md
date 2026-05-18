@@ -144,11 +144,29 @@ blog/
 │   └── css/
 │       └── main.css
 ├── media/                     # Images and other assets
+├── workouts/                  # Static HTML content (not Jekyll-rendered)
+│   └── index.html            # Self-contained workouts page
 ├── _config.yml                # Jekyll configuration
-├── CNAME                      # Custom domain (bensonlabs.org)
-├── Gemfile                    # Ruby dependencies
+├── CNAME                       # Custom domain (bensonlabs.org)
+├── Gemfile                     # Ruby dependencies
 └── README.md
 ```
+
+## Static HTML Pages (No Jekyll Processing)
+
+Files **without Jekyll frontmatter** are served as-is and not processed by Jekyll.
+
+### Example: `/workouts/index.html`
+- Located at: `workouts/index.html`
+- Accessed at: `https://bensonlabs.org/workouts/`
+- Self-contained HTML (no Jekyll rendering)
+- Perfect for standalone pages, embeds, or custom layouts
+
+**To create a static page:**
+1. Create a folder in the root: `your-folder/`
+2. Add `index.html` with your HTML content (no `---` frontmatter)
+3. Commit and push
+4. Access at: `https://bensonlabs.org/your-folder/`
 
 ## Viewing Your Site Locally
 
@@ -187,6 +205,11 @@ To preview changes before publishing:
 ### Need to add images?
 - Upload to `media/` folder
 - Reference in post: `![description](../media/image.png)`
+
+### Static page not showing?
+- Ensure the file has **no Jekyll frontmatter** (no `---`)
+- Check the file path matches the URL structure
+- Rebuild with `bundle exec jekyll serve` locally
 
 ## Resources
 
