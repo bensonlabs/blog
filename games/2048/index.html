@@ -624,10 +624,10 @@
       // Find the tile at that position in the container
       const tiles = elContainer.querySelectorAll('.tile');
       tiles.forEach(t => {
-        const l = parseFloat(t.style.left);
-        const top = parseFloat(t.style.top);
+        const l       = parseFloat(t.style.left);
+        const tileTop = parseFloat(t.style.top);
         const ec = Math.round((l - padding) / (cellSize + gap));
-        const er = Math.round((top - padding) / (cellSize + gap));
+        const er = Math.round((tileTop - padding) / (cellSize + gap));
         if (er === r && ec === c) t.classList.add('new');
       });
     }
