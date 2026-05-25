@@ -374,7 +374,7 @@ let revealed = Array.from({length: ROWS}, () => Array(COLS).fill(""));
 let gameOver = false;
 let flipping = false;
 
-// ── Stats ─────────────────────────────────────────────────────────────[...]
+// ── Stats ───────────────────────────────────────────────────────────[...]
 function loadStats() {
   try {
     return JSON.parse(localStorage.getItem("nw_stats") || "{}");
@@ -413,7 +413,7 @@ function renderStats() {
   document.getElementById("s-best").textContent = s.best;
 }
 
-// ── Build DOM ──────────────────────────────────────────────────────────–[...]
+// ── Build DOM ──────────────────────────────────────────────────────────[...]
 function buildGrid() {
   const grid = document.getElementById("grid");
   grid.innerHTML = "";
@@ -455,7 +455,7 @@ function buildKeyboard() {
   });
 }
 
-// ── Tile helpers ─────────────────────────────────────────────────────────–[...]
+// ── Tile helpers ─────────────────────────────────────────────────────────[...]
 function getTile(r, c) {
   return document.getElementById(`tile-${r}-${c}`);
 }
@@ -519,6 +519,8 @@ function updateKeyState(letter, state) {
 // ── Reveal row with flip animation ──────────────────────────────────────────
 function revealRow(r, result, callback) {
   flipping = true;
+  let completed = 0;
+  
   result.forEach((state, c) => {
     const tile = getTile(r, c);
     setTimeout(() => {
@@ -529,25 +531,26 @@ function revealRow(r, result, callback) {
         tile.classList.add(state);
         revealed[r][c] = state;
         updateKeyState(board[r][c], state);
-        if (c === COLS - 1) {
-          setTimeout(() => {
-            flipping = false;
-            if (callback) callback();
-          }, 100);
+        completed++;
+        
+        // Only fire callback when all tiles are done
+        if (completed === COLS) {
+          flipping = false;
+          if (callback) callback();
         }
       }, 250); // mid-flip
     }, c * 100);
   });
 }
 
-// ── Message display ────────────────────────────────────────────────────────–[...]
+// ── Message display ────────────────────────────────────────────────────────[...]
 function showMessage(msg, cls) {
   const el = document.getElementById("message");
   el.textContent = msg;
   el.className = cls || "";
 }
 
-// ── Shake row ──────────────────────────────────────────────────────────–[...]
+// ── Shake row ──────────────────────────────────────────────────────────[...]
 function shakeRow(r) {
   const row = document.getElementById(`row-${r}`);
   row.classList.remove("shake");
@@ -556,7 +559,7 @@ function shakeRow(r) {
   setTimeout(() => row.classList.remove("shake"), 500);
 }
 
-// ── Submit guess ─────────────────────────────────────────────────────────–[...]
+// ── Submit guess ─────────────────────────────────────────────────────────[...]
 function submitGuess() {
   if (gameOver || flipping) return;
   const guess = board[currentRow].join("").toLowerCase();
@@ -571,7 +574,9 @@ function submitGuess() {
 
   revealRow(currentRow, result, () => {
     const won = result.every(s => s === "correct");
+    currentCol = 0; // Reset column for next row
     currentRow++;
+    
     if (won) {
       gameOver = true;
       const msgs = ["Genius!", "Magnificent!", "Impressive!", "Splendid!", "Great!", "Phew!"];
@@ -587,7 +592,7 @@ function submitGuess() {
   });
 }
 
-// ── Handle input ─────────────────────────────────────────────────────────–[...]
+// ── Handle input ─────────────────────────────────────────────────────────[...]
 function handleKey(key) {
   if (gameOver || flipping) return;
 
@@ -615,12 +620,12 @@ document.addEventListener("keydown", e => {
   else handleKey(e.key);
 });
 
-// ── Stats toggle ─────────────────────────────────────────────────────────–[...]
+// ── Stats toggle ─────────────────────────────────────────────────────────[...]
 document.getElementById("stats-btn").addEventListener("click", () => {
   document.getElementById("stats-panel").classList.toggle("visible");
 });
 
-// ── Replay ───────────────────────────────────────────────────────────–[...]
+// ── Replay ───────────────────────────────────────────────────────────[...]
 document.getElementById("replay-btn").addEventListener("click", () => {
   startGame();
 });
