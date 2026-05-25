@@ -6,6 +6,16 @@ Built with [Jekyll](https://jekyllrb.com) and hosted on [GitHub Pages](https://p
 
 ---
 
+## Tech Stack
+
+- **Static Site Generator**: Jekyll (Ruby)
+- **Hosting**: GitHub Pages
+- **Styling**: Custom CSS with Obsidian dark theme
+- **Games**: Vanilla HTML5, CSS3, and JavaScript
+- **Version Control**: Git + GitHub
+
+---
+
 ## Site Sections
 
 ### **Blog** (`/`)
@@ -15,6 +25,7 @@ Technical troubleshooting and notes on Windows, PowerShell, networking, security
 Interactive browser games built with vanilla HTML/CSS/JavaScript. Extensible hub featuring:
 - **2048** — Classic tile-merging puzzle game with undo, score tracking, and mobile support
 - **not-Wordle** — 5-letter word guessing game with statistics tracking
+- **Brick Break** — Classic brick-breaker with 3 difficulty levels, angle-based paddle physics, level progression, and high-score tracking
 
 Adding a new game: Add one entry to the `GAMES` array in `/games/index.html` and drop the game folder in `/games/`.
 
@@ -25,6 +36,23 @@ Adding a new game: Add one entry to the `GAMES` array in `/games/index.html` and
 - MetCon conditioning
 - Accessory volume and core training
 - Mobile-friendly collapsible sections
+
+---
+
+## Design & Styling
+
+The site uses a custom **Obsidian dark theme** color palette for a consistent, modern aesthetic:
+
+- **Background**: `#1e1e1e` (deep dark)
+- **Surface**: `#252525` (card backgrounds)
+- **Card**: `#2d2d2d` (game cards)
+- **Border**: `#3a3a3a` (dividers & borders)
+- **Accent**: `#7c3aed` (purple - primary actions)
+- **Accent 2**: `#a78bfa` (light purple - links & hover states)
+- **Text**: `#dcddde` (light gray - readable on dark)
+- **Muted**: `#888` (secondary text)
+
+All pages are fully responsive and optimized for mobile devices with touch-friendly interactions.
 
 ---
 
@@ -163,12 +191,14 @@ blog/
 │   └── YYYY-MM-DD-title.md
 ├── assets/
 │   └── css/
-│       └── main.css     # Site styles
+│       └── main.css     # Site styles (Obsidian dark theme)
 ├── games/               # Interactive games hub
 │   ├── index.html       # Games hub page
 │   ├── 2048/
 │   │   └── index.html
-│   └── not-wordle/
+│   ├── not-wordle/
+│   │   └── index.html
+│   └── breakout/
 │       └── index.html
 ├── workouts/            # 12-week training program
 │   └── index.html
@@ -176,6 +206,19 @@ blog/
 ├── index.html           # Blog homepage (post list)
 ├── CNAME                # Custom domain (bensonlabs.org)
 ├── robots.txt           # Search engine instructions
+├── README.md            # This file
 └── .github/workflows/
     └── jekyll.yml       # Auto-deploy on push
 ```
+
+---
+
+## Contributing
+
+Found an issue or have a suggestion? Feel free to open an issue or submit a PR!
+
+---
+
+## License
+
+Personal project. All content is proprietary unless otherwise noted.
