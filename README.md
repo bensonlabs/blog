@@ -1,12 +1,34 @@
 # bensonlabs.org blog
 
-Personal blog at [bensonlabs.org](https://bensonlabs.org) — troubleshooting fixes and technical notes.
+Personal blog, games, and fitness tracking at [bensonlabs.org](https://bensonlabs.org) — troubleshooting fixes, technical notes, interactive games, and a 12-week workout program.
 
 Built with [Jekyll](https://jekyllrb.com) and hosted on [GitHub Pages](https://pages.github.com).
 
 ---
 
-## Adding a New Post (Obsidian + GitHub Workflow)
+## Site Sections
+
+### **Blog** (`/`)
+Technical troubleshooting and notes on Windows, PowerShell, networking, security, and more.
+
+### **Games** (`/games/`)
+Interactive browser games built with vanilla HTML/CSS/JavaScript. Extensible hub featuring:
+- **2048** — Classic tile-merging puzzle game with undo, score tracking, and mobile support
+- **not-Wordle** — 5-letter word guessing game with statistics tracking
+
+Adding a new game: Add one entry to the `GAMES` array in `/games/index.html` and drop the game folder in `/games/`.
+
+### **Workouts** (`/workouts/`)
+12-week mesocycle strength training program with detailed day-by-day breakdowns including:
+- Strength progressions (Hypertrophy, Strength, Peaking phases)
+- Olympic lifting skill work
+- MetCon conditioning
+- Accessory volume and core training
+- Mobile-friendly collapsible sections
+
+---
+
+## Adding a New Blog Post (Obsidian + GitHub Workflow)
 
 ### 1. Write in Obsidian
 
@@ -62,6 +84,41 @@ GitHub Actions will automatically build and deploy the site within ~60 seconds.
 
 ---
 
+## Adding a New Game
+
+Games are stored in `/games/` with a hub at `/games/index.html`.
+
+### 1. Create Game Folder
+
+```
+games/your-game/
+├── index.html
+├── styles.css (optional, can be inline)
+└── script.js (optional, can be inline)
+```
+
+### 2. Register in Games Hub
+
+Edit `/games/index.html` and add your game to the `GAMES` array:
+
+```javascript
+const GAMES = [
+  {
+    title: "Your Game",
+    emoji: "🎮",
+    description: "Brief description of gameplay.",
+    path: "/games/your-game/"
+  },
+  // ... existing games
+];
+```
+
+### 3. Commit and Push
+
+The game card will automatically appear on the games hub once deployed.
+
+---
+
 ## Local Development (Optional)
 
 If you want to preview the site locally before pushing:
@@ -79,7 +136,7 @@ open http://localhost:4000
 
 ---
 
-## Suggested Categories
+## Suggested Blog Categories
 
 | Category | Use for |
 |----------|---------|
@@ -107,8 +164,16 @@ blog/
 ├── assets/
 │   └── css/
 │       └── main.css     # Site styles
+├── games/               # Interactive games hub
+│   ├── index.html       # Games hub page
+│   ├── 2048/
+│   │   └── index.html
+│   └── not-wordle/
+│       └── index.html
+├── workouts/            # 12-week training program
+│   └── index.html
 ├── about.md             # About page
-├── index.html           # Homepage (post list)
+├── index.html           # Blog homepage (post list)
 ├── CNAME                # Custom domain (bensonlabs.org)
 ├── robots.txt           # Search engine instructions
 └── .github/workflows/
