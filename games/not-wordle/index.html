@@ -30,6 +30,7 @@
     min-height: 100vh;
     padding: 0 8px 24px;
     user-select: none;
+    overflow-x: hidden;
   }
 
   header {
@@ -128,13 +129,13 @@
   }
 
   .tile {
-    width: 58px;
-    height: 58px;
+    width: 48px;
+    height: 48px;
     border: 2px solid var(--border);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.75rem;
+    font-size: 1.5rem;
     font-weight: 700;
     text-transform: uppercase;
     color: var(--text);
@@ -254,7 +255,7 @@
   #replay-btn.visible { display: block; }
 
   @media (max-width: 380px) {
-    .tile { width: 50px; height: 50px; font-size: 1.5rem; }
+    .tile { width: 42px; height: 42px; font-size: 1.3rem; }
     .key { height: 48px; }
   }
 </style>
@@ -365,7 +366,7 @@ const WORDS = [
   "yield","young","youth","zippy","zonal","zombi","zooms"
 ].filter(w => w.length === 5);
 
-// ── Game state ──────────────────────────────────────────────────────────────
+// ── Game state ──────────────────────────────────────────────────────────[...]
 const ROWS = 6, COLS = 5;
 let target = "", currentRow = 0, currentCol = 0;
 let board = Array.from({length: ROWS}, () => Array(COLS).fill(""));
@@ -373,7 +374,7 @@ let revealed = Array.from({length: ROWS}, () => Array(COLS).fill(""));
 let gameOver = false;
 let flipping = false;
 
-// ── Stats ───────────────────────────────────────────────────────────────────
+// ── Stats ─────────────────────────────────────────────────────────────[...]
 function loadStats() {
   try {
     return JSON.parse(localStorage.getItem("nw_stats") || "{}");
@@ -412,7 +413,7 @@ function renderStats() {
   document.getElementById("s-best").textContent = s.best;
 }
 
-// ── Build DOM ───────────────────────────────────────────────────────────────
+// ── Build DOM ──────────────────────────────────────────────────────────–[...]
 function buildGrid() {
   const grid = document.getElementById("grid");
   grid.innerHTML = "";
@@ -454,7 +455,7 @@ function buildKeyboard() {
   });
 }
 
-// ── Tile helpers ─────────────────────────────────────────────────────────────
+// ── Tile helpers ─────────────────────────────────────────────────────────–[...]
 function getTile(r, c) {
   return document.getElementById(`tile-${r}-${c}`);
 }
@@ -472,7 +473,7 @@ function setTileLetter(r, c, letter) {
   }
 }
 
-// ── Scoring ──────────────────────────────────────────────────────────────────
+// ── Scoring ───────────────────────────────────────────────────────────[...]
 function scoreGuess(guess, answer) {
   const result = Array(COLS).fill("absent");
   const ansArr = answer.split("");
@@ -539,14 +540,14 @@ function revealRow(r, result, callback) {
   });
 }
 
-// ── Message display ──────────────────────────────────────────────────────────
+// ── Message display ────────────────────────────────────────────────────────–[...]
 function showMessage(msg, cls) {
   const el = document.getElementById("message");
   el.textContent = msg;
   el.className = cls || "";
 }
 
-// ── Shake row ────────────────────────────────────────────────────────────────
+// ── Shake row ──────────────────────────────────────────────────────────–[...]
 function shakeRow(r) {
   const row = document.getElementById(`row-${r}`);
   row.classList.remove("shake");
@@ -555,7 +556,7 @@ function shakeRow(r) {
   setTimeout(() => row.classList.remove("shake"), 500);
 }
 
-// ── Submit guess ─────────────────────────────────────────────────────────────
+// ── Submit guess ─────────────────────────────────────────────────────────–[...]
 function submitGuess() {
   if (gameOver || flipping) return;
   const guess = board[currentRow].join("").toLowerCase();
@@ -586,7 +587,7 @@ function submitGuess() {
   });
 }
 
-// ── Handle input ─────────────────────────────────────────────────────────────
+// ── Handle input ─────────────────────────────────────────────────────────–[...]
 function handleKey(key) {
   if (gameOver || flipping) return;
 
@@ -614,17 +615,17 @@ document.addEventListener("keydown", e => {
   else handleKey(e.key);
 });
 
-// ── Stats toggle ─────────────────────────────────────────────────────────────
+// ── Stats toggle ─────────────────────────────────────────────────────────–[...]
 document.getElementById("stats-btn").addEventListener("click", () => {
   document.getElementById("stats-panel").classList.toggle("visible");
 });
 
-// ── Replay ───────────────────────────────────────────────────────────────────
+// ── Replay ───────────────────────────────────────────────────────────–[...]
 document.getElementById("replay-btn").addEventListener("click", () => {
   startGame();
 });
 
-// ── Start / reset ────────────────────────────────────────────────────────────
+// ── Start / reset ─────────────────────────────────────────────────────────[...]
 function startGame() {
   target = WORDS[Math.floor(Math.random() * WORDS.length)];
   currentRow = 0;
