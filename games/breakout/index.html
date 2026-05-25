@@ -349,7 +349,7 @@
     <button class="btn btn-outline" id="btn-new">New Game</button>
   </div>
 
-  <div class="hint">Move paddle with mouse or ← → arrow keys &nbsp;|&nbsp; P to pause</div>
+  <div class="hint">Move paddle with mouse, ← → arrow keys, or A / D &nbsp;|&nbsp; P or Space to pause</div>
 
   <footer class="page-footer">
     <p><a href="/games/">← Back to Games</a></p>
@@ -387,6 +387,9 @@ const WALL_L        = 10;
 const WALL_R        = CW - 10;
 const WALL_T        = 10;
 const MAX_LEVELS    = 3;
+const FRAME_TIME_MS = 16.667;  // ~60 fps reference frame time
+const MAX_DEFLECT   = 65;      // max paddle deflection angle in degrees
+const MIN_VERT_RATIO = 0.3;    // minimum vertical speed ratio after paddle hit
 
 // ── STATE ────────────────────────────────────────────────────────
 let state = 'idle';  // idle | playing | paused | levelup | gameover | win
@@ -519,7 +522,7 @@ function requestFrame() {
 
 function loop(ts) {
   if (state !== 'playing') return;
-  const dt = Math.min((ts - lastTime) / 16.667, 3); // cap at 3 frames lag
+  const dt = Math.min((ts - lastTime) / FRAME_TIME_MS, 3); // cap at 3 frames lag
   lastTime = ts;
   update(dt);
   draw();
@@ -580,12 +583,12 @@ function moveBall(dt) {
     // Vary angle by hit position: -1 (left edge) to +1 (right edge)
     const hitPos = ((ball.x - paddle.x) / paddle.w) * 2 - 1; // -1..1
     const speed   = Math.hypot(ball.vx, ball.vy);
-    const maxAngle = 65 * (Math.PI / 180);
+    const maxAngle = MAX_DEFLECT * (Math.PI / 180);
     const angle    = hitPos * maxAngle;
     ball.vx = speed * Math.sin(angle);
     ball.vy = -speed * Math.cos(angle);
     // Ensure minimum vertical component
-    if (Math.abs(ball.vy) < speed * 0.3) ball.vy = -speed * 0.3;
+    if (Math.abs(ball.vy) < speed * MIN_VERT_RATIO) ball.vy = -speed * MIN_VERT_RATIO;
   }
 
   // Ball fell below paddle
