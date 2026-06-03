@@ -1,4 +1,10 @@
-
+---
+layout: post
+title: "hw-summer-laptops"
+date: 2026-06-03
+author: Justin Benson
+categories: [powershell, windows, dell]
+---
 1. Log in as loaner.
 2. Right-click Start.
 3. Open Terminal / PowerShell as Administrator.
