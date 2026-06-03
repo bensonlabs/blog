@@ -15,3 +15,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Invoke-RestMethod ht
 5. Wait for “Setup complete.”
 6. Reboot if prompted.
 7. Logs: C:\ProgramData\HW-Summer\Logs
+8. Use during testing:
+```powershell
+https://raw.githubusercontent.com/bensonlabs/HW-Summer/main/scripts/bootstrap.ps1
+```
