@@ -14,4 +14,4 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Invoke-RestMethod ht
 ```
 5. Wait for “Setup complete.”
 6. Reboot if prompted.
-Logs: C:\ProgramData\HW-Summer\Logs
+7. Logs: C:\ProgramData\HW-Summer\Logs
