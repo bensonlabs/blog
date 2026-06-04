@@ -29,3 +29,59 @@ layout: default
     {% endif %}
   </div>
 </article>
+
+<style>
+  .copy-code-wrapper {
+    position: relative;
+  }
+
+  .copy-code-wrapper pre {
+    padding-top: 2.25rem;
+  }
+
+  .copy-code-button {
+    position: absolute;
+    top: 0.45rem;
+    right: 0.45rem;
+    z-index: 1;
+    padding: 0.25rem 0.55rem;
+    border: 1px solid currentColor;
+    border-radius: 4px;
+    background: Canvas;
+    color: CanvasText;
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".post-content pre").forEach(function (pre) {
+      if (pre.parentElement.classList.contains("copy-code-wrapper")) return;
+
+      const wrapper = document.createElement("div");
+      wrapper.className = "copy-code-wrapper";
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "copy-code-button";
+      button.textContent = "Copy";
+
+      pre.parentNode.insertBefore(wrapper, pre);
+      wrapper.appendChild(button);
+      wrapper.appendChild(pre);
+
+      button.addEventListener("click", async function () {
+        const code = pre.querySelector("code");
+        const text = (code || pre).textContent.trim();
+
+        await navigator.clipboard.writeText(text);
+
+        button.textContent = "Copied";
+        setTimeout(function () {
+          button.textContent = "Copy";
+        }, 1500);
+      });
+    });
+  });
+</script>
