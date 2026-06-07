@@ -3,7 +3,7 @@ layout: post
 title: "bootstraps"
 date: 2026-06-06
 author: Justin Benson
-categories: [windows, macos, fedora,]
+categories: [windows, macos, fedora, ubuntu, wsl, wsl2, dev, ai]
 ---
 
 # bootstraps for windows, macOS, Fedora KDE Plasma
