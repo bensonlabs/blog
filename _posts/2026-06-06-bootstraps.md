@@ -8,20 +8,20 @@ categories: [windows, macos, fedora,]
 
 # bootstraps for windows, macOS, Fedora KDE Plasma
 
-# Windows
+## Windows
 ```powershell
-  Set-ExecutionPolicy Bypass -Scope Process -Force; irm https://raw.githubusercontent.com/bensonlabs/bootstraps/main/scripts/bootstrap_windows.ps1 -OutFile bootstrap_windows.ps1; .\bootstrap_windows.ps1
+Set-ExecutionPolicy Bypass -Scope Process -Force; irm https://raw.githubusercontent.com/bensonlabs/bootstraps/main/scripts/bootstrap_windows.ps1 -OutFile bootstrap_windows.ps1; .\bootstrap_windows.ps1
 ```
 Notes: Needs to run in an elevated PowerShell window (right-click → Run as Administrator). The script installs system-level software, so it'll fail partway through without admin
   rights. 
-
-  # macOS
+  
+## macOS
 ```zsh
 bash <(curl -fsSL https://raw.githubusercontent.com/.../bootstrap_macOS.sh)
 ```
-  # Fedora
+## Fedora
 ```bash
- bash <(curl -fsSL https://raw.githubusercontent.com/bensonlabs/bootstraps/main/scripts/bootstrap_fedora.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/bensonlabs/bootstraps/main/scripts/bootstrap_fedora.sh)
 ```
 
 
