@@ -16,9 +16,13 @@ Notes: Needs to run in an elevated PowerShell window (right-click → Run as Adm
   rights. 
 
   # macOS
-
-
+```zsh
+bash <(curl -fsSL https://raw.githubusercontent.com/.../bootstrap_macOS.sh)
+```
   # Fedora
+```bash
+ bash <(curl -fsSL https://raw.githubusercontent.com/bensonlabs/bootstraps/main/scripts/bootstrap_fedora.sh)
+```
 
 
   
