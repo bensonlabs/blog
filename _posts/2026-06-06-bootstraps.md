@@ -28,5 +28,10 @@ bash <(curl -fsSL https://raw.githubusercontent.com/.../bootstrap_macOS.sh)
 bash <(curl -fsSL https://raw.githubusercontent.com/bensonlabs/bootstraps/main/scripts/bootstrap_fedora.sh)
 ```
 
+## Ubuntu
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/bensonlabs/bootstraps/main/scripts/bootstrap_ubuntu.sh)
+```
 
   
