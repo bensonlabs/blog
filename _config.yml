@@ -4,7 +4,7 @@ url: "https://bensonlabs.org"
 baseurl: ""
 author:
   name: "Justin Benson"
-  twitter: "@bensonlab"
+  Github: "@bensonlabs"
 
 # Build settings
 markdown: kramdown
