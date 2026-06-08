@@ -10,8 +10,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <meta name="description" content="A premium, immersive, dynamic productivity dashboard with built-in synthesized focus audio, Pomodoro timer, tasks, scratchpad, and theme options." />
-  <script type="module" crossorigin src="/projects/focus-lab/assets/index-B6JoWVVj.js"></script>
-  <link rel="stylesheet" crossorigin href="/projects/focus-lab/assets/index-BaselmfG.css">
+  <script type="module" crossorigin src="/projects/focus-lab/assets/index-Bg0eg_BK.js"></script>
+  <link rel="stylesheet" crossorigin href="/projects/focus-lab/assets/index-B06zV1B4.css">
 
   <body class="theme-obsidian">
     <div id="app" class="app-container">
@@ -126,7 +126,14 @@
 
               <!-- Presets -->
               <div class="timer-presets">
-                <button class="preset-btn active" data-duration="25" data-type="focus">Focus (25m)</button>
+                <select id="focus-duration-select" class="preset-select">
+                  <option value="10">Focus (10m)</option>
+                  <option value="15">Focus (15m)</option>
+                  <option value="20">Focus (20m)</option>
+                  <option value="25" selected>Focus (25m)</option>
+                  <option value="30">Focus (30m)</option>
+                  <option value="45">Focus (45m)</option>
+                </select>
                 <button class="preset-btn" data-duration="5" data-type="short">Short Break (5m)</button>
                 <button class="preset-btn" data-duration="15" data-type="long">Long Break (15m)</button>
               </div>
