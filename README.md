@@ -21,15 +21,15 @@ Built with [Jekyll](https://jekyllrb.com) and hosted on [GitHub Pages](https://p
 ### **Blog** (`/`)
 Technical troubleshooting and notes on Windows, PowerShell, networking, security, and more.
 
-### **Games** (`/games/`)
+### **Games** (`/projects/games/`)
 Interactive browser games built with vanilla HTML/CSS/JavaScript. Extensible hub featuring:
 - **2048** — Classic tile-merging puzzle game with undo, score tracking, and mobile support
 - **not-Wordle** — 5-letter word guessing game with statistics tracking
 - **Brick Break** — Classic brick-breaker with 3 difficulty levels, angle-based paddle physics, level progression, and high-score tracking
 
-Adding a new game: Add one entry to the `GAMES` array in `/games/index.html` and drop the game folder in `/games/`.
+Adding a new game: Add one entry to the `GAMES` array in `/projects/games/index.html` and drop the game folder in `/projects/games/`.
 
-### **Workouts** (`/workouts/`)
+### **Workouts** (`/projects/workouts/`)
 12-week mesocycle strength training program with detailed day-by-day breakdowns including:
 - Strength progressions (Hypertrophy, Strength, Peaking phases)
 - Olympic lifting skill work
@@ -114,12 +114,12 @@ GitHub Actions will automatically build and deploy the site within ~60 seconds.
 
 ## Adding a New Game
 
-Games are stored in `/games/` with a hub at `/games/index.html`.
+Games are stored in `/projects/games/` with a hub at `/projects/games/index.html`.
 
 ### 1. Create Game Folder
 
 ```
-games/your-game/
+projects/games/your-game/
 ├── index.html
 ├── styles.css (optional, can be inline)
 └── script.js (optional, can be inline)
@@ -127,7 +127,7 @@ games/your-game/
 
 ### 2. Register in Games Hub
 
-Edit `/games/index.html` and add your game to the `GAMES` array:
+Edit `/projects/games/index.html` and add your game to the `GAMES` array:
 
 ```javascript
 const GAMES = [
@@ -135,7 +135,7 @@ const GAMES = [
     title: "Your Game",
     emoji: "🎮",
     description: "Brief description of gameplay.",
-    path: "/games/your-game/"
+    path: "/projects/games/your-game/"
   },
   // ... existing games
 ];

@@ -156,17 +156,18 @@ blog/
 
 Files **without Jekyll frontmatter** are served as-is and not processed by Jekyll.
 
-### Example: `/workouts/index.html`
-- Located at: `workouts/index.html`
-- Accessed at: `https://bensonlabs.org/workouts/`
+### Example: `/projects/workouts/index.html`
+- Located at: `projects/workouts/index.html`
+- Accessed at: `https://bensonlabs.org/projects/workouts/`
 - Self-contained HTML (no Jekyll rendering)
 - Perfect for standalone pages, embeds, or custom layouts
 
-**To create a static page:**
-1. Create a folder in the root: `your-folder/`
+**To create a static page in projects:**
+1. Create a folder in `projects/`: `projects/your-project/`
 2. Add `index.html` with your HTML content (no `---` frontmatter)
-3. Commit and push
-4. Access at: `https://bensonlabs.org/your-folder/`
+3. Update `/projects/README.md` with a link to your new project
+4. Commit and push
+5. Access at: `https://bensonlabs.org/projects/your-project/`
 
 ## Viewing Your Site Locally
 
