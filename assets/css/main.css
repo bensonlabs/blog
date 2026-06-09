@@ -58,15 +58,22 @@ body {
 
 .site-title:hover { color: var(--color-accent); }
 
+.site-nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
 .site-nav a {
   color: var(--color-muted);
   text-decoration: none;
-  margin-left: 1.25rem;
+  margin-left: 0;
   font-size: 0.95rem;
   transition: color 0.15s;
+  white-space: nowrap;
 }
 
-.site-nav a:first-child { margin-left: 0; }
 .site-nav a:hover { color: var(--color-accent2); }
 
 /* Footer */
@@ -310,9 +317,39 @@ pre code {
 }
 
 /* Responsive */
+@media (max-width: 640px) {
+  .site-header .container {
+    display: block;
+  }
+
+  .site-title {
+    display: block;
+    margin-bottom: 0.75rem;
+  }
+
+  .site-nav {
+    flex-wrap: nowrap;
+    gap: 0.75rem;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 0.25rem;
+  }
+
+  .site-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .site-nav a {
+    flex: 0 0 auto;
+    font-size: 0.9rem;
+    padding: 0.35rem 0;
+  }
+}
+
 @media (max-width: 600px) {
   .post-title { font-size: 1.4rem; }
   .post-nav { flex-direction: column; }
   .post-nav .next { text-align: left; margin-left: 0; }
-  .site-nav a { margin-left: 0.75rem; }
 }
