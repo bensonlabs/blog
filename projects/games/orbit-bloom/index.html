@@ -535,8 +535,7 @@
         setTimeout(() => ui.flash.classList.remove("on"), 130);
       }
 
-      const press = (key) => onKeyPress(key, pulse);
-      press("space");
+      onKeyPress("space", pulse);
       onKeyPress("r", () => go("play"));
 
       rebuildSatellites();
