@@ -406,7 +406,7 @@
         <span class="tag">Move</span>WASD or Arrow Keys
         <span class="tag">Pulse</span>Space
         <span class="tag">Restart</span>R
-        <span class="tag">Touch</span>Pad + Pulse + R
+        <span class="tag">Touch</span>Virtual Pad + Buttons
       </small>
       <small id="status">Collect luminous motes to add orbiting shields. Satellites intercept comets for you. When you have no shields left, the next breach ends the run.</small>
     </div>
@@ -434,6 +434,9 @@
     const W = 960;
     const H = 540;
     const TAU = Math.PI * 2;
+    const TOUCH_STICK_MAX_OFFSET = 46;
+    const TOUCH_PAD_ACTIVE_RADIUS_RATIO = 0.36;
+    const TOUCH_PAD_DEADZONE = 0.15;
     const ui = {
       score: document.getElementById("score"),
       time: document.getElementById("time"),
@@ -482,8 +485,8 @@
     ];
     const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
     const updateTouchStick = () => {
-      const tx = touchMove.x * 46;
-      const ty = touchMove.y * 46;
+      const tx = touchMove.x * TOUCH_STICK_MAX_OFFSET;
+      const ty = touchMove.y * TOUCH_STICK_MAX_OFFSET;
       ui.touchStick.style.transform = `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px))`;
     };
     const resetTouchMove = () => {
@@ -498,13 +501,13 @@
       const cy = rect.top + rect.height / 2;
       const dx = clientX - cx;
       const dy = clientY - cy;
-      const max = rect.width * 0.36;
+      const max = rect.width * TOUCH_PAD_ACTIVE_RADIUS_RATIO;
       const len = Math.hypot(dx, dy) || 1;
       const scale = Math.min(1, max / len);
       const nx = (dx * scale) / max;
       const ny = (dy * scale) / max;
-      touchMove.x = Math.abs(nx) < 0.15 ? 0 : clamp(nx, -1, 1);
-      touchMove.y = Math.abs(ny) < 0.15 ? 0 : clamp(ny, -1, 1);
+      touchMove.x = Math.abs(nx) < TOUCH_PAD_DEADZONE ? 0 : clamp(nx, -1, 1);
+      touchMove.y = Math.abs(ny) < TOUCH_PAD_DEADZONE ? 0 : clamp(ny, -1, 1);
       updateTouchStick();
     };
     ui.touchPad.addEventListener("pointerdown", (e) => {
