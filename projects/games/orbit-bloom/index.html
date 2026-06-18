@@ -243,6 +243,145 @@
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
+
+    #touch-controls {
+      position: fixed;
+      inset: auto 0 14px;
+      display: none;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding: 0 max(16px, env(safe-area-inset-left)) max(14px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-right));
+      pointer-events: none;
+      z-index: 15;
+    }
+
+    .touch-pad,
+    .touch-actions {
+      pointer-events: auto;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+    }
+
+    .touch-pad {
+      width: clamp(132px, 28vw, 184px);
+      height: clamp(132px, 28vw, 184px);
+      border-radius: 50%;
+      border: 1px solid rgba(115, 247, 255, 0.38);
+      background:
+        radial-gradient(circle at 50% 50%, rgba(115, 247, 255, 0.14), rgba(115, 247, 255, 0.05) 56%, rgba(10, 14, 24, 0.75) 72%),
+        rgba(8, 12, 24, 0.72);
+      box-shadow:
+        0 0 0 1px rgba(140, 255, 200, 0.2) inset,
+        0 10px 24px rgba(0, 0, 0, 0.45);
+      position: relative;
+      opacity: 0.88;
+    }
+
+    .touch-pad.pressed {
+      opacity: 1;
+      border-color: rgba(140, 255, 200, 0.8);
+      box-shadow:
+        0 0 16px rgba(115, 247, 255, 0.45),
+        0 0 0 1px rgba(140, 255, 200, 0.26) inset;
+    }
+
+    #touch-stick {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: clamp(52px, 10vw, 64px);
+      height: clamp(52px, 10vw, 64px);
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      border: 1px solid rgba(180, 220, 255, 0.42);
+      background:
+        radial-gradient(circle at 38% 35%, rgba(255, 255, 255, 0.18), rgba(115, 247, 255, 0.05)),
+        rgba(9, 14, 28, 0.92);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.44);
+      transition: transform 70ms linear, border-color 90ms ease;
+      will-change: transform;
+    }
+
+    .touch-pad.pressed #touch-stick {
+      border-color: rgba(140, 255, 200, 0.72);
+    }
+
+    .touch-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 12px;
+    }
+
+    .touch-btn {
+      min-width: clamp(56px, 14vw, 86px);
+      min-height: clamp(56px, 14vw, 86px);
+      border-radius: 50%;
+      border: 1px solid rgba(115, 247, 255, 0.48);
+      background: rgba(7, 11, 22, 0.78);
+      color: var(--text);
+      font-family: "IBM Plex Mono", monospace;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      box-shadow: 0 12px 26px rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: opacity 120ms ease, transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+      opacity: 0.88;
+    }
+
+    .touch-btn.pulse {
+      min-width: clamp(70px, 18vw, 110px);
+      min-height: clamp(70px, 18vw, 110px);
+      border-color: rgba(255, 142, 199, 0.62);
+      color: #ffd7ef;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.48), 0 0 16px rgba(255, 142, 199, 0.22);
+    }
+
+    .touch-btn.restart {
+      min-width: clamp(50px, 11vw, 70px);
+      min-height: clamp(50px, 11vw, 70px);
+      color: var(--cyan);
+      font-size: 12px;
+    }
+
+    .touch-btn.pressed,
+    .touch-btn:active {
+      opacity: 1;
+      transform: scale(0.95);
+      border-color: rgba(140, 255, 200, 0.9);
+      box-shadow: 0 0 18px rgba(115, 247, 255, 0.42);
+    }
+
+    @media (any-pointer: coarse), (max-width: 960px) {
+      #touch-controls {
+        display: flex;
+      }
+
+      .help {
+        max-width: min(100%, calc(100vw - 32px));
+      }
+    }
+
+    @media (max-width: 680px) {
+      #hud {
+        padding: 12px;
+      }
+
+      .brand p {
+        display: none;
+      }
+
+      .stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .help {
+        align-self: center;
+      }
+    }
   </style>
 </head>
 <body>
@@ -267,6 +406,7 @@
         <span class="tag">Move</span>WASD or Arrow Keys
         <span class="tag">Pulse</span>Space
         <span class="tag">Restart</span>R
+        <span class="tag">Touch</span>Pad + Pulse + R
       </small>
       <small id="status">Collect luminous motes to add orbiting shields. Satellites intercept comets for you. When you have no shields left, the next breach ends the run.</small>
     </div>
@@ -277,6 +417,15 @@
     <p id="endreason">--</p>
     <div class="scoreline" id="endscore">Score: 0</div>
     <p class="hint">Press R to restart.</p>
+  </div>
+  <div id="touch-controls" aria-hidden="true">
+    <div class="touch-pad" id="touch-pad">
+      <div id="touch-stick"></div>
+    </div>
+    <div class="touch-actions">
+      <button type="button" class="touch-btn pulse" id="touch-pulse">Pulse</button>
+      <button type="button" class="touch-btn restart" id="touch-restart">R</button>
+    </div>
   </div>
 
   <script type="module">
@@ -296,7 +445,14 @@
       endtitle: document.getElementById("endtitle"),
       endreason: document.getElementById("endreason"),
       endscore: document.getElementById("endscore"),
+      touchPad: document.getElementById("touch-pad"),
+      touchStick: document.getElementById("touch-stick"),
+      touchPulse: document.getElementById("touch-pulse"),
+      touchRestart: document.getElementById("touch-restart"),
     };
+    const touchMove = { x: 0, y: 0 };
+    let pulseHandler = () => {};
+    let restartHandler = () => go("play");
 
     kaboom({
       canvas: document.getElementById("game"),
@@ -325,6 +481,69 @@
       [167, 177, 255],
     ];
     const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+    const updateTouchStick = () => {
+      const tx = touchMove.x * 46;
+      const ty = touchMove.y * 46;
+      ui.touchStick.style.transform = `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px))`;
+    };
+    const resetTouchMove = () => {
+      touchMove.x = 0;
+      touchMove.y = 0;
+      ui.touchPad.classList.remove("pressed");
+      updateTouchStick();
+    };
+    const setTouchMove = (clientX, clientY) => {
+      const rect = ui.touchPad.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = clientX - cx;
+      const dy = clientY - cy;
+      const max = rect.width * 0.36;
+      const len = Math.hypot(dx, dy) || 1;
+      const scale = Math.min(1, max / len);
+      const nx = (dx * scale) / max;
+      const ny = (dy * scale) / max;
+      touchMove.x = Math.abs(nx) < 0.15 ? 0 : clamp(nx, -1, 1);
+      touchMove.y = Math.abs(ny) < 0.15 ? 0 : clamp(ny, -1, 1);
+      updateTouchStick();
+    };
+    ui.touchPad.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      ui.touchPad.classList.add("pressed");
+      ui.touchPad.setPointerCapture(e.pointerId);
+      setTouchMove(e.clientX, e.clientY);
+    });
+    ui.touchPad.addEventListener("pointermove", (e) => {
+      if (!ui.touchPad.classList.contains("pressed")) return;
+      e.preventDefault();
+      setTouchMove(e.clientX, e.clientY);
+    });
+    const releasePad = (e) => {
+      e.preventDefault();
+      if (ui.touchPad.hasPointerCapture(e.pointerId)) {
+        ui.touchPad.releasePointerCapture(e.pointerId);
+      }
+      resetTouchMove();
+    };
+    ui.touchPad.addEventListener("pointerup", releasePad);
+    ui.touchPad.addEventListener("pointercancel", releasePad);
+    const bindTouchButton = (button, handler) => {
+      button.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        button.classList.add("pressed");
+        handler();
+      });
+      const release = (e) => {
+        e.preventDefault();
+        button.classList.remove("pressed");
+      };
+      button.addEventListener("pointerup", release);
+      button.addEventListener("pointerleave", release);
+      button.addEventListener("pointercancel", release);
+    };
+    bindTouchButton(ui.touchPulse, () => pulseHandler());
+    bindTouchButton(ui.touchRestart, () => restartHandler());
+    updateTouchStick();
 
     let best = 0;
 
@@ -535,6 +754,14 @@
         setTimeout(() => ui.flash.classList.remove("on"), 130);
       }
 
+      pulseHandler = () => {
+        if (state.ended) {
+          go("play");
+          return;
+        }
+        pulse();
+      };
+      restartHandler = () => go("play");
       onKeyPress("space", pulse);
       onKeyPress("r", () => go("play"));
 
@@ -557,8 +784,10 @@
         const down = keyIsDown("down") || keyIsDown("s");
         const left = keyIsDown("left") || keyIsDown("a");
         const right = keyIsDown("right") || keyIsDown("d");
-        let mx = (right ? 1 : 0) - (left ? 1 : 0);
-        let my = (down ? 1 : 0) - (up ? 1 : 0);
+        let mx = ((right ? 1 : 0) - (left ? 1 : 0)) + touchMove.x;
+        let my = ((down ? 1 : 0) - (up ? 1 : 0)) + touchMove.y;
+        mx = clamp(mx, -1, 1);
+        my = clamp(my, -1, 1);
         const mag = Math.hypot(mx, my) || 1;
         if (mx || my) {
           state.x += (mx / mag) * state.speed * dt;
@@ -730,6 +959,9 @@
     });
 
     scene("end", ({ won, reason, score }) => {
+      resetTouchMove();
+      pulseHandler = () => go("play");
+      restartHandler = () => go("play");
       ui.endcard.classList.add("show");
       ui.endtitle.textContent = won ? "Bloom Stable" : "Signal Lost";
       ui.endreason.textContent = reason;
