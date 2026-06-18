@@ -1,1 +1,748 @@
-#
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orbit Bloom</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=IBM+Plex+Mono:wght@400;600&display=swap');
+
+    :root {
+      --bg0: #050711;
+      --bg1: #0a1020;
+      --panel: rgba(10, 14, 24, 0.72);
+      --line: rgba(180, 210, 255, 0.18);
+      --text: #e9f3ff;
+      --muted: #9cb1cf;
+      --cyan: #73f7ff;
+      --mint: #8cffc8;
+      --rose: #ff8ec7;
+      --gold: #ffd76b;
+      --danger: #ff6c7a;
+    }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 45%, rgba(60, 90, 150, 0.18), transparent 34%),
+        radial-gradient(circle at 50% 50%, rgba(140, 40, 200, 0.08), transparent 40%),
+        linear-gradient(180deg, var(--bg1), var(--bg0));
+      color: var(--text);
+      font-family: "IBM Plex Mono", monospace;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        radial-gradient(rgba(255,255,255,0.07) 1px, transparent 1.2px),
+        radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1.2px);
+      background-size: 36px 36px, 58px 58px;
+      background-position: 0 0, 14px 22px;
+      opacity: 0.28;
+      mask-image: radial-gradient(circle at center, black 45%, transparent 100%);
+    }
+
+    #frame {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+    }
+
+    canvas {
+      width: min(100vw, calc(100vh * 16 / 9));
+      height: auto;
+      max-height: 100vh;
+      border-radius: 24px;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.08),
+        0 24px 80px rgba(0,0,0,0.56),
+        0 0 120px rgba(95, 180, 255, 0.12);
+      image-rendering: pixelated;
+      background: transparent;
+    }
+
+    #hud {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      pointer-events: none;
+      padding: 18px;
+      box-sizing: border-box;
+      gap: 12px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .brand,
+    .stats,
+    .help,
+    .flash-card,
+    .endcard {
+      pointer-events: none;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 12px 36px rgba(0,0,0,0.28);
+    }
+
+    .brand {
+      padding: 14px 16px 12px;
+      border-radius: 18px;
+      max-width: 30rem;
+    }
+
+    .brand h1 {
+      margin: 0 0 4px;
+      font-family: "Cinzel", serif;
+      font-size: clamp(22px, 3vw, 36px);
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .brand p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, auto);
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 18px;
+      align-items: center;
+      white-space: nowrap;
+    }
+
+    .chip {
+      display: grid;
+      gap: 2px;
+      min-width: 86px;
+    }
+
+    .chip .label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+    }
+
+    .chip .value {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .chip .value.good { color: var(--mint); }
+    .chip .value.warn { color: var(--gold); }
+    .chip .value.bad { color: var(--danger); }
+
+    .help {
+      padding: 12px 14px;
+      border-radius: 18px;
+      max-width: 34rem;
+      justify-self: start;
+      align-self: end;
+    }
+
+    .help strong {
+      color: var(--cyan);
+    }
+
+    .help small {
+      color: var(--muted);
+      line-height: 1.45;
+      display: block;
+    }
+
+    #flash {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      background:
+        radial-gradient(circle at center, rgba(115, 247, 255, 0.20) 0%, rgba(115, 247, 255, 0.10) 20%, rgba(115, 247, 255, 0.02) 42%, transparent 72%);
+      transition: opacity 120ms linear;
+      mix-blend-mode: screen;
+    }
+
+    #flash.on {
+      opacity: 1;
+    }
+
+    .endcard {
+      position: fixed;
+      inset: 50% auto auto 50%;
+      transform: translate(-50%, -50%);
+      min-width: min(92vw, 460px);
+      border-radius: 24px;
+      padding: 22px 22px 18px;
+      display: none;
+      text-align: center;
+    }
+
+    .endcard.show {
+      display: block;
+    }
+
+    .endcard h2 {
+      margin: 0 0 8px;
+      font-family: "Cinzel", serif;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-size: 30px;
+    }
+
+    .endcard p {
+      margin: 8px 0;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 13px;
+    }
+
+    .endcard .scoreline {
+      font-size: 18px;
+      color: var(--text);
+      margin-top: 12px;
+    }
+
+    .endcard .hint {
+      margin-top: 10px;
+      color: var(--cyan);
+      font-weight: 600;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 999px;
+      color: var(--muted);
+      margin-right: 6px;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <div id="frame"><canvas id="game"></canvas></div>
+  <div id="hud">
+    <div class="topbar">
+      <div class="brand">
+        <h1>Orbit Bloom</h1>
+        <p>A tiny arcadey prototype about harvesting glowing motes that become your shield. Survive the swarm, pulse at the right moment, and keep your core intact.</p>
+      </div>
+
+      <div class="stats">
+        <div class="chip"><span class="label">Score</span><span class="value good" id="score">0</span></div>
+        <div class="chip"><span class="label">Time</span><span class="value warn" id="time">75.0</span></div>
+        <div class="chip"><span class="label">Satellites</span><span class="value" id="shields">0</span></div>
+        <div class="chip"><span class="label">Pulse</span><span class="value bad" id="pulse">Ready</span></div>
+      </div>
+    </div>
+
+    <div class="help">
+      <small>
+        <span class="tag">Move</span>WASD or Arrow Keys
+        <span class="tag">Pulse</span>Space
+        <span class="tag">Restart</span>R
+      </small>
+      <small id="status">Collect luminous motes to add orbiting shields. Satellites intercept comets for you. When you have no shields left, the next breach ends the run.</small>
+    </div>
+  </div>
+  <div id="flash"></div>
+  <div class="endcard" id="endcard">
+    <h2 id="endtitle">Run Complete</h2>
+    <p id="endreason">--</p>
+    <div class="scoreline" id="endscore">Score: 0</div>
+    <p class="hint">Press R to restart.</p>
+  </div>
+
+  <script type="module">
+    import kaboom from "https://unpkg.com/kaboom@3000.1.17/dist/kaboom.mjs";
+
+    const W = 960;
+    const H = 540;
+    const TAU = Math.PI * 2;
+    const ui = {
+      score: document.getElementById("score"),
+      time: document.getElementById("time"),
+      shields: document.getElementById("shields"),
+      pulse: document.getElementById("pulse"),
+      status: document.getElementById("status"),
+      flash: document.getElementById("flash"),
+      endcard: document.getElementById("endcard"),
+      endtitle: document.getElementById("endtitle"),
+      endreason: document.getElementById("endreason"),
+      endscore: document.getElementById("endscore"),
+    };
+
+    kaboom({
+      canvas: document.getElementById("game"),
+      width: W,
+      height: H,
+      letterbox: true,
+      crisp: true,
+      background: [5, 8, 17],
+    });
+
+    const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+    const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+    const randEdgePoint = () => {
+      const side = Math.floor(Math.random() * 4);
+      const inset = 24;
+      if (side === 0) return { x: Math.random() * W, y: -inset };
+      if (side === 1) return { x: W + inset, y: Math.random() * H };
+      if (side === 2) return { x: Math.random() * W, y: H + inset };
+      return { x: -inset, y: Math.random() * H };
+    };
+    const palette = [
+      [115, 247, 255],
+      [140, 255, 200],
+      [255, 142, 199],
+      [255, 215, 107],
+      [167, 177, 255],
+    ];
+    const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+    let best = 0;
+
+    scene("play", () => {
+      ui.endcard.classList.remove("show");
+      ui.status.textContent = "Collect luminous motes to add orbiting shields. Satellites intercept comets for you. When you have no shields left, the next breach ends the run.";
+
+      const stars = [];
+      for (let i = 0; i < 120; i++) {
+        const s = add([
+          circle(Math.random() * 1.4 + 0.3),
+          pos(Math.random() * W, Math.random() * H),
+          color(220, 235, 255),
+          opacity(Math.random() * 0.34 + 0.08),
+          fixed(),
+        ]);
+        stars.push({ node: s, twinkle: Math.random() * TAU, speed: Math.random() * 1.5 + 0.25 });
+      }
+
+      const backdrop = add([
+        circle(150),
+        pos(W / 2, H / 2),
+        color(18, 24, 48),
+        opacity(0.18),
+        fixed(),
+      ]);
+      backdrop.scale = vec2(1.55, 1.55);
+
+      const halo = add([
+        circle(112),
+        pos(W / 2, H / 2),
+        color(60, 120, 200),
+        opacity(0.12),
+        fixed(),
+      ]);
+      halo.scale = vec2(1.2, 1.2);
+
+      const player = add([
+        circle(12),
+        pos(W / 2, H / 2),
+        origin("center"),
+        color(...palette[0]),
+        fixed(),
+      ]);
+      const core = add([
+        circle(5),
+        pos(W / 2, H / 2),
+        origin("center"),
+        color(250, 255, 255),
+        fixed(),
+      ]);
+
+      const state = {
+        x: W / 2,
+        y: H / 2,
+        speed: 270,
+        shields: 0,
+        score: 0,
+        time: 75,
+        pulseCd: 0,
+        pulseActive: 0,
+        pulseRadius: 0,
+        invuln: 0,
+        spawnMote: 0.7,
+        spawnComet: 1.1,
+        surge: 0,
+        ended: false,
+        won: false,
+      };
+
+      const motes = [];
+      const comets = [];
+      const satellites = [];
+      const shards = [];
+
+      function syncHud() {
+        ui.score.textContent = String(Math.floor(state.score));
+        ui.time.textContent = state.time.toFixed(1);
+        ui.shields.textContent = String(state.shields);
+        ui.pulse.textContent = state.pulseCd > 0 ? `${state.pulseCd.toFixed(1)}s` : "Ready";
+        ui.pulse.className = "value bad";
+        ui.endscore.textContent = `Score: ${Math.floor(state.score)}`;
+      }
+
+      function rebuildSatellites() {
+        for (const sat of satellites) destroy(sat.node);
+        satellites.length = 0;
+        if (state.shields <= 0) return;
+        const colors = [palette[0], palette[1], palette[2], palette[3], palette[4], [255, 255, 255]];
+        for (let i = 0; i < state.shields; i++) {
+          const node = add([
+            circle(7),
+            pos(state.x, state.y),
+            origin("center"),
+            color(...colors[i % colors.length]),
+            fixed(),
+          ]);
+          satellites.push({
+            node,
+            angle: (i / state.shields) * TAU,
+            spin: (i % 2 === 0 ? 1 : -1) * (0.9 + Math.random() * 0.5),
+            radius: 34 + i * 11,
+            wobble: Math.random() * TAU,
+          });
+        }
+      }
+
+      function addShields(n = 1) {
+        state.shields = clamp(state.shields + n, 0, 6);
+        rebuildSatellites();
+      }
+
+      function removeShield() {
+        if (state.shields <= 0) return;
+        state.shields -= 1;
+        rebuildSatellites();
+      }
+
+      function spark(x, y, rgb, count = 8) {
+        for (let i = 0; i < count; i++) {
+          const a = Math.random() * TAU;
+          const sp = 70 + Math.random() * 130;
+          const node = add([
+            circle(Math.random() * 2.2 + 1),
+            pos(x, y),
+            origin("center"),
+            color(...rgb),
+            fixed(),
+          ]);
+          shards.push({
+            node,
+            x,
+            y,
+            vx: Math.cos(a) * sp,
+            vy: Math.sin(a) * sp,
+            life: 0.32 + Math.random() * 0.22,
+          });
+        }
+      }
+
+      function spawnMote() {
+        const p = randEdgePoint();
+        const hue = pick(palette);
+        const node = add([
+          circle(7),
+          pos(p.x, p.y),
+          origin("center"),
+          color(...hue),
+          fixed(),
+        ]);
+        const dx = W / 2 - p.x;
+        const dy = H / 2 - p.y;
+        const len = Math.hypot(dx, dy) || 1;
+        const wobble = Math.random() * TAU;
+        motes.push({
+          node,
+          x: p.x,
+          y: p.y,
+          vx: dx / len * (30 + Math.random() * 24),
+          vy: dy / len * (30 + Math.random() * 24),
+          wobble,
+          hue,
+        });
+      }
+
+      function spawnComet() {
+        const p = randEdgePoint();
+        const node = add([
+          circle(10 + Math.random() * 4),
+          pos(p.x, p.y),
+          origin("center"),
+          color(255, 94, 116),
+          fixed(),
+        ]);
+        const speed = 82 + state.time * 1.9 + Math.random() * 30;
+        comets.push({
+          node,
+          x: p.x,
+          y: p.y,
+          vx: 0,
+          vy: 0,
+          speed,
+          turn: 1.6 + Math.random() * 0.8,
+          wobble: Math.random() * TAU,
+          radius: 10 + Math.random() * 4,
+        });
+      }
+
+      function endRun(won, reason) {
+        if (state.ended) return;
+        state.ended = true;
+        state.won = won;
+        best = Math.max(best, Math.floor(state.score));
+        ui.endtitle.textContent = won ? "Bloom Stable" : "Signal Lost";
+        ui.endreason.textContent = reason;
+        ui.endscore.textContent = `Score: ${Math.floor(state.score)} · Best: ${best}`;
+        ui.endcard.classList.add("show");
+        go("end", { won, reason, score: Math.floor(state.score) });
+      }
+
+      function pulse() {
+        if (state.pulseCd > 0 || state.ended) return;
+        state.pulseCd = 1.45;
+        state.pulseActive = 0.24;
+        state.pulseRadius = 24;
+        state.invuln = 0.16;
+        ui.flash.classList.add("on");
+        setTimeout(() => ui.flash.classList.remove("on"), 130);
+      }
+
+      const press = (key) => onKeyPress(key, pulse);
+      press("space");
+      onKeyPress("r", () => go("play"));
+
+      rebuildSatellites();
+      for (let i = 0; i < 4; i++) spawnMote();
+      spawnComet();
+      syncHud();
+
+      onUpdate(() => {
+        const dt = getLastDt();
+        if (state.ended) return;
+
+        state.time = Math.max(0, state.time - dt);
+        state.pulseCd = Math.max(0, state.pulseCd - dt);
+        state.pulseActive = Math.max(0, state.pulseActive - dt);
+        state.invuln = Math.max(0, state.invuln - dt);
+        state.surge = Math.max(0, state.surge - dt);
+
+        const up = keyIsDown("up") || keyIsDown("w");
+        const down = keyIsDown("down") || keyIsDown("s");
+        const left = keyIsDown("left") || keyIsDown("a");
+        const right = keyIsDown("right") || keyIsDown("d");
+        let mx = (right ? 1 : 0) - (left ? 1 : 0);
+        let my = (down ? 1 : 0) - (up ? 1 : 0);
+        const mag = Math.hypot(mx, my) || 1;
+        if (mx || my) {
+          state.x += (mx / mag) * state.speed * dt;
+          state.y += (my / mag) * state.speed * dt;
+        }
+        state.x = clamp(state.x, 24, W - 24);
+        state.y = clamp(state.y, 24, H - 24);
+        player.pos = vec2(state.x, state.y);
+        core.pos = vec2(state.x, state.y);
+
+        backdrop.pos = vec2(W / 2, H / 2);
+        halo.pos = vec2(state.x, state.y);
+
+        if (state.time <= 0) {
+          endRun(true, "You kept the bloom alive long enough to stabilize the signal.");
+          return;
+        }
+
+        state.spawnMote -= dt;
+        state.spawnComet -= dt;
+        if (state.spawnMote <= 0) {
+          spawnMote();
+          state.spawnMote = Math.max(0.42, 0.85 - (75 - state.time) * 0.004);
+        }
+        if (state.spawnComet <= 0) {
+          spawnComet();
+          state.spawnComet = Math.max(0.32, 1.0 - (75 - state.time) * 0.009);
+        }
+
+        for (const st of stars) {
+          st.twinkle += st.speed * dt;
+          const v = 0.05 + (Math.sin(st.twinkle) + 1) * 0.12;
+          st.node.opacity = v;
+        }
+
+        for (const sat of satellites) {
+          sat.angle += sat.spin * dt * (1 + state.shields * 0.03);
+          sat.wobble += dt * 2.4;
+          const r = sat.radius + Math.sin(sat.wobble) * 2;
+          sat.node.pos = vec2(state.x + Math.cos(sat.angle) * r, state.y + Math.sin(sat.angle) * r);
+        }
+
+        for (let i = motes.length - 1; i >= 0; i--) {
+          const m = motes[i];
+          m.wobble += dt * 2.2;
+          m.vx += Math.sin(m.wobble) * 7 * dt;
+          m.vy += Math.cos(m.wobble * 1.3) * 7 * dt;
+          const toCenterX = (W / 2 - m.x) * 0.006;
+          const toCenterY = (H / 2 - m.y) * 0.006;
+          m.vx += toCenterX * dt * 16;
+          m.vy += toCenterY * dt * 16;
+          m.x += m.vx * dt;
+          m.y += m.vy * dt;
+
+          if (m.x < 16 || m.x > W - 16) m.vx *= -0.98;
+          if (m.y < 16 || m.y > H - 16) m.vy *= -0.98;
+          m.x = clamp(m.x, 14, W - 14);
+          m.y = clamp(m.y, 14, H - 14);
+          m.node.pos = vec2(m.x, m.y);
+
+          const pulseHit = state.pulseActive > 0 && dist(m, { x: state.x, y: state.y }) < state.pulseRadius;
+          const grab = dist(m, { x: state.x, y: state.y }) < 22;
+          if (pulseHit || grab) {
+            state.score += pulseHit ? 4 : 8;
+            if (state.shields < 6) {
+              addShields(1);
+              ui.status.textContent = "Mote absorbed — a new satellite joined the orbit.";
+            } else {
+              state.score += 3;
+              ui.status.textContent = "Shields are full. Extra motes convert to score instead.";
+            }
+            spark(m.x, m.y, m.hue, pulseHit ? 10 : 12);
+            destroy(m.node);
+            motes.splice(i, 1);
+            continue;
+          }
+        }
+
+        for (let i = comets.length - 1; i >= 0; i--) {
+          const c = comets[i];
+          const dx = state.x - c.x;
+          const dy = state.y - c.y;
+          const len = Math.hypot(dx, dy) || 1;
+          const turn = c.turn * dt;
+          c.vx += (dx / len) * c.speed * turn;
+          c.vy += (dy / len) * c.speed * turn;
+          c.vx *= 0.985;
+          c.vy *= 0.985;
+          c.wobble += dt * 3.5;
+          c.vx += Math.cos(c.wobble) * 12 * dt;
+          c.vy += Math.sin(c.wobble * 0.9) * 12 * dt;
+          c.x += c.vx * dt;
+          c.y += c.vy * dt;
+          c.node.pos = vec2(c.x, c.y);
+
+          let blocked = false;
+          for (let s = satellites.length - 1; s >= 0; s--) {
+            const sat = satellites[s];
+            if (dist(c, sat.node.pos) < c.radius + 7) {
+              state.score += 6;
+              spark(c.x, c.y, [255, 142, 199], 12);
+              destroy(c.node);
+              comets.splice(i, 1);
+              blocked = true;
+              break;
+            }
+          }
+          if (blocked) continue;
+
+          if (dist(c, { x: state.x, y: state.y }) < c.radius + 11) {
+            if (state.invuln > 0) {
+              continue;
+            }
+            if (state.shields > 0) {
+              state.score += 4;
+              spark(c.x, c.y, [115, 247, 255], 10);
+              destroy(c.node);
+              comets.splice(i, 1);
+              removeShield();
+              state.invuln = 0.18;
+              ui.status.textContent = "A satellite shattered and saved the core.";
+            } else {
+              destroy(c.node);
+              comets.splice(i, 1);
+              endRun(false, "A comet reached the core after the final satellite was gone.");
+              return;
+            }
+          }
+        }
+
+        for (let i = shards.length - 1; i >= 0; i--) {
+          const sh = shards[i];
+          sh.life -= dt;
+          sh.x += sh.vx * dt;
+          sh.y += sh.vy * dt;
+          sh.vx *= 0.97;
+          sh.vy *= 0.97;
+          sh.node.pos = vec2(sh.x, sh.y);
+          sh.node.opacity = clamp(sh.life * 2.8, 0, 1);
+          if (sh.life <= 0) {
+            destroy(sh.node);
+            shards.splice(i, 1);
+          }
+        }
+
+        state.score += dt * 0.2;
+        if (state.pulseActive > 0) {
+          state.pulseRadius = 52 + (0.24 - state.pulseActive) * 700;
+          ui.flash.classList.add("on");
+        } else {
+          ui.flash.classList.remove("on");
+        }
+
+        syncHud();
+        if (state.pulseCd <= 0) {
+          ui.pulse.textContent = "Ready";
+        }
+      });
+
+      onDraw(() => {
+        if (state.pulseActive > 0) {
+          drawCircle({
+            pos: vec2(state.x, state.y),
+            radius: state.pulseRadius,
+            color: rgb(115, 247, 255),
+          });
+        }
+      });
+    });
+
+    scene("end", ({ won, reason, score }) => {
+      ui.endcard.classList.add("show");
+      ui.endtitle.textContent = won ? "Bloom Stable" : "Signal Lost";
+      ui.endreason.textContent = reason;
+      ui.endscore.textContent = `Score: ${score} · Best: ${best}`;
+      ui.status.textContent = won
+        ? "That run survived the full timer. Press R to play again and beat the score."
+        : "The core failed. Press R to start a fresh run and aim for a better shield rhythm.";
+      onKeyPress("r", () => go("play"));
+      onKeyPress("space", () => go("play"));
+    });
+
+    go("play");
+  </script>
+</body>
+</html>
