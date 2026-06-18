@@ -506,8 +506,8 @@
       const scale = Math.min(1, max / len);
       const nx = (dx * scale) / max;
       const ny = (dy * scale) / max;
-      touchMove.x = Math.abs(nx) < TOUCH_PAD_DEADZONE ? 0 : clamp(nx, -1, 1);
-      touchMove.y = Math.abs(ny) < TOUCH_PAD_DEADZONE ? 0 : clamp(ny, -1, 1);
+      touchMove.x = Math.abs(nx) < TOUCH_PAD_DEADZONE ? 0 : nx;
+      touchMove.y = Math.abs(ny) < TOUCH_PAD_DEADZONE ? 0 : ny;
       updateTouchStick();
     };
     ui.touchPad.addEventListener("pointerdown", (e) => {
@@ -757,13 +757,7 @@
         setTimeout(() => ui.flash.classList.remove("on"), 130);
       }
 
-      pulseHandler = () => {
-        if (state.ended) {
-          go("play");
-          return;
-        }
-        pulse();
-      };
+      pulseHandler = pulse;
       restartHandler = () => go("play");
       onKeyPress("space", pulse);
       onKeyPress("r", () => go("play"));
@@ -787,10 +781,8 @@
         const down = keyIsDown("down") || keyIsDown("s");
         const left = keyIsDown("left") || keyIsDown("a");
         const right = keyIsDown("right") || keyIsDown("d");
-        let mx = ((right ? 1 : 0) - (left ? 1 : 0)) + touchMove.x;
-        let my = ((down ? 1 : 0) - (up ? 1 : 0)) + touchMove.y;
-        mx = clamp(mx, -1, 1);
-        my = clamp(my, -1, 1);
+        const mx = ((right ? 1 : 0) - (left ? 1 : 0)) + touchMove.x;
+        const my = ((down ? 1 : 0) - (up ? 1 : 0)) + touchMove.y;
         const mag = Math.hypot(mx, my) || 1;
         if (mx || my) {
           state.x += (mx / mag) * state.speed * dt;
