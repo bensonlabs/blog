@@ -1,4 +1,4 @@
-### Made by Google Antigravy with Gemini 3.5 Flash (medium)
+##### Made by Google Antigravy with Gemini 3.5 Flash (medium)
 # GRAVITAS: Stellar Sandbox & Gravity Simulator
 
 An interactive, high-fidelity N-body gravity simulator built for the browser. Featuring real-time orbital projection, procedural ambient audio synthesis, a glassmorphic dashboard, and live telemetry tracking.
