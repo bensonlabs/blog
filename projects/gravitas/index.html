@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GRAVITAS - Stellar Sandbox & Gravity Simulator</title>
+  <meta name="description" content="An interactive, high-fidelity N-body gravity simulator in the browser, featuring procedural audio, real-time energy analytics, and responsive glassmorphic UI.">
+  
+  <!-- Modern Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Simulation Viewport -->
+  <canvas id="simCanvas"></canvas>
+
+  <!-- Sound Toggle Indicator (Floating Overlay) -->
+  <div id="audioStatus" class="floating-badge">
+    <i class="fa-solid fa-volume-xmark" id="audioBadgeIcon"></i>
+    <span id="audioBadgeText">Audio Disabled</span>
+  </div>
+
+  <!-- Primary Layout Container -->
+  <div class="app-container">
+    
+    <!-- LEFT PANEL: Controls & Settings -->
+    <aside class="panel left-panel">
+      <!-- Brand Header -->
+      <header class="brand">
+        <div class="logo">
+          <i class="fa-solid fa-atom pulse-glow"></i>
+        </div>
+        <div class="title-meta">
+          <h1>GRAVITAS</h1>
+          <span class="subtitle">STELLAR PHYSICS SANDBOX</span>
+        </div>
+      </header>
+
+      <!-- Section: Simulation Engine State -->
+      <section class="control-section">
+        <h3 class="section-title"><i class="fa-solid fa-sliders"></i> Engine Controls</h3>
+        <div class="btn-group row">
+          <button id="btnPlayPause" class="btn btn-primary" title="Play/Pause Simulation">
+            <i class="fa-solid fa-pause"></i> <span id="lblPlayPause">Pause</span>
+          </button>
+          <button id="btnStep" class="btn btn-secondary" title="Step One Frame Forward">
+            <i class="fa-solid fa-forward-step"></i>
+          </button>
+        </div>
+        
+        <div class="control-group">
+          <div class="control-label">
+            <span>Simulation Speed</span>
+            <span id="valSpeed">1.0x</span>
+          </div>
+          <input type="range" id="rngSpeed" min="0.1" max="4.0" step="0.1" value="1.0" class="custom-slider">
+        </div>
+
+        <div class="btn-group row">
+          <button id="btnReset" class="btn btn-outline" title="Reset Current Preset">
+            <i class="fa-solid fa-rotate-left"></i> Reset
+          </button>
+          <button id="btnClear" class="btn btn-danger" title="Remove All Objects">
+            <i class="fa-solid fa-trash-can"></i> Clear Space
+          </button>
+        </div>
+      </section>
+
+      <!-- Section: Preset Cosmos Configuration -->
+      <section class="control-section">
+        <h3 class="section-title"><i class="fa-solid fa-globe"></i> Cosmos Presets</h3>
+        <div class="presets-grid">
+          <button class="preset-btn active" data-preset="solar">
+            <i class="fa-solid fa-sun text-yellow"></i>
+            <span>Solar System</span>
+          </button>
+          <button class="preset-btn" data-preset="binary">
+            <i class="fa-solid fa-infinity text-blue"></i>
+            <span>Binary Stars</span>
+          </button>
+          <button class="preset-btn" data-preset="blackhole">
+            <i class="fa-solid fa-circle text-purple"></i>
+            <span>Black Hole</span>
+          </button>
+          <button class="preset-btn" data-preset="threebody">
+            <i class="fa-solid fa-triangle-exclamation text-orange"></i>
+            <span>Three-Body</span>
+          </button>
+          <button class="preset-btn" data-preset="collision">
+            <i class="fa-solid fa-burst text-red"></i>
+            <span>Stellar Collision</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Section: Spawner Tool -->
+      <section class="control-section">
+        <h3 class="section-title"><i class="fa-solid fa-circle-plus"></i> Spawner Laboratory</h3>
+        
+        <!-- Entity Selector -->
+        <div class="spawner-selector">
+          <div class="spawn-type active" data-type="asteroid" title="Asteroid (Low Mass)">
+            <i class="fa-solid fa-meteor"></i>
+            <span>Asteroid</span>
+          </div>
+          <div class="spawn-type" data-type="planet" title="Planet (Medium Mass)">
+            <i class="fa-solid fa-earth-americas"></i>
+            <span>Planet</span>
+          </div>
+          <div class="spawn-type" data-type="star" title="Star (High Mass)">
+            <i class="fa-solid fa-star"></i>
+            <span>Star</span>
+          </div>
+          <div class="spawn-type" data-type="neutron" title="Neutron Star (Extreme Density)">
+            <i class="fa-solid fa-radiation"></i>
+            <span>Neutron</span>
+          </div>
+          <div class="spawn-type" data-type="blackhole" title="Black Hole (Singularity)">
+            <i class="fa-solid fa-circle-notch"></i>
+            <span>Black Hole</span>
+          </div>
+        </div>
+
+        <!-- Custom Parameters -->
+        <div class="spawner-parameters">
+          <div class="control-group">
+            <div class="control-label">
+              <span>Mass Magnitude</span>
+              <span id="valMass">100</span>
+            </div>
+            <input type="range" id="rngMass" min="1" max="100000" step="1" value="100" class="custom-slider">
+          </div>
+
+          <div class="control-group">
+            <div class="control-label">
+              <span>Physical Radius</span>
+              <span id="valRadius">10 px</span>
+            </div>
+            <input type="range" id="rngRadius" min="2" max="60" step="1" value="10" class="custom-slider">
+          </div>
+
+          <!-- Launch Mode Toggle -->
+          <div class="control-group">
+            <div class="control-label">
+              <span>Placement Mode</span>
+            </div>
+            <div class="toggle-group">
+              <button id="modeShoot" class="toggle-btn active" title="Click and drag to launch with a velocity vector">
+                <i class="fa-solid fa-arrow-trend-up"></i> Custom Vector
+              </button>
+              <button id="modeOrbit" class="toggle-btn" title="Automatically calculate orbital speed relative to nearest heavy body">
+                <i class="fa-solid fa-arrows-spin"></i> Auto-Orbit
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: Ambient Celestial Audio -->
+      <section class="control-section">
+        <h3 class="section-title"><i class="fa-solid fa-music"></i> Celestial Ambient Synthesizer</h3>
+        <div class="audio-controls">
+          <button id="btnAudioToggle" class="btn btn-outline btn-full" title="Enable generative synthesizer">
+            <i class="fa-solid fa-volume-high"></i> Enable Sound
+          </button>
+          
+          <div class="control-group mt-10">
+            <div class="control-label">
+              <span>Synth Volume</span>
+              <span id="valVolume">60%</span>
+            </div>
+            <input type="range" id="rngVolume" min="0" max="100" value="60" class="custom-slider">
+          </div>
+        </div>
+      </section>
+    </aside>
+
+    <!-- RIGHT PANEL: Telemetry, Energy Analytics & Event Feed -->
+    <aside class="panel right-panel">
+      <!-- Section: Telemetry Overview -->
+      <section class="control-section">
+        <h3 class="section-title"><i class="fa-solid fa-gauge-high"></i> Telemetry Dashboard</h3>
+        <div class="telemetry-grid">
+          <div class="telemetry-card">
+            <span class="telemetry-label">Active Bodies</span>
+            <span class="telemetry-value" id="telBodies">0</span>
+          </div>
+          <div class="telemetry-card">
+            <span class="telemetry-label">Total Mass (M⊕)</span>
+            <span class="telemetry-value" id="telTotalMass">0</span>
+          </div>
+          <div class="telemetry-card">
+            <span class="telemetry-label">FPS</span>
+            <span class="telemetry-value" id="telFPS">60</span>
+          </div>
+          <div class="telemetry-card">
+            <span class="telemetry-label">Cosmic Age</span>
+            <span class="telemetry-value" id="telAge">0.0B yr</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: Physics Constants (G, Collisions, Damping) -->
+      <section class="control-section">
+        <h3 class="section-title"><i class="fa-solid fa-gears"></i> Physics Laws</h3>
+        
+        <div class="control-group">
+          <div class="control-label">
+            <span>Gravitational Constant (G)</span>
+            <span id="valG">1.0</span>
+          </div>
+          <input type="range" id="rngG" min="0.1" max="10.0" step="0.1" value="1.0" class="custom-slider">
+        </div>
+
+        <div class="control-group">
+          <div class="control-label">
+            <span>Collision Behavior</span>
+          </div>
+          <div class="dropdown-wrapper">
+            <select id="selCollision" class="custom-select">
+              <option value="merge">Gravitational Merge (Accretion)</option>
+              <option value="elastic">Elastic Bounce</option>
+              <option value="destroy">Stellar Disintegration</option>
+              <option value="ghost">Zero Collision (Ghost)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <div class="control-label">
+            <span>Space Damping (Friction)</span>
+            <span id="valFriction">0.00%</span>
+          </div>
+          <input type="range" id="rngFriction" min="0" max="2" step="0.1" value="0" class="custom-slider">
+        </div>
+        
+        <div class="control-group flex-row">
+          <label class="checkbox-container">
+            <input type="checkbox" id="chkShowOrbits" checked>
+            <span class="checkmark"></span>
+            Show Predicted Trajectories
+          </label>
+        </div>
+      </section>
+
+      <!-- Section: Energy Conservation Analytics -->
+      <section class="control-section flex-grow-container">
+        <h3 class="section-title"><i class="fa-solid fa-chart-line"></i> Cosmic Energy conservation</h3>
+        <div class="chart-container">
+          <canvas id="energyChart"></canvas>
+        </div>
+        <div class="energy-legend">
+          <div class="legend-item"><span class="dot kinetic"></span> Kinetic (Ek)</div>
+          <div class="legend-item"><span class="dot potential"></span> Potential (Ep)</div>
+          <div class="legend-item"><span class="dot total"></span> Total Energy</div>
+        </div>
+      </section>
+
+      <!-- Section: Event Feed -->
+      <section class="control-section event-feed-section">
+        <h3 class="section-title"><i class="fa-solid fa-list-ul"></i> Collision & Event Log</h3>
+        <div id="eventLog" class="event-log-container">
+          <div class="log-entry system"><span class="log-time">[0.0B yr]</span> Gravitas Simulation engine initialized.</div>
+        </div>
+      </section>
+    </aside>
+  </div>
+
+  <!-- Instruction Overlays (Floating) -->
+  <div class="instruction-overlay">
+    <div class="key-controls">
+      <span><i class="fa-solid fa-mouse-pointer"></i> <strong>Click & Drag</strong>: Launch Planet</span>
+      <span><i class="fa-solid fa-computer-mouse"></i> <strong>Right-Click & Drag</strong>: Pan Camera</span>
+      <span><i class="fa-solid fa-arrows-to-eye"></i> <strong>Scroll Wheel</strong>: Zoom Space</span>
+    </div>
+  </div>
+
+  <!-- JS Implementation Scripts -->
+  <script type="module" src="physics.js"></script>
+  <script type="module" src="canvas.js"></script>
+  <script type="module" src="audio.js"></script>
+  <script type="module" src="ui.js"></script>
+  <script type="module" src="main.js"></script>
+</body>
+</html>
