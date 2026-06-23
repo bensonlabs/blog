@@ -21,6 +21,8 @@
       --accent2: #a78bfa;
       --cyan:    #73f7ff;
       --mint:    #8cffc8;
+      --rose:    #ff8ec7;
+      --gold:    #ffd76b;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -42,7 +44,7 @@
     /* ── HEADER ── */
     .page-header {
       width: 100%;
-      max-width: 720px;
+      max-width: 860px;
       margin-bottom: 40px;
     }
 
@@ -78,16 +80,16 @@
       color: var(--muted);
       font-size: 1rem;
       line-height: 1.6;
-      max-width: 560px;
+      max-width: 600px;
     }
 
     /* ── VERSION GRID ── */
     .version-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
       gap: 20px;
       width: 100%;
-      max-width: 720px;
+      max-width: 860px;
     }
 
     /* ── VERSION CARD ── */
@@ -145,7 +147,13 @@
       border: 1px solid rgba(140, 255, 200, 0.25);
     }
 
-    .v3 .card-version::after {
+    .v4 .card-version {
+      background: rgba(255, 215, 107, 0.12);
+      color: var(--gold);
+      border: 1px solid rgba(255, 215, 107, 0.25);
+    }
+
+    .v4 .card-version::after {
       content: ' ★';
     }
 
@@ -184,9 +192,8 @@
       color: var(--accent2);
     }
 
-    .v3 .card-features li::before {
-      color: var(--mint);
-    }
+    .v3 .card-features li::before { color: var(--mint); }
+    .v4 .card-features li::before { color: var(--gold); }
 
     .card-play {
       display: inline-block;
@@ -249,13 +256,31 @@
         <span class="card-version">v3</span>
       </div>
       <div class="card-title">Orbit Bloom v3</div>
-      <div class="card-desc">Recommended. Builds on v2 with accessibility and rendering improvements.</div>
+      <div class="card-desc">Builds on v2 with accessibility and rendering improvements.</div>
       <ul class="card-features">
         <li>Everything in v2</li>
         <li>Tabular number display in HUD</li>
         <li>Reduced-motion support for accessibility</li>
       </ul>
       <span class="card-play">Play v3 →</span>
+    </a>
+
+    <a class="version-card v4" href="orbit-bloom-v4.html">
+      <div class="card-badge">
+        <span class="card-emoji">🌸</span>
+        <span class="card-version">v4</span>
+      </div>
+      <div class="card-title">Orbit Bloom v4</div>
+      <div class="card-desc">Recommended. Complete visual and controls overhaul with a glassmorphic aurora UI.</div>
+      <ul class="card-features">
+        <li>Everything in v3</li>
+        <li>Animated aurora background &amp; glassmorphic HUD</li>
+        <li>Virtual joystick for mobile</li>
+        <li>Cinzel &amp; IBM Plex Mono typography</li>
+        <li>Polished end card with floating animation</li>
+        <li>Richer procedural audio SFX</li>
+      </ul>
+      <span class="card-play">Play v4 →</span>
     </a>
 
   </div>
