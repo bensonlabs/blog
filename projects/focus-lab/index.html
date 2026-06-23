@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%238B5CF6%22/><text x=%2250%22 y=%2270%22 font-family=%22Arial, sans-serif%22 font-size=%2260%22 font-weight=%22bold%22 text-anchor=%22middle%22 fill=%22white%22>b</text></svg>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>bensonlabs</title>
+    <!-- Google Fonts: Outfit (modern, sleek sans-serif) & JetBrains Mono (tech/code styling) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="description" content="A premium, immersive, dynamic productivity dashboard with built-in synthesized focus audio, Pomodoro timer, tasks, scratchpad, and theme options." />
+  <script type="module" crossorigin src="/projects/focus-lab/assets/index-PDYroJGn.js"></script>
+  <link rel="stylesheet" crossorigin href="/projects/focus-lab/assets/index-BBM9ZfTZ.css">
+
+  <body class="theme-obsidian">
+    <div id="app" class="app-container">
+      <!-- Animated Background Gradients -->
+      <div class="bg-gradient-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+      </div>
+
+      <!-- Main Layout -->
+      <div class="dashboard-wrapper">
+        <!-- Header -->
+        <header class="dashboard-header">
+          <div class="header-left">
+            <a href="https://bensonlabs.org" class="logo-area" title="Back to bensonlabs.org">
+              <svg class="logo-svg" width="40" height="40" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="50" fill="#8B5CF6"/>
+                <text x="50" y="70" font-family="Arial, sans-serif" font-size="60" font-weight="bold" text-anchor="middle" fill="white">b</text>
+              </svg>
+              <div class="brand-text">
+                <h1>b e n s o n l a b s</h1>
+              </div>
+            </a>
+            <div class="greeting-area">
+              <h2 id="greeting-text">Hello, Developer</h2>
+              <p class="greeting-subtitle" id="greeting-sub">Ready for a highly focused session?</p>
+            </div>
+          </div>
+
+          <div class="header-right">
+            <!-- Time & Weather Widget -->
+            <div class="meta-widget">
+              <div class="time-display">
+                <span id="digital-clock">00:00:00</span>
+                <span id="date-display">Monday, June 8, 2026</span>
+              </div>
+              <div class="weather-display" id="weather-widget">
+                <!-- SVG Weather Icon (Dynamic) -->
+                <svg id="weather-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
+                <div class="weather-info">
+                  <span id="weather-temp">72°F</span>
+                  <span id="weather-condition">Sunny Focus</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Theme Picker -->
+            <div class="theme-selector">
+              <button class="theme-btn active" data-theme="obsidian" title="Obsidian (Blog)">
+                <span class="dot obsidian-dot"></span>
+              </button>
+              <button class="theme-btn" data-theme="cyberpunk" title="Cyberpunk Neon">
+                <span class="dot cyberpunk-dot"></span>
+              </button>
+              <button class="theme-btn" data-theme="aurora" title="Aurora Nocturne">
+                <span class="dot aurora-dot"></span>
+              </button>
+              <button class="theme-btn" data-theme="nordic" title="Nordic Minimal">
+                <span class="dot nordic-dot"></span>
+              </button>
+              <button class="theme-btn" data-theme="sunset" title="Sunset Oasis">
+                <span class="dot sunset-dot"></span>
+              </button>
+            </div>
+
+          </div>
+        </header>
+
+        <!-- Grid Workspace -->
+        <main class="dashboard-grid">
+          
+          <!-- Column 1: Pomodoro (Large Card) -->
+          <section class="grid-card pmd-card" id="widget-pomodoro">
+            <div class="card-header">
+              <h3>POMODORO SESSION</h3>
+              <span class="badge" id="session-type-badge">FOCUS</span>
+            </div>
+            
+            <div class="card-content pomodoro-content">
+              <div class="timer-ring-container">
+                <!-- Timer SVG Ring -->
+                <svg class="timer-svg" width="220" height="220" viewBox="0 0 220 220">
+                  <defs>
+                    <linearGradient id="timerGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+                      <stop offset="0%" class="timer-grad-start" />
+                      <stop offset="100%" class="timer-grad-end" />
+                    </linearGradient>
+                    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                      <feGaussianBlur stdDeviation="6" result="blur" />
+                      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                    </filter>
+                  </defs>
+                  <!-- Background Circle -->
+                  <circle class="timer-ring-bg" cx="110" cy="110" r="95" stroke-width="8" fill="none" />
+                  <!-- Progress Circle -->
+                  <circle class="timer-ring-progress" id="timer-progress-bar" cx="110" cy="110" r="95" stroke-width="8" stroke-dasharray="596.9" stroke-dashoffset="0" fill="none" transform="rotate(-90 110 110)" stroke="url(#timerGrad)" filter="url(#glow)" />
+                </svg>
+                
+                <div class="timer-text-container">
+                  <span id="timer-time" class="timer-numbers">25:00</span>
+                  <span id="timer-label" class="timer-label">STAY FORWARD</span>
+                </div>
+              </div>
+
+              <!-- Presets -->
+              <div class="timer-presets">
+                <select id="focus-duration-select" class="preset-select">
+                  <option value="10">Focus (10m)</option>
+                  <option value="15">Focus (15m)</option>
+                  <option value="20">Focus (20m)</option>
+                  <option value="25" selected>Focus (25m)</option>
+                  <option value="30">Focus (30m)</option>
+                  <option value="45">Focus (45m)</option>
+                  <option value="60">Focus (1h)</option>
+                </select>
+                <button class="preset-btn" data-duration="5" data-type="short">Short Break (5m)</button>
+                <button class="preset-btn" data-duration="15" data-type="long">Long Break (15m)</button>
+              </div>
+
+              <!-- Controls -->
+              <div class="timer-controls">
+                <button id="btn-timer-reset" class="control-btn secondary" title="Reset Timer">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
+                </button>
+                <button id="btn-timer-toggle" class="control-btn primary" title="Start/Pause Focus">
+                  <span id="play-pause-icon">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" /></svg>
+                  </span>
+                </button>
+                <button id="btn-timer-skip" class="control-btn secondary" title="Skip Session">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8.25V18a2.25 2.25 0 002.25 2.25h13.5A2.25 2.25 0 0021 18V8.25m-18 0V6a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 6v2.25m-18 0h18M5.25 6h.008v.008H5.25V6zM7.5 6h.008v.008H7.5V6zm2.25 0h.008v.008H9.75V6z" /></svg>
+                </button>
+              </div>
+
+              <div class="session-stats">
+                <span id="completed-sessions">Completed Sessions: 0</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- Column 2: Focus Tasks (Large Card) -->
+          <section class="grid-card tasks-card" id="widget-tasks">
+            <div class="card-header">
+              <h3>FOCUS TASKS</h3>
+              <div class="task-progress-box">
+                <span id="task-pct">0% done</span>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" id="task-progress-fill" style="width: 0%"></div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="card-content tasks-content">
+              <!-- Task Form -->
+              <form id="task-form" class="task-input-form">
+                <div class="input-row">
+                  <input type="text" id="task-input" placeholder="What will you accomplish next?" required maxlength="100" autocomplete="off" />
+                  <button type="submit" class="task-add-btn">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                  </button>
+                </div>
+                
+                <div class="meta-row">
+                  <!-- Priority Selection -->
+                  <div class="select-group">
+                    <label>Priority</label>
+                    <div class="radio-pill-group">
+                      <input type="radio" id="prio-low" name="priority" value="low">
+                      <label for="prio-low" class="pill-label low">Low</label>
+                      
+                      <input type="radio" id="prio-med" name="priority" value="medium" checked>
+                      <label for="prio-med" class="pill-label medium">Medium</label>
+                      
+                      <input type="radio" id="prio-high" name="priority" value="high">
+                      <label for="prio-high" class="pill-label high">High</label>
+                    </div>
+                  </div>
+
+                  <!-- Category Selection -->
+                  <div class="select-group">
+                    <label>Category</label>
+                    <select id="task-category">
+                      <option value="Work">💼 Work</option>
+                      <option value="Dev">💻 Dev</option>
+                      <option value="Personal">🧘 Personal</option>
+                      <option value="Study">📚 Study</option>
+                    </select>
+                  </div>
+                </div>
+              </form>
+
+              <!-- Filters -->
+              <div class="task-filters">
+                <button class="filter-tab active" data-filter="all">All (<span id="count-all">0</span>)</button>
+                <button class="filter-tab" data-filter="active">Active (<span id="count-active">0</span>)</button>
+                <button class="filter-tab" data-filter="completed">Completed (<span id="count-completed">0</span>)</button>
+              </div>
+
+              <!-- Task List -->
+              <div class="task-list-wrapper">
+                <ul class="task-list" id="task-list-items">
+                  <!-- Dynamic Tasks Injection -->
+                </ul>
+                <div id="no-tasks-msg" class="empty-state">
+                  <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                  <p>All focus loops closed. Add a task to begin.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Column 3: Scratchpad & Synthesized Focus Sounds -->
+          <div class="grid-col-stack">
+            <!-- Scratchpad Card -->
+            <section class="grid-card scratchpad-card" id="widget-scratchpad">
+              <div class="card-header">
+                <h3>SCRATCHPAD</h3>
+                <div class="header-actions">
+                  <button id="btn-copy-scratchpad" class="action-btn" title="Copy to clipboard">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 7.5V6.108c0-1.135.845-2.098 1.976-2.192.373-.03.748-.057 1.123-.08M15.75 18H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08M15.75 18.75v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5A3.375 3.375 0 006.375 7.5H5.25m11.9-3.664A2.251 2.251 0 0015 2.25h-1.5a2.251 2.251 0 00-2.15 1.586m5.8 0c.065.21.1.433.1.664v.75h-6V4.5c0-.231.035-.454.1-.664M6.75 7.5H4.875c-.621 0-1.125.504-1.125 1.125v12c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V16.5a9 9 0 00-9-9z" /></svg>
+                  </button>
+                  <button id="btn-clear-scratchpad" class="action-btn" title="Clear Scratchpad">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="card-content scratchpad-content">
+                <div class="notepad-editor">
+                  <div class="line-numbers" id="scratchpad-line-numbers">1</div>
+                  <textarea id="scratchpad-text" placeholder="Jot down quick thoughts, variables, or functions here... Auto-saves locally." autocomplete="off" spellcheck="false"></textarea>
+                </div>
+                <div class="scratchpad-meta">
+                  <span id="scratchpad-words" class="mono-text">0 words</span>
+                  <span id="scratchpad-chars" class="mono-text">0 chars</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- Audio Card -->
+            <section class="grid-card audio-card" id="widget-audio">
+              <div class="card-header">
+                <h3>SYNTHESIZED AMBIENT SOUNDS</h3>
+                <span class="indicator-pulse" id="audio-pulse-indicator"></span>
+              </div>
+              <div class="card-content audio-content">
+                <p class="section-desc">Fully synthesized on your soundcard via the Web Audio API. No network loading required.</p>
+
+                <div class="sound-presets">
+                  <button class="sound-btn active" data-sound="none">
+                    <span class="icon">🛑</span>
+                    <span class="label">Silence</span>
+                  </button>
+                  <button class="sound-btn" data-sound="brownian-rain">
+                    <span class="icon">🌧️</span>
+                    <span class="label">Brownian Rain</span>
+                  </button>
+                  <button class="sound-btn" data-sound="binaural-theta">
+                    <span class="icon">🌀</span>
+                    <span class="label">Deep Theta Drone</span>
+                  </button>
+                  <button class="sound-btn" data-sound="cosmic-pink">
+                    <span class="icon">🌌</span>
+                    <span class="label">Cosmic Pink Noise</span>
+                  </button>
+                  <button class="sound-btn" data-sound="singing-bowl">
+                    <span class="icon">🥣</span>
+                    <span class="label">Singing Bowl</span>
+                  </button>
+                  <button class="sound-btn" data-sound="ocean-waves">
+                    <span class="icon">🌊</span>
+                    <span class="label">Ocean Surf</span>
+                  </button>
+                  <button class="sound-btn" data-sound="crickets-chirp">
+                    <span class="icon">🦗</span>
+                    <span class="label">Summer Night</span>
+                  </button>
+                  <button class="sound-btn" data-sound="wood-fire">
+                    <span class="icon">🔥</span>
+                    <span class="label">Cozy Fireplace</span>
+                  </button>
+                  <button class="sound-btn" data-sound="spaceship-cabin">
+                    <span class="icon">🛸</span>
+                    <span class="label">Spaceship Cabin</span>
+                  </button>
+                  <button class="sound-btn" data-sound="forest-birds">
+                    <span class="icon">🌳</span>
+                    <span class="label">Forest Birds</span>
+                  </button>
+                </div>
+
+                <div class="audio-mixer">
+                  <div class="mixer-row">
+                    <span class="mixer-label">Sound Volume</span>
+                    <input type="range" id="sound-volume" min="0" max="1" step="0.05" value="0.5" />
+                    <span id="volume-val" class="mono-text">50%</span>
+                  </div>
+                  <div class="mixer-row flex-end">
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="pomodoro-soundtracks" />
+                      <span class="slider round"></span>
+                    </label>
+                    <span class="toggle-label">Auto-play audio during Focus Sessions</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <!-- Column 4: Focus Metrics & Wisdom (Bottom Stacked / Combined or grid spanning) -->
+          <section class="grid-card wisdom-card" id="widget-wisdom">
+            <div class="card-header">
+              <h3>DAILY ZEN & METRICS</h3>
+              <button id="btn-refresh-quote" class="action-btn" title="Refresh Zen Code">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 00-3.7-3.7 48.656 48.656 0 00-7.324 0 4.006 4.006 0 00-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3l-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 003.7 3.7 48.656 48.656 0 007.324 0 4.006 4.006 0 003.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3l-3 3" /></svg>
+              </button>
+            </div>
+            <div class="card-content wisdom-content">
+              <!-- Zen Quote block -->
+              <blockquote class="zen-quote">
+                <p id="quote-text">"Simplicity is the soul of efficiency."</p>
+                <cite id="quote-author">— Austin Freeman</cite>
+              </blockquote>
+
+              <!-- Analytics Chart -->
+              <div class="productivity-chart-area">
+                <h4 class="chart-title">Weekly Focus Loop (Minutes)</h4>
+                <div class="svg-chart-container">
+                  <svg id="analytics-chart" viewBox="0 0 320 120" width="100%" height="100%">
+                    <!-- Grid Lines -->
+                    <line x1="30" y1="20" x2="310" y2="20" class="chart-grid-line" />
+                    <line x1="30" y1="55" x2="310" y2="55" class="chart-grid-line" />
+                    <line x1="30" y1="90" x2="310" y2="90" class="chart-grid-line" />
+                    <line x1="30" y1="105" x2="310" y2="105" class="chart-axis-line" />
+                    
+                    <!-- Axis values -->
+                    <text x="5" y="24" class="chart-text scale-text">100m</text>
+                    <text x="5" y="59" class="chart-text scale-text">50m</text>
+                    <text x="5" y="94" class="chart-text scale-text">10m</text>
+                    
+                    <!-- Chart Line Path (Dynamic) -->
+                    <path id="chart-path-fill" class="chart-fill" d="" />
+                    <path id="chart-path" class="chart-line" d="" />
+                    
+                    <!-- Data Dots (Dynamic) -->
+                    <g id="chart-dots"></g>
+                    
+                    <!-- X Axis Labels -->
+                    <g id="chart-labels"></g>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </section>
+
+        </main>
+      </div>
+
+      <!-- Toast Notifications Container -->
+      <div id="toast-container" class="toast-container"></div>
+    </div>
+    
+  </body>
+</html>

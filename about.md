@@ -7,12 +7,12 @@ permalink: /about/
 
 <h1>About</h1>
 
-<p>This is a personal blog by <strong>Justin Benson</strong> — a collection of troubleshooting fixes, PowerShell scripts, and technical notes gathered while solving real-world IT problems.</p>
+<p>This is a personal blog by <strong>Justin Benson</strong> — a collection of troubleshooting fixes, PowerShell scripts, technical notes, interactive games, and fitness tracking gathered while solving real-world IT problems.</p>
 
-<p>Topics covered include Windows administration, macOS, Linux, Hyper-V, networking, and anything else that comes up in day-to-day IT work.</p>
+<p>Topics covered include Windows administration, macOS, Linux, Hyper-V, networking, strength training, and anything else that comes up in day-to-day work.</p>
 
-<h2>Contact</h2>
+<h2>Connect</h2>
 
-<p>Find me on Twitter: <a href="https://twitter.com/bensonlab">@bensonlab</a></p>
+<p>Find me on GitHub: <a href="https://github.com/bensonlabs">github.com/bensonlabs</a></p>
 
 </div>

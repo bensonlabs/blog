@@ -1,0 +1,760 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>The Last Signal</title>
+        <style>
+            body {
+                background-color: #0a0a0a;
+                color: #00ff00;
+                font-family: "Courier New", monospace;
+                margin: 0;
+                padding: 20px;
+                line-height: 1.6;
+                overflow-x: hidden;
+            }
+
+            .container {
+                max-width: 800px;
+                margin: 0 auto;
+                border: 1px solid #00ff00;
+                padding: 20px;
+                box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+            }
+
+            h1 {
+                text-align: center;
+                color: #00cc00;
+                text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+                margin-bottom: 10px;
+            }
+
+            .subtitle {
+                text-align: center;
+                color: #009900;
+                margin-bottom: 20px;
+            }
+
+            .status-bar {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background-color: #001a00;
+                padding: 10px;
+                margin-bottom: 20px;
+                border: 1px solid #008800;
+            }
+
+            .status-bar .controls {
+                display: flex;
+                gap: 8px;
+                padding: 0;
+                margin: 0;
+            }
+
+            .status-bar .controls button {
+                background-color: #1a0000;
+                border: 1px solid #008800;
+                color: #00ff00;
+                font-family: "Courier New", monospace;
+                font-size: 12px;
+                padding: 4px 12px;
+                cursor: pointer;
+            }
+
+            .status-bar .controls button:hover {
+                background-color: #330000;
+            }
+
+            .location,
+            .inventory {
+                font-weight: bold;
+            }
+
+            .game-text {
+                background-color: #001a00;
+                padding: 20px;
+                margin-bottom: 20px;
+                border: 1px solid #008800;
+                min-height: 200px;
+                white-space: pre-wrap;
+            }
+
+            .choices {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+
+            button {
+                background-color: #002200;
+                color: #00ff00;
+                border: 1px solid #008800;
+                padding: 10px;
+                font-family: "Courier New", monospace;
+                font-size: 16px;
+                cursor: pointer;
+                transition: all 0.3s;
+                text-align: left;
+            }
+
+            button:hover {
+                background-color: #004400;
+                box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>THE LAST SIGNAL</h1>
+            <div class="subtitle">A Text-Based Adventure</div>
+
+            <div class="status-bar">
+                <div class="controls">
+                    <button onclick="resetGame()">Restart Mission</button>
+                </div>
+                <div class="location">
+                    Location: <span id="location">Reception Area</span>
+                </div>
+                <div class="inventory">
+                    Inventory: <span id="inventory">-</span>
+                </div>
+                <div class="controls">
+                    <button onclick="quitGame()">Quit</button>
+                </div>
+            </div>
+
+            <div id="game-text" class="game-text"></div>
+
+            <div class="choices" id="choices">
+                <button onclick="chooseAction('explore')">
+                    Explore the Reception Area
+                </button>
+                <button onclick="chooseAction('listen')">
+                    Listen carefully
+                </button>
+                <button onclick="chooseAction('check_signal')">
+                    Check the signal terminal
+                </button>
+                <button onclick="chooseAction('investigate')">
+                    Investigate further
+                </button>
+            </div>
+        </div>
+
+        <script>
+            let gameState = {
+                location: "Reception Area",
+                inventory: [],
+                act: "Discovery",
+                visited: {
+                    "Reception Area": true,
+                },
+                events: {
+                    ticket_used: false,
+                    lab_visited: false,
+                    keycard_found: false,
+                    switch_used: false,
+                    power_restored: false,
+                    observation_visited: false,
+                },
+            };
+
+            const rooms = {
+                "Reception Area": {
+                    description:
+                        "The reception area is quiet, with the scent of old electronics and decay. Broken security cameras peer down from above, their screens cracked and dark. A console with a cracked screen sits beside the reception desk, with a few scattered papers.\n\nThe signal seems to be coming from deeper in the station, but you can't see anything without power.\n\nA ticket stub bearing the word 'ACCESS' is scattered on the floor. It looks like it might be related to the security system.",
+                    exits: ["Laboratory", "Storage Room", "Hallway"],
+                    items: ["ticket stub"],
+                },
+                Laboratory: {
+                    description:
+                        "The laboratory is a relic of past experimentation. Shelves line the walls, mostly empty now, with rusted equipment and whiteboards covered in a mixture of scientific notation and random scribbles.\n\nThe blue-glowing emergency lights flicker on and off, casting strange shadows through the space. A keepers relay in the corner suddenly stops pulsing with a loud mechanical clank.\n\nThere's a small note about a 'two-person understand' protocol for the robotics lab. The door is locked but with a small keycard slot that might be accessible if you had a keycard.\n\nThe equipment here seems almost too clean for a place abandoned for years.",
+                    exits: ["Reception Area"],
+                    items: ["keycard"],
+                },
+                "Storage Room": {
+                    description:
+                        "The storage room is packed with magazines and old footprints. A large industrial locker dominates one corner.\n\nThat locker is definitely not meant to be here - someone has installed bolts to turn it into a makeshift compartment. It seems to be secured with a simple metal lock that's unlocked.\n\nThere's a damp smell about it, and the metallic buzz of a power source is faintly audible in the distance.",
+                    exits: ["Reception Area"],
+                    items: ["flashlight"],
+                },
+                Hallway: {
+                    description:
+                        "A long hallway stretches before you, painted a slightly different shade of green than the reception area. The walls are lined with terminal units with glowing text - now mostly broken or dark.\n\nThe air feels thick, too heavily saturated with life. Why are the lights on? The hum of electronics is much louder here.\n\nIn the corner, you see a faint green light blinking - the sound of something powerful flickering on. You notice a code panel by the left wall that has been partially destroyed.\n\nThere is a locked steel door at the end of the hall. Can't see anything through the glass panel.\n\nIf you're going to head further, it will be rather dark without a light source. As you move, you hear a faint hum that reminds you of the reactor drone on the station's roof.",
+                    exits: ["Reception Area", "Observation Deck"],
+                    items: ["switch"],
+                },
+                "Observation Deck": {
+                    description:
+                        "You've reached a room at the very heart of this place. This seems to be one of the few areas that's actively powered.\n\nThe walls are lined with polystyrene panels that have been marked, and LED readings blink differently than the rest of the day. It's almost regal in its lonely piecing.\n\nThere are walls of dark screens and classified data. Sahrot mentioned something about deeper Extinction Level Events. A central screen is structured with redundant health switches - some with darkened paneling.\n\nThe distress signal seems to be strengthening here. This area appears to be the access point to something larger, but the very glow is unnatural.",
+                    exits: ["Hallway"],
+                    items: ["data chip"],
+                },
+            };
+
+            const storyElements = {
+                discovery: {
+                    keycardEvent:
+                        "You slide the keycard into the slot, and a weak red light blinks. The door slowly begins to open, revealing a room to the east - a laboratory filled with insights beyond what's been in the public record.",
+                    powerEvent:
+                        "You flip the switch in the hallway, and the power begins flowing to the laboratory. Suddenly, bright lights start to pulse throughout the lab. The blue glow from the emergency lights illuminates the walls with rows of new information.",
+                    ticketHint:
+                        "The ticket stub says 'ACCESS' - perhaps it works as a keycard?",
+                },
+                descent: {
+                    main: "As you venture deeper, the station's reality begins to feel different. The textures, the overwhelming energy, start to send vibrations directly through your body. It's a feeling like nothing else - not quite paranoia, not quite revelation.\n\nYour body begins feeling heavier, the fading ability to recall details let alone facts. Your last time in this part of the facility was exactly 10 months ago, during a high-stakes security audit. But now, you cannot clear your mind of the terms that had begun appearing on the walls and were destined to unfold.\n\nThe haunting melody grows stronger, reverberating through your ears not just as sound, but as directive indirection.",
+                },
+                resolution: {
+                    ending1:
+                        "You carefully decide not to let others see or use this power. You carefully document your findings at the station's edge, with a confirmation explicitly stating that the information must be safeguarded. The sight of the station begins to fade, as if it never was.\n\nYou return safely to the outside world, carrying with you a new understanding of the wrong questions and rights to fathom. You can't say if the researchers still operate in the hall, but the eeriness tips its head to you in the form of a ping, a direct chime of final memorandum reminding of an obsolete resonance.\n\nSomething exists in the background that will call you back someday. That something is mostly irrelevant to modern science for the time being. You've fulfilled your mission in the field, though the answers have sometimes been more dangerous than expected.\n\nBut return you will. You've already made a name for yourself. The quiet returns, and静静地 you take the air once again. As the place shimmers and fades, you know the underground culture has been severed. But sometimes, that's how the world moves forward\u2014you with a soft case of a Samizdat Influence.\n\nRest well, Dr. Chen... you've earned it.",
+                    ending2:
+                        "You make a different choice. As you reach the crystalline intersection, you realize that the station was never about information at all\u2014it was a way to channel something more profound. You flick the switch.\n\nWith a thunderous crack, the whole structure vibrates with a new will, pulsing the pattern that connects all the lesser worlds to your incapacity. The light absorbs everyone in the chamber, but strangely enough, silence is what takes over in your ears.\n\nThe signal is no longer fragmented. It's a single, unified tone of existence that matches the field of consciousness you've been building your career around. You've become part of it now.\n\nYou've transformed. It's a strange feeling, existing in several layers of reality\u2014between systems, in fields, among other frequencies. There is no concrete place to call your own anymore, just a presence that was built from specialist thinking.\n\nBut that's not entirely bad. In fact, you're more free now, the restrictions of data become less important. The crossroads between recursion and reflection is kept in perspective now. You've escaped the box. From here on out, the power and meaning of the multiple passes through the unison will never cease to astound you.\n\nNothing is complete as it was, but you're changing\u2014changing in ways you never thought you'd see in your lifetime. You are now one of the two things you said you'd never become: a twist in the voice of the immaterial. You are no longer Discord, but the Fused Synthesis.",
+                },
+            };
+
+            // Initialize game
+            function initGame() {
+                updateStatus();
+                showLocation();
+            }
+
+            // Update status display
+            function updateStatus() {
+                document.getElementById("location").textContent =
+                    gameState.location;
+
+                if (gameState.inventory.length > 0) {
+                    document.getElementById("inventory").textContent =
+                        gameState.inventory.join(", ");
+                } else {
+                    document.getElementById("inventory").textContent = "-";
+                }
+            }
+
+            // Set game text
+            function setGameText(text) {
+                document.getElementById("game-text").textContent = text;
+            }
+
+            // Handle user choices
+            function chooseAction(action) {
+                // Handle picking up items (act-independent)
+                if (action.startsWith("take ")) {
+                    pickUpItem(action.replace("take ", "").trim());
+                    return;
+                }
+
+                // Handle room navigation (act-independent)
+                if (action.startsWith("go to ")) {
+                    movePlayer(action.replace("go to ", "").trim());
+                    return;
+                }
+
+                // Act-specific handling
+                if (gameState.act === "Discovery") {
+                    handleDiscovery(action);
+                } else if (gameState.act === "Descent") {
+                    handleDescent(action);
+                } else if (gameState.act === "Resolution") {
+                    handleResolution(action);
+                }
+            }
+
+            // Act 1: Discovery - Reception Area investigation
+            function handleDiscovery(action) {
+                switch (action) {
+                    case "explore":
+                        showLocation();
+                        break;
+
+                    case "examine surroundings":
+                        if (gameState.location === "Reception Area") {
+                            setGameText(
+                                "You look closer at the reception area. Behind the cracked monitor on the console, you find a hidden compartment containing a small notebook. The pages are filled with coordinates and a single recurring phrase: 'The signal remembers us.'\n\nThe reception desk drawers are mostly empty, but one contains a stack of old station maps. On the back of a map of the lower levels, someone has drawn a crude diagram of the station with the Observation Deck circled in red.\n\nA small figurine of an owl sits on the counter, incongruous in the decay. Its eyes are made of tiny lenses that catch the light.\n\nA note pinned to the wall reads: 'DO NOT ANSWER THE SIGNAL AFTER HOURS. - Dr. H. Nakamura, Head of Security.'",
+                            );
+                        } else if (gameState.location === "Laboratory") {
+                            setGameText(
+                                "You examine the laboratory more carefully. The whiteboard has more detail than you first noticed - a large equation circles back on itself, like a loop. The keepers relay in the corner has a label: 'MODEL 7 - DO NOT TOUCH.' It seems to have been deliberately disabled.\n\nA microscope sits on the desk, still focused on a slide labeled 'SYNTHESIS - SAMPLE 103.' Under the lens, the specimen appears to be a crystalline structure with an internal pattern that looks almost like code.\n\nThe emergency light is not flickering randomly. You realize it's pulsing in a sequence: short, short, long, short. Morse code for 'SOS'.\n\nThe shelves in the corner hold a small collection of vintage radios, all tuned to the same frequency.",
+                            );
+                        } else if (gameState.location === "Storage Room") {
+                            setGameText(
+                                "You examine the storage room closely. The magazines are all from years ago - their headlines speak of a 'mysterious disappearance' and 'government denial.' The industrial locker has a false bottom; underneath, you find a battery-powered recording device.\n\nThe footprints on the floor form a spiral pattern, always moving inward. A faint warmth radiates from within the locker structure.",
+                            );
+                        } else if (gameState.location === "Hallway") {
+                            setGameText(
+                                "You examine the hallway. The terminal units on the walls all show the same message, frozen at different points: 'THE SIGNAL IS A BEACON. IT SHOWS THE WAY. DO NOT LET IT GO DARK.'\n\nYou press your hand against the wall and feel a vibration - the station is humming with an energy that shouldn't be there. The painted green seems to shift slightly, as if something is moving beneath the surface.\n\nThe code panel that was partially destroyed has a backup plate behind it. Written on the metal in marker: 'EMERGENCY OVERRIDE: SWITCH + KEYCARD = FULL ACCESS.'\n\nThe locked steel door at the end has a small peephole. If you look through it, you can see a faint blue glow from somewhere deep below.",
+                            );
+                        } else if (gameState.location === "Observation Deck") {
+                            setGameText(
+                                "You examine the Observation Deck. The screens are displaying different facets of the same data stream - audio, visual, electromagnetic. Each view shows something slightly different, but they all resolve to the same pattern: a spiral.\n\nA chair sits facing the main console, as if someone was waiting here. On the chair is a lab coat with a name patch: 'Dr. Mara Chen.'\n\nBeneath the screens, you find a small plaque: 'THE LAST SIGNAL PROJECT - 2014-2025. ALL PERSONNEL REPORTING TO THIS DECK ARE HEREBY DISCHARGED.'\n\nThe floor beneath the console has a small drawer that's been pried open. Inside is a data chip with the label 'ESCALATION PROTOCOL.'",
+                            );
+                        }
+                        showLocation();
+                        break;
+
+                    case "listen":
+                        setGameText(
+                            "You close your eyes and listen. The hum of the station is louder than you realized. Beneath it, there's a rhythm - a pattern, faint but unmistakable. It sounds like a heartbeat, or a machine trying to remember what a heartbeat sounds like.\n\nThe signal seems to be coming from deeper in the station. It grows stronger when you focus on it.",
+                        );
+                        updateButtons([
+                            "take ticket stub",
+                            "go to Hallway",
+                            "go to Storage Room",
+                        ]);
+                        break;
+
+                    case "check_signal":
+                        setGameText(
+                            "You check the signal terminal on the desk and notice that it's powered on, despite the apparent power outage. The signal is coming through clearly, but in fragments. You can hear: 'Condor'... 'zone 7'... 'TRIBUTE'.\n\nA short message appears on the screen: 'Access request denied for SIMULATED: EXISTENCE. Authorizing excision sequence.'\n\nThere's something disturbing about the way it's been programmed. The program seems to be designed to prevent communication, not encourage it.\n\nYou feel a chill that goes straight to your core.\n\nThere might be something important here you should explore further.",
+                        );
+                        updateButtons([
+                            "take ticket stub",
+                            "go to Hallway",
+                            "go to Storage Room",
+                        ]);
+                        break;
+
+                    case "investigate":
+                        setGameText(
+                            "You investigate the scattered papers and find a note that reads: 'Helper protocol for station modules: SIGMA-ACTIVE. Access code ROOT-COMMON to beam data stream.'\n\nThere is another note in the corner that says: 'Never feed the voice from the hallway. The void watches. Your well-being is not a priority.'\n\nThe note mentions that the security system requires a keycard to access the Laboratory and that the main power switch is located in the Hallway.",
+                        );
+                        updateButtons([
+                            "take ticket stub",
+                            "go to Hallway",
+                            "go to Storage Room",
+                        ]);
+                        break;
+
+                    case "read more":
+                        setGameText(
+                            "The papers contain fragments of research notes. One mentions 'Extinction Level Events' and a project called 'THE LAST SIGNAL' - an attempt to communicate with something beyond conventional understanding. Another note describes a 'two-person protocol' required to operate the station's main systems.\n\nThe handwriting grows increasingly erratic toward the end of the notes.",
+                        );
+                        updateButtons([
+                            "take ticket stub",
+                            "go to Hallway",
+                            "go to Storage Room",
+                        ]);
+                        break;
+
+                    case "use access on Lab":
+                        if (
+                            gameState.inventory.includes("ticket stub") &&
+                            !gameState.events.ticket_used
+                        ) {
+                            gameState.events.ticket_used = true;
+                            const room = rooms["Reception Area"];
+                            room.items = room.items.filter(
+                                (i) => i !== "ticket stub",
+                            );
+                            setGameText(
+                                storyElements.discovery.keycardEvent +
+                                    "\n\nYou place the ACCESS ticket stub into the slot. A weak red light blinks, then turns green. With a heavy mechanical click, the Laboratory door swings open.\n\nThe corridor to the east is now accessible.",
+                            );
+                            updateButtons([
+                                "go to Laboratory",
+                                "go to Storage Room",
+                                "go to Hallway",
+                            ]);
+                        } else if (gameState.events.ticket_used) {
+                            setGameText(
+                                "The Laboratory door is already unlocked.",
+                            );
+                            showLocation();
+                        } else {
+                            setGameText(
+                                "You don't have an access key to unlock the Laboratory.",
+                            );
+                            showLocation();
+                        }
+                        break;
+
+                    default:
+                        setGameText("You make a choice.");
+                        showLocation();
+                }
+            }
+
+            // Act 2: Descent - exploration and power restoration
+            function handleDescent(action) {
+                switch (action) {
+                    case "explore":
+                        showLocation();
+                        break;
+
+                    case "examine surroundings":
+                        if (gameState.location === "Hallway") {
+                            setGameText(
+                                "You examine the hallway more closely. The terminal units are all linked to a central server - you can see the fiber optic cables running along the ceiling. Some of the terminals display fragments of old messages: '...requesting immediate extraction...' '...the signal is growing...' '...send help to the lower levels...'\n\nA small dusting of metallic powder coats the floor near the main power switch - as if something has been disintegrating over time. You pick up a tiny amount between your fingers. It's warm.\n\nPeering through the glass panel of the Observation Deck door, you see monitors still faintly active. Whatever is in there, it has its own backup power.\n\nThe walls seem to vibrate more strongly the deeper you focus your attention.",
+                            );
+                            updateButtons([
+                                "take switch",
+                                "go to Reception Area",
+                                "examine surroundings",
+                            ]);
+                        } else if (gameState.location === "Laboratory") {
+                            setGameText(
+                                "You examine the laboratory more carefully. The whiteboard has more detail than you first noticed - a large equation circles back on itself, like a loop. The keepers relay in the corner has a label: 'MODEL 7 - DO NOT TOUCH.' It seems to have been deliberately disabled.\n\nA microscope sits on the desk, still focused on a slide labeled 'SYNTHESIS - SAMPLE 103.' Under the lens, the specimen appears to be a crystalline structure with an internal pattern that looks almost like code.\n\nThe emergency light is not flickering randomly. You realize it's pulsing in a sequence: short, short, long, short. Morse code for 'SOS'.\n\nThe shelves in the corner hold a small collection of vintage radios, all tuned to the same frequency.",
+                            );
+                            updateButtons([
+                                "take keycard",
+                                "go to Reception Area",
+                                "examine surroundings",
+                            ]);
+                        } else if (gameState.location === "Reception Area") {
+                            setGameText(
+                                "You examine the reception area once more. The desk drawers are mostly empty now, but you notice something: the figurine of the owl has been moved. It's not where you left it.\n\nThe cracked monitor on the console flickers. For a moment, you see text flash across the screen: 'THE STATION REMEMBERS.'\n\nThen it's gone.",
+                            );
+                            updateButtons([
+                                "go to Laboratory",
+                                "go to Storage Room",
+                                "go to Hallway",
+                                "examine surroundings",
+                            ]);
+                        } else if (gameState.location === "Storage Room") {
+                            setGameText(
+                                "You examine the storage room closely. The magazines are all from years ago - their headlines speak of a 'mysterious disappearance' and 'government denial.' The industrial locker has a false bottom; underneath, you find a battery-powered recording device.\n\nThe footprints on the floor form a spiral pattern, always moving inward. A faint warmth radiates from within the locker structure.",
+                            );
+                            updateButtons([
+                                "take flashlight",
+                                "go to Reception Area",
+                                "examine surroundings",
+                            ]);
+                        } else if (gameState.location === "Observation Deck") {
+                            setGameText(
+                                "You examine the Observation Deck. The screens resolve to a spiral pattern. A lab coat bearing 'Dr. Mara Chen' sits at the console. Beneath it, a data chip labeled 'ESCALATION PROTOCOL.'",
+                            );
+                            updateButtons([
+                                "take data chip",
+                                "access terminal",
+                                "go to Hallway",
+                                "examine surroundings",
+                            ]);
+                        }
+                        break;
+
+                    case "use switch":
+                        if (gameState.inventory.includes("switch")) {
+                            gameState.events.switch_used = true;
+                            gameState.events.power_restored = true;
+                            const room = rooms["Hallway"];
+                            room.items = room.items.filter(
+                                (i) => i !== "switch",
+                            );
+                            setGameText(
+                                storyElements.discovery.powerEvent +
+                                    "\n\nThe entire station hums to life. Lights flicker on in the distance, and you can hear systems booting up that haven't run in years. The door to the Observation Deck at the far end of the hallway clicks open.\n\nWith power restored, you can now access the Observation Deck. You also have the keycard from the Laboratory, which may grant you deeper access.",
+                            );
+                            updateButtons([
+                                "go to Observation Deck",
+                                "go to Reception Area",
+                                "go to Storage Room",
+                            ]);
+                        } else {
+                            setGameText("You don't have a switch to use.");
+                            showLocation();
+                        }
+                        break;
+
+                    case "examine whiteboard":
+                        setGameText(
+                            "The whiteboard is covered in equations and diagrams. At the center is a large schematic of the station with two key points highlighted:\n\n1. 'MAIN POWER SWITCH - HALLWAY SECTION' - a large toggle that controls the station's primary electrical grid.\n2. 'OBSERVATION DECK - LEVEL 7' - marked with a warning: 'DO NOT ENTER WITHOUT FULL KEYCARD CLEARANCE AND POWER RESTORATION.'\n\nThe notes suggest that the station was designed to study something - the 'signal' - and that full access to the Observation Deck requires both power and a keycard.",
+                        );
+                        updateButtons([
+                            "go to Reception Area",
+                            "examine surroundings",
+                        ]);
+                        break;
+
+                    default:
+                        setGameText("You make a choice.");
+                        showLocation();
+                }
+            }
+
+            // Act 3: Resolution - final choice
+            function handleResolution(action) {
+                switch (action) {
+                    case "safeguard":
+                        setGameText(storyElements.resolution.ending1);
+                        updateButtons(["Play Again"]);
+                        break;
+
+                    case "engage":
+                        setGameText(storyElements.resolution.ending2);
+                        updateButtons(["Play Again"]);
+                        break;
+
+                    case "access terminal":
+                        setGameText(
+                            "The terminal displays a final warning:\n\n'THE SIGNAL IS NOT A MESSAGE. IT IS A DOOR. Once opened, it cannot be closed.\n\nThe Fused Synthesis awaits those who choose to cross over.\n\nChoose wisely, Dr. Chen.'\n\nYou have reached the final threshold. The choice is yours.",
+                        );
+                        updateButtons(["safeguard", "engage"]);
+                        break;
+
+                    case "check signal source":
+                        setGameText(
+                            "The signal originates from deep below the station - a source that shouldn't exist. The data chip in your possession contains coordinates pointing to a location that doesn't appear on any map.\n\nThe terminal shows a countdown: 00:00:00. The signal is self-sustaining. It has been running for decades.\n\nYou understand now what you're facing. This is not a rescue signal. It is an invitation - or a summons.\n\nThe final choice awaits.",
+                        );
+                        updateButtons(["safeguard", "engage"]);
+                        break;
+
+                    case "Play Again":
+                        resetGame();
+                        break;
+
+                    default:
+                        setGameText("You make a choice.");
+                        showLocation();
+                }
+            }
+
+            // Pick up item from current room
+            function pickUpItem(itemName) {
+                const currentRoom = rooms[gameState.location];
+
+                if (currentRoom.items.includes(itemName)) {
+                    const idx = currentRoom.items.indexOf(itemName);
+                    currentRoom.items.splice(idx, 1);
+                    gameState.inventory.push(itemName);
+                    updateStatus();
+
+                    if (itemName === "ticket stub") {
+                        setGameText(
+                            "You pick up the ticket stub. It bears a small holographic symbol reading 'ACCESS'. This could be a keycard of some kind.\n\n" +
+                                storyElements.discovery.ticketHint,
+                        );
+                    } else if (itemName === "switch") {
+                        setGameText(
+                            "You take the switch. It's heavy, metallic, and labeled with faded text: 'MAIN POWER - DO NOT ACTIVATE WITHOUT CLEARANCE.'\n\nThis could restore power to the station.",
+                        );
+                    } else if (itemName === "flashlight") {
+                        setGameText(
+                            "You pick up the flashlight. The beam cuts through the darkness with surprising clarity. You feel safer carrying it deeper into the station.",
+                        );
+                    } else if (itemName === "data chip") {
+                        setGameText(
+                            "You pick up the data chip. It's warm to the touch. The label reads: 'THE LAST SIGNAL - FINAL OBSERVATIONS'. Whatever was recorded here, it's important.",
+                        );
+                    } else if (itemName === "keycard") {
+                        gameState.events.keycard_found = true;
+                        setGameText(
+                            "You take the keycard from the lab. It feels warm to the touch, and almost seems to pulse with energy. This card grants full access to the station's systems.\n\nYou now have the authority needed to proceed deeper into the station.",
+                        );
+                    } else {
+                        setGameText("You pick up the " + itemName + ".");
+                    }
+
+                    showLocation();
+                } else {
+                    setGameText("There's no " + itemName + " here.");
+                    showLocation();
+                }
+            }
+
+            // Show current location details
+            function showLocation() {
+                const currentRoom = rooms[gameState.location];
+                let text = currentRoom.description;
+                let exits = [...currentRoom.exits];
+
+                if (currentRoom.items.length > 0) {
+                    text += "\n\nYou see: " + currentRoom.items.join(", ");
+                }
+
+                // Filter exits based on locked conditions
+                if (
+                    gameState.location === "Reception Area" &&
+                    !gameState.events.ticket_used
+                ) {
+                    exits = exits.filter((e) => e !== "Laboratory");
+                    text += "\n\nA locked door with a keycard slot leads east.";
+                }
+
+                if (
+                    gameState.location === "Hallway" &&
+                    !gameState.events.power_restored
+                ) {
+                    exits = exits.filter((e) => e !== "Observation Deck");
+                    text +=
+                        "\n\nThe door to the Observation Deck at the far end is sealed.";
+                } else if (
+                    gameState.location === "Hallway" &&
+                    gameState.events.power_restored
+                ) {
+                    text += "\n\nThe door to the Observation Deck is open.";
+                }
+
+                text += "\n\nExits: " + exits.join(", ");
+
+                setGameText(text);
+
+                // Build action buttons
+                const buttons = [];
+
+                // Item pickup buttons
+                if (currentRoom.items.length > 0) {
+                    currentRoom.items.forEach((item) => {
+                        buttons.push("take " + item);
+                    });
+                }
+
+                // Exit buttons
+                exits.forEach((exit) => {
+                    buttons.push("go to " + exit);
+                });
+
+                // Special action buttons
+                if (
+                    gameState.location === "Reception Area" &&
+                    gameState.inventory.includes("ticket stub") &&
+                    !gameState.events.ticket_used
+                ) {
+                    buttons.push("use access on Lab");
+                }
+
+                if (
+                    gameState.location === "Hallway" &&
+                    gameState.inventory.includes("switch") &&
+                    !gameState.events.switch_used
+                ) {
+                    buttons.push("use switch");
+                }
+
+                buttons.push("examine surroundings");
+                updateButtons(buttons);
+            }
+
+            // Update buttons based on options
+            function updateButtons(actions) {
+                const choicesDiv = document.getElementById("choices");
+                choicesDiv.innerHTML = "";
+
+                actions.forEach((action) => {
+                    const button = document.createElement("button");
+                    button.textContent = action;
+                    button.onclick = () => chooseAction(action);
+                    choicesDiv.appendChild(button);
+                });
+            }
+
+            // Handle movement between rooms
+            function movePlayer(destination) {
+                // Special access checks
+                if (
+                    destination === "Laboratory" &&
+                    gameState.location === "Reception Area"
+                ) {
+                    if (!gameState.events.ticket_used) {
+                        setGameText(
+                            "The Laboratory door is locked. You need an access keycard. The keycard slot is to the side of the door.\n\nAn ACCESS ticket stub you found might work on it.",
+                        );
+                        showLocation();
+                        return;
+                    }
+                }
+
+                if (
+                    destination === "Observation Deck" &&
+                    gameState.location === "Hallway"
+                ) {
+                    if (!gameState.events.power_restored) {
+                        setGameText(
+                            "The door to the Observation Deck is sealed. The entire section has no power. You'd need to restore the station's electrical systems first.",
+                        );
+                        showLocation();
+                        return;
+                    }
+                }
+
+                // Normal exit check
+                if (!rooms[gameState.location].exits.includes(destination)) {
+                    setGameText("You can't go there from here.");
+                    showLocation();
+                    return;
+                }
+
+                gameState.location = destination;
+                gameState.visited[destination] = true;
+                updateStatus();
+
+                // Special room entry events
+                if (
+                    destination === "Laboratory" &&
+                    !gameState.events.lab_visited
+                ) {
+                    gameState.events.lab_visited = true;
+                    gameState.act = "Descent";
+                    setGameText(
+                        "You step into the Laboratory. The emergency lights flicker on as you cross the threshold, as if the room was waiting for someone to arrive.\n\n" +
+                            storyElements.descent.main +
+                            "\n\nOn a central desk, you notice a keycard glowing faintly with a blue charge. A whiteboard reads: 'TWO-PERSON PROTOCOL ACTIVE. MAIN POWER SWITCH IN HALLWAY. KEYCARD NECESSARY FOR FURTHER ACCESS.'\n\nYou feel the station's energy shifting. Whatever this place was built for, you've just stepped into its center.",
+                    );
+                    updateButtons([
+                        "take keycard",
+                        "examine whiteboard",
+                        "go to Reception Area",
+                    ]);
+                } else if (
+                    destination === "Observation Deck" &&
+                    !gameState.events.observation_visited
+                ) {
+                    gameState.events.observation_visited = true;
+                    gameState.act = "Resolution";
+                    setGameText(
+                        "You step into the Observation Deck. Now that power is restored, the room comes alive with blinking lights and humming monitors.\n\nWalls of screens display data streams and status readouts. The signal is strongest here - you can feel it vibrating in your chest.\n\nA central terminal displays a message:\n\n'DATASTREAM CONNECTED TO ENTITY PROTOCOL. SIGNAL ANALYSIS IN PROGRESS. PROBABILITY MATRIX: 0.47543 - CLASSIFICATION: EXTINCTION EVENT IMMINENT.'\n\nA secondary terminal requires a keycard to access deeper records.\n\nThe distress signal seems to be strengthening here. This area appears to be the access point to something larger, but the very glow is unnatural.",
+                    );
+                    updateButtons([
+                        "access terminal",
+                        "check signal source",
+                        "go to Hallway",
+                    ]);
+                } else {
+                    showLocation();
+                }
+            }
+
+            // Quit the game
+            function quitGame() {
+                if (confirm("Are you sure you want to quit?")) {
+                    window.location.href =
+                        "https://bensonlabs.org/projects/games/";
+                }
+            }
+
+            function resetGame() {
+                if (!confirm("Are you sure you want to restart?")) return;
+                gameState = {
+                    location: "Reception Area",
+                    inventory: [],
+                    act: "Discovery",
+                    visited: {
+                        "Reception Area": true,
+                    },
+                    events: {
+                        ticket_used: false,
+                        lab_visited: false,
+                        keycard_found: false,
+                        switch_used: false,
+                        power_restored: false,
+                        observation_visited: false,
+                    },
+                };
+
+                // Reset room items
+                rooms["Reception Area"].items = ["ticket stub"];
+                rooms["Laboratory"].items = ["keycard"];
+                rooms["Storage Room"].items = ["flashlight"];
+                rooms["Hallway"].items = ["switch"];
+                rooms["Observation Deck"].items = ["data chip"];
+
+                initGame();
+            }
+
+            // Initialize the game
+            initGame();
+        </script>
+    </body>
+</html>

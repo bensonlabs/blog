@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Projects — Benson Labs</title>
+  <style>
+    /* ── OBSIDIAN DARK THEME ── */
+    :root {
+      --bg:      #1e1e1e;
+      --surface: #252525;
+      --card:    #2d2d2d;
+      --border:  #3a3a3a;
+      --text:    #dcddde;
+      --muted:   #888;
+      --accent:  #7c3aed;
+      --accent2: #a78bfa;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 16px 60px;
+    }
+
+    /* ── HEADER ── */
+    .page-header {
+      width: 100%;
+      max-width: 860px;
+      margin-bottom: 40px;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.85rem;
+      margin-bottom: 20px;
+      transition: color 0.15s;
+    }
+    .back-link:hover { color: var(--accent2); }
+
+    .page-header h1 {
+      font-size: clamp(1.8rem, 5vw, 2.6rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+
+    .page-header h1 span { color: var(--accent2); }
+
+    .page-header p {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    /* ── PROJECT GRID ── */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+      width: 100%;
+      max-width: 860px;
+    }
+
+    /* ── PROJECT CARD ── */
+    .project-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+      text-decoration: none;
+      color: inherit;
+      outline-offset: 3px;
+    }
+
+    .project-card:hover,
+    .project-card:focus-visible {
+      border-color: var(--accent2);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(124, 58, 237, 0.2);
+    }
+
+    .card-icon {
+      font-size: 2.6rem;
+      line-height: 1;
+      user-select: none;
+    }
+
+    .card-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+
+    .card-desc {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.55;
+      flex: 1;
+    }
+
+    .card-cta {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 9px 20px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-align: center;
+      letter-spacing: 0.3px;
+      transition: background 0.15s, opacity 0.15s;
+      pointer-events: none;
+    }
+    .project-card:hover .card-cta,
+    .project-card:focus-visible .card-cta { background: var(--accent2); }
+    .project-card:active .card-cta { opacity: 0.8; }
+
+    /* ── FOOTER ── */
+    .page-footer {
+      margin-top: 60px;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+    .page-footer a { color: var(--muted); text-decoration: none; }
+    .page-footer a:hover { color: var(--accent2); }
+  </style>
+</head>
+<body>
+
+  <div class="page-header">
+    <a class="back-link" href="/">← bensonlabs.org</a>
+    <h1>Projects <span>↗</span></h1>
+    <p>Interactive tools and experiments built for the browser.</p>
+  </div>
+
+  <div class="projects-grid" id="projects-grid"></div>
+
+  <footer class="page-footer">
+    <p><a href="/">← Back to blog</a></p>
+  </footer>
+
+  <script>
+    const PROJECTS = [
+      {
+        title: "Gravitas",
+        description: "High-fidelity N-body gravity simulator with real-time orbital projection, procedural ambient audio, and a glassmorphic telemetry dashboard.",
+        emoji: "🔭",
+        path: "/projects/gravitas/",
+        cta: "Launch →",
+      },
+      {
+        title: "Focus Lab",
+        description: "Premium productivity dashboard with Pomodoro timer, focus tasks, synthesized ambient sounds, and weekly metrics.",
+        emoji: "🎯",
+        path: "/projects/focus-lab/",
+        cta: "Open →",
+      },
+      {
+        title: "Games",
+        description: "A growing collection of browser-based games including 2048, not-Wordle, brick-break, and Orbit Bloom.",
+        emoji: "🎮",
+        path: "/projects/games/",
+        cta: "Play →",
+      },
+      {
+        title: "Workouts",
+        description: "Workout tracking and exercise routines.",
+        emoji: "💪",
+        path: "/projects/workouts/",
+        cta: "Open →",
+      },
+    ];
+
+    const grid = document.getElementById("projects-grid");
+
+    PROJECTS.forEach(project => {
+      const card = document.createElement("a");
+      card.className = "project-card";
+      card.href = project.path;
+
+      const icon = document.createElement("div");
+      icon.className = "card-icon";
+      icon.textContent = project.emoji;
+
+      const title = document.createElement("div");
+      title.className = "card-title";
+      title.textContent = project.title;
+
+      const desc = document.createElement("div");
+      desc.className = "card-desc";
+      desc.textContent = project.description;
+
+      const cta = document.createElement("span");
+      cta.className = "card-cta";
+      cta.textContent = project.cta;
+
+      card.append(icon, title, desc, cta);
+      grid.appendChild(card);
+    });
+  </script>
+
+</body>
+</html>

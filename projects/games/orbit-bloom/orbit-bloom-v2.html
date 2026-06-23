@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orbit Bloom</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=IBM+Plex+Mono:wght@400;600&display=swap');
+
+    :root {
+      --bg0: #050711;
+      --bg1: #0a1020;
+      --panel: rgba(10, 14, 24, 0.72);
+      --line: rgba(180, 210, 255, 0.18);
+      --text: #e9f3ff;
+      --muted: #9cb1cf;
+      --cyan: #73f7ff;
+      --mint: #8cffc8;
+      --rose: #ff8ec7;
+      --gold: #ffd76b;
+      --danger: #ff6c7a;
+    }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 45%, rgba(60, 90, 150, 0.18), transparent 34%),
+        radial-gradient(circle at 50% 50%, rgba(140, 40, 200, 0.08), transparent 40%),
+        linear-gradient(180deg, var(--bg1), var(--bg0));
+      color: var(--text);
+      font-family: "IBM Plex Mono", monospace;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    body::before {
+      background-image:
+        radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1.2px),
+        radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1.2px);
+      background-size: 36px 36px, 58px 58px;
+      background-position: 0 0, 14px 22px;
+      opacity: 0.28;
+      mask-image: radial-gradient(circle at center, black 45%, transparent 100%);
+    }
+
+    body::after {
+      inset: -12%;
+      background:
+        radial-gradient(circle at 18% 20%, rgba(115, 247, 255, 0.14), transparent 20%),
+        radial-gradient(circle at 82% 18%, rgba(255, 142, 199, 0.13), transparent 18%),
+        radial-gradient(circle at 50% 78%, rgba(140, 255, 200, 0.10), transparent 22%),
+        conic-gradient(from 180deg at 50% 50%, rgba(115, 247, 255, 0.00), rgba(115, 247, 255, 0.04), rgba(255, 142, 199, 0.06), rgba(255, 215, 107, 0.03), rgba(115, 247, 255, 0.00));
+      filter: blur(30px);
+      opacity: 0.42;
+      animation: auroraDrift 18s ease-in-out infinite alternate;
+      transform: translate3d(0,0,0);
+    }
+
+    @keyframes auroraDrift {
+      0% { transform: translate3d(-1.5%, -0.8%, 0) rotate(-3deg) scale(1); }
+      100% { transform: translate3d(1.2%, 0.9%, 0) rotate(4deg) scale(1.02); }
+    }
+
+    #frame {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+    }
+
+    canvas {
+      width: min(100vw, calc(100vh * 16 / 9));
+      height: auto;
+      max-height: 100vh;
+      border-radius: 28px;
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.06) inset,
+        0 20px 90px rgba(0,0,0,0.54),
+        0 0 130px rgba(95, 180, 255, 0.15),
+        0 0 35px rgba(255, 142, 199, 0.08);
+      background: transparent;
+    }
+
+    #hud {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      pointer-events: none;
+      padding: 18px;
+      box-sizing: border-box;
+      gap: 12px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .brand,
+    .stats,
+    .help,
+    .flash-card,
+    .endcard {
+      pointer-events: none;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 12px 36px rgba(0,0,0,0.28);
+    }
+
+    .brand {
+      padding: 14px 16px 12px;
+      border-radius: 18px;
+      max-width: 30rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .brand::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, rgba(115,247,255,0.12), transparent 40%, rgba(255,142,199,0.08));
+      opacity: 0.75;
+      pointer-events: none;
+    }
+
+    .brand h1 {
+      position: relative;
+      z-index: 1;
+      margin: 0 0 4px;
+      font-family: "Cinzel", serif;
+      font-size: clamp(22px, 3vw, 36px);
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      line-height: 1;
+      text-shadow: 0 0 12px rgba(115, 247, 255, 0.24), 0 0 28px rgba(255, 142, 199, 0.12);
+    }
+
+    .brand p {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, auto);
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 18px;
+      align-items: center;
+      white-space: nowrap;
+      background: linear-gradient(180deg, rgba(14, 20, 36, 0.84), rgba(8, 12, 22, 0.68));
+    }
+
+    .chip {
+      display: grid;
+      gap: 2px;
+      min-width: 86px;
+      padding-left: 8px;
+      border-left: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .chip:first-child {
+      padding-left: 0;
+      border-left: none;
+    }
+
+    .chip .label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+    }
+
+    .chip .value {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      text-shadow: 0 0 10px rgba(255,255,255,0.08);
+    }
+
+    .chip .value.good { color: var(--mint); }
+    .chip .value.warn { color: var(--gold); }
+    .chip .value.bad { color: var(--danger); }
+
+    .help {
+      padding: 12px 14px;
+      border-radius: 18px;
+      max-width: 34rem;
+      justify-self: start;
+      align-self: end;
+      background: linear-gradient(180deg, rgba(12, 17, 30, 0.82), rgba(10, 14, 24, 0.68));
+    }
+
+    .help strong { color: var(--cyan); }
+
+    .help small {
+      color: var(--muted);
+      line-height: 1.45;
+      display: block;
+    }
+
+    #flash {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      background:
+        radial-gradient(circle at center, rgba(115, 247, 255, 0.20) 0%, rgba(115, 247, 255, 0.10) 20%, rgba(115, 247, 255, 0.02) 42%, transparent 72%);
+      transition: opacity 120ms linear;
+      mix-blend-mode: screen;
+    }
+
+    #flash.on { opacity: 1; }
+
+    .endcard {
+      position: fixed;
+      inset: 50% auto auto 50%;
+      transform: translate(-50%, -50%);
+      min-width: min(92vw, 460px);
+      border-radius: 24px;
+      padding: 22px 22px 18px;
+      display: none;
+      text-align: center;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(115, 247, 255, 0.12), transparent 38%),
+        linear-gradient(180deg, rgba(16, 22, 40, 0.96), rgba(8, 12, 22, 0.90));
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.08) inset,
+        0 24px 80px rgba(0,0,0,0.46),
+        0 0 120px rgba(115, 247, 255, 0.14);
+      animation: floatCard 5.2s ease-in-out infinite alternate;
+      overflow: hidden;
+    }
+
+    .endcard::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(115deg, transparent 0 20%, rgba(255,255,255,0.06) 20.5%, transparent 21%),
+        radial-gradient(circle at 20% 20%, rgba(255, 142, 199, 0.12), transparent 20%),
+        radial-gradient(circle at 80% 18%, rgba(255, 215, 107, 0.10), transparent 18%);
+      pointer-events: none;
+    }
+
+    @keyframes floatCard {
+      from { transform: translate(-50%, -50%) translateY(0px); }
+      to { transform: translate(-50%, -50%) translateY(-4px); }
+    }
+
+    .endcard.show { display: block; }
+
+    .endcard > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .endbadge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 4px 11px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.16);
+      color: var(--muted);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-size: 10px;
+      margin-bottom: 12px;
+      background: rgba(255,255,255,0.03);
+    }
+
+    .endcard h2 {
+      margin: 0 0 8px;
+      font-family: "Cinzel", serif;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-size: 30px;
+    }
+
+    .endcard p {
+      margin: 8px 0;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 13px;
+    }
+
+    .endgrid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .endstat {
+      padding: 12px 10px 10px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      display: grid;
+      gap: 4px;
+    }
+
+    .endstat span {
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .endstat strong {
+      font-size: 18px;
+      color: var(--text);
+    }
+
+    .endcard .hint {
+      margin-top: 12px;
+      color: var(--cyan);
+      font-weight: 600;
+    }
+
+    .endcard.win .endbadge {
+      color: var(--mint);
+      border-color: rgba(140,255,200,0.24);
+    }
+
+    .endcard.lose .endbadge {
+      color: var(--rose);
+      border-color: rgba(255,142,199,0.24);
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 999px;
+      color: var(--muted);
+      margin-right: 6px;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .touch-controls {
+      position: fixed;
+      left: 18px;
+      bottom: 18px;
+      display: none;
+      gap: 12px;
+      align-items: end;
+      pointer-events: auto;
+      z-index: 5;
+      padding: 12px;
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(14, 20, 36, 0.68), rgba(8, 12, 22, 0.48));
+      border: 1px solid rgba(255,255,255,0.10);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 16px 44px rgba(0,0,0,0.32);
+    }
+
+    body.mobile .touch-controls {
+      display: flex;
+    }
+
+    body.desktop .touch-controls {
+      display: none;
+    }
+
+    .pad,
+    .actions {
+      display: grid;
+      gap: 8px;
+    }
+
+    .pad-row {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .touch-controls button {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: linear-gradient(180deg, rgba(22, 28, 46, 0.96), rgba(10, 14, 24, 0.80));
+      color: var(--text);
+      border-radius: 16px;
+      min-width: 54px;
+      min-height: 54px;
+      padding: 0 14px;
+      font: inherit;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      box-shadow:
+        0 12px 24px rgba(0,0,0,0.28),
+        0 0 0 1px rgba(255,255,255,0.04) inset;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease, color 120ms ease;
+    }
+
+    .touch-controls button:active,
+    .touch-controls button.is-down {
+      transform: translateY(1px) scale(0.98);
+      border-color: rgba(115, 247, 255, 0.65);
+      box-shadow: 0 0 0 1px rgba(115, 247, 255, 0.18), 0 10px 20px rgba(0,0,0,0.24);
+    }
+
+    .touch-controls .pulse {
+      min-width: 96px;
+      min-height: 112px;
+      color: var(--cyan);
+    }
+
+    .touch-controls .restart {
+      color: var(--gold);
+    }
+
+    @media (max-width: 560px) {
+      #hud {
+        padding: 12px;
+      }
+
+      .topbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .brand,
+      .stats,
+      .help {
+        max-width: none;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .brand h1 {
+        font-size: 24px;
+        letter-spacing: 0.18em;
+      }
+
+      .stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px 8px;
+      }
+
+      .chip {
+        min-width: 0;
+      }
+
+      .chip .value {
+        font-size: 16px;
+      }
+
+      .touch-controls {
+        left: 12px;
+        bottom: 12px;
+        padding: 10px;
+        transform: scale(0.95);
+        transform-origin: left bottom;
+      }
+
+      .touch-controls button {
+        min-width: 50px;
+        min-height: 50px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="frame"><canvas id="game" width="960" height="540"></canvas></div>
+  <div id="hud">
+    <div class="topbar">
+      <div class="brand">
+        <h1>Orbit Bloom</h1>
+        <p>A tiny arcadey prototype about harvesting glowing motes that become your shield. Survive the swarm, pulse at the right moment, and keep your core intact.</p>
+      </div>
+
+      <div class="stats">
+        <div class="chip"><span class="label">Score</span><span class="value good" id="score">0</span></div>
+        <div class="chip"><span class="label">Time</span><span class="value warn" id="time">75.0</span></div>
+        <div class="chip"><span class="label">Satellites</span><span class="value" id="shields">0</span></div>
+        <div class="chip"><span class="label">Pulse</span><span class="value bad" id="pulse">Ready</span></div>
+      </div>
+    </div>
+
+    <div class="help">
+      <small id="control-hint"></small>
+      <small id="status">Collect luminous motes to add orbiting shields. Satellites intercept comets for you. When you have no shields left, the next breach ends the run.</small>
+    </div>
+  </div>
+  <div class="touch-controls" id="touch-controls" aria-label="Touch controls">
+    <div class="pad">
+      <div class="pad-row"><button type="button" data-key="up">▲</button></div>
+      <div class="pad-row">
+        <button type="button" data-key="left">◀</button>
+        <button type="button" data-key="down">▼</button>
+        <button type="button" data-key="right">▶</button>
+      </div>
+    </div>
+    <div class="actions">
+      <button type="button" class="pulse" data-action="pulse">Pulse</button>
+      <button type="button" class="restart" data-action="restart">Restart</button>
+    </div>
+  </div>
+  <div id="flash"></div>
+  <div class="endcard" id="endcard">
+    <div class="endbadge" id="endbadge">Run Complete</div>
+    <h2 id="endtitle">Run Complete</h2>
+    <p id="endreason">--</p>
+    <div class="endgrid">
+      <div class="endstat"><span>Score</span><strong id="endscore">0</strong></div>
+      <div class="endstat"><span>Status</span><strong id="endstatus">Ready</strong></div>
+    </div>
+    <p class="hint">Press R to restart or tap Restart.</p>
+  </div>
+
+  <script>
+    (() => {
+      const W = 960;
+      const H = 540;
+      const TAU = Math.PI * 2;
+      const canvas = document.getElementById('game');
+      const ctx = canvas.getContext('2d');
+      const ui = {
+        score: document.getElementById('score'),
+        time: document.getElementById('time'),
+        shields: document.getElementById('shields'),
+        pulse: document.getElementById('pulse'),
+        status: document.getElementById('status'),
+        flash: document.getElementById('flash'),
+        endcard: document.getElementById('endcard'),
+        endbadge: document.getElementById('endbadge'),
+        endtitle: document.getElementById('endtitle'),
+        endreason: document.getElementById('endreason'),
+        endscore: document.getElementById('endscore'),
+        endstatus: document.getElementById('endstatus'),
+        controlHint: document.getElementById('control-hint'),
+        touchControls: document.getElementById('touch-controls'),
+      };
+
+      const isTouchDevice = window.matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0;
+      document.body.classList.add(isTouchDevice ? 'mobile' : 'desktop');
+      ui.controlHint.innerHTML = isTouchDevice
+        ? '<span class="tag">Move</span>Touch D-pad <span class="tag">Pulse</span>Tap Pulse <span class="tag">Restart</span>Tap Restart'
+        : '<span class="tag">Move</span>WASD or Arrow Keys <span class="tag">Pulse</span>Space or Click <span class="tag">Restart</span>R';
+
+      const touchButtons = Array.from(ui.touchControls.querySelectorAll('button[data-key], button[data-action]'));
+      const setTouchButtonState = (button, down) => button.classList.toggle('is-down', down);
+      const pressControl = (name) => {
+        if (name === 'pulse') pulse();
+        else if (name === 'restart') resetGame();
+        else keys.add(name);
+      };
+      const releaseControl = (name) => {
+        if (['up', 'down', 'left', 'right'].includes(name)) keys.delete(name);
+      };
+      for (const button of touchButtons) {
+        button.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          const key = button.dataset.key;
+          const action = button.dataset.action;
+          setTouchButtonState(button, true);
+          if (key) {
+            keys.add(key);
+          } else if (action) {
+            pressControl(action);
+          }
+          button.setPointerCapture?.(e.pointerId);
+        });
+        button.addEventListener('pointerup', (e) => {
+          e.preventDefault();
+          setTouchButtonState(button, false);
+          if (button.dataset.key) releaseControl(button.dataset.key);
+        });
+        button.addEventListener('pointercancel', (e) => {
+          e.preventDefault();
+          setTouchButtonState(button, false);
+          if (button.dataset.key) releaseControl(button.dataset.key);
+        });
+        button.addEventListener('pointerleave', () => {
+          if (!button.hasPointerCapture?.()) {
+            setTouchButtonState(button, false);
+          }
+        });
+      }
+      canvas.addEventListener('pointerdown', (e) => {
+        if (!isTouchDevice && e.button === 0) pulse();
+      });
+
+      const audio = { ctx: null };
+      const ensureAudio = () => {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return null;
+        if (!audio.ctx) audio.ctx = new AC();
+        return audio.ctx;
+      };
+      const tone = ({ wave = 'sine', start = 440, end = 440, dur = 0.12, gain = 0.03, attack = 0.01, release = 0.08, filter = 2000 }) => {
+        const ac = ensureAudio();
+        if (!ac) return;
+        if (ac.state === 'suspended') ac.resume();
+        const t = ac.currentTime + 0.005;
+        const osc = ac.createOscillator();
+        const env = ac.createGain();
+        const filt = ac.createBiquadFilter();
+        osc.type = wave;
+        osc.frequency.setValueAtTime(start, t);
+        if (end !== start) osc.frequency.exponentialRampToValueAtTime(Math.max(40, end), t + dur);
+        filt.type = 'lowpass';
+        filt.frequency.setValueAtTime(filter, t);
+        env.gain.setValueAtTime(0.0001, t);
+        env.gain.exponentialRampToValueAtTime(gain, t + attack);
+        env.gain.exponentialRampToValueAtTime(0.0001, t + dur + release);
+        osc.connect(filt);
+        filt.connect(env);
+        env.connect(ac.destination);
+        osc.start(t);
+        osc.stop(t + dur + release + 0.02);
+      };
+      const sfx = {
+        pulse() {
+          tone({ wave: 'sawtooth', start: 220, end: 72, dur: 0.10, gain: 0.05, filter: 1000 });
+          tone({ wave: 'triangle', start: 880, end: 330, dur: 0.08, gain: 0.022, filter: 1600 });
+        },
+        pickup() {
+          tone({ wave: 'sine', start: 520, end: 1040, dur: 0.10, gain: 0.028, filter: 2200 });
+          tone({ wave: 'triangle', start: 1040, end: 1560, dur: 0.08, gain: 0.016, filter: 2600 });
+        },
+        shield() {
+          tone({ wave: 'square', start: 170, end: 120, dur: 0.07, gain: 0.02, filter: 650 });
+        },
+        crack() {
+          tone({ wave: 'triangle', start: 280, end: 145, dur: 0.09, gain: 0.025, filter: 760 });
+        },
+        hit() {
+          tone({ wave: 'sawtooth', start: 130, end: 58, dur: 0.16, gain: 0.045, filter: 420 });
+        },
+        win() {
+          tone({ wave: 'sine', start: 392, end: 784, dur: 0.13, gain: 0.022, filter: 2200 });
+          tone({ wave: 'sine', start: 523.25, end: 1046.5, dur: 0.15, gain: 0.026, filter: 2400 });
+        },
+        lose() {
+          tone({ wave: 'triangle', start: 155, end: 92, dur: 0.20, gain: 0.035, filter: 520 });
+        },
+      };
+      const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+      const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+      const rand = (min, max) => min + Math.random() * (max - min);
+      const choice = (arr) => arr[Math.floor(Math.random() * arr.length)];
+      const palette = [
+        [115, 247, 255],
+        [140, 255, 200],
+        [255, 142, 199],
+        [255, 215, 107],
+        [167, 177, 255],
+      ];
+
+      const keys = new Set();
+      let best = 0;
+      let last = performance.now();
+      let starSeed = 0;
+
+      const state = {
+        x: W / 2,
+        y: H / 2,
+        speed: 260,
+        shields: 0,
+        score: 0,
+        time: 75,
+        pulseCd: 0,
+        pulseActive: 0,
+        pulseRadius: 0,
+        invuln: 0,
+        ended: false,
+        won: false,
+        spawnMote: 0.7,
+        spawnComet: 1.1,
+        trail: [],
+      };
+
+      const stars = Array.from({ length: 120 }, () => ({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: Math.random() * 1.4 + 0.3,
+        tw: Math.random() * TAU,
+        sp: Math.random() * 1.5 + 0.25,
+      }));
+      const motes = [];
+      const comets = [];
+      const shards = [];
+      const satellites = [];
+
+      function syncHud() {
+        ui.score.textContent = String(Math.floor(state.score));
+        ui.time.textContent = state.time.toFixed(1);
+        ui.shields.textContent = String(state.shields);
+        ui.pulse.textContent = state.pulseCd > 0 ? `${state.pulseCd.toFixed(1)}s` : 'Ready';
+        ui.endscore.textContent = `${Math.floor(state.score)}`;
+        ui.endstatus.textContent = `Best ${best}`;
+      }
+
+      function resetSatellites() {
+        satellites.length = 0;
+        for (let i = 0; i < state.shields; i++) {
+          satellites.push({
+            angle: (i / Math.max(1, state.shields)) * TAU,
+            spin: (i % 2 === 0 ? 1 : -1) * (0.9 + Math.random() * 0.5),
+            radius: 34 + i * 11,
+            wobble: Math.random() * TAU,
+            color: choice(palette),
+          });
+        }
+      }
+
+      function addShields(n = 1) {
+        state.shields = clamp(state.shields + n, 0, 6);
+        resetSatellites();
+      }
+
+      function removeShield() {
+        if (state.shields <= 0) return;
+        state.shields -= 1;
+        resetSatellites();
+      }
+
+      function spark(x, y, rgb, count = 8) {
+        for (let i = 0; i < count; i++) {
+          const a = Math.random() * TAU;
+          const sp = 70 + Math.random() * 130;
+          shards.push({
+            x,
+            y,
+            vx: Math.cos(a) * sp,
+            vy: Math.sin(a) * sp,
+            life: 0.32 + Math.random() * 0.22,
+            rgb,
+          });
+        }
+      }
+
+      function randEdgePoint() {
+        const side = Math.floor(Math.random() * 4);
+        const inset = 24;
+        if (side === 0) return { x: Math.random() * W, y: -inset };
+        if (side === 1) return { x: W + inset, y: Math.random() * H };
+        if (side === 2) return { x: Math.random() * W, y: H + inset };
+        return { x: -inset, y: Math.random() * H };
+      }
+
+      function spawnMote() {
+        const p = randEdgePoint();
+        const hue = choice(palette);
+        const dx = W / 2 - p.x;
+        const dy = H / 2 - p.y;
+        const len = Math.hypot(dx, dy) || 1;
+        motes.push({
+          x: p.x,
+          y: p.y,
+          vx: (dx / len) * rand(30, 54),
+          vy: (dy / len) * rand(30, 54),
+          wobble: Math.random() * TAU,
+          hue,
+        });
+      }
+
+      function spawnComet() {
+        const p = randEdgePoint();
+        comets.push({
+          x: p.x,
+          y: p.y,
+          vx: 0,
+          vy: 0,
+          speed: rand(82, 112) + state.time * 1.9,
+          turn: rand(1.6, 2.4),
+          wobble: Math.random() * TAU,
+          radius: rand(10, 14),
+          trail: [],
+        });
+      }
+
+      function endRun(won, reason) {
+        if (state.ended) return;
+        state.ended = true;
+        state.won = won;
+        best = Math.max(best, Math.floor(state.score));
+        ui.endbadge.textContent = won ? 'Bloom Stabilized' : 'Signal Lost';
+        ui.endcard.classList.toggle('win', won);
+        ui.endcard.classList.toggle('lose', !won);
+        ui.endtitle.textContent = won ? 'Bloom Stable' : 'Signal Lost';
+        ui.endreason.textContent = reason;
+        ui.endscore.textContent = `${Math.floor(state.score)}`;
+        ui.endstatus.textContent = won ? `Best ${best}` : `Best ${best}`;
+        ui.status.textContent = won
+          ? 'That run survived the full timer. Press R to play again and beat the score.'
+          : 'The core failed. Press R to start a fresh run and aim for a better shield rhythm.';
+        won ? sfx.win() : sfx.lose();
+        ui.endcard.classList.add('show');
+      }
+
+      function pulse() {
+        if (state.pulseCd > 0 || state.ended) return;
+        state.pulseCd = 1.45;
+        state.pulseActive = 0.24;
+        state.pulseRadius = 24;
+        state.invuln = 0.16;
+        ui.flash.classList.add('on');
+        sfx.pulse();
+        setTimeout(() => ui.flash.classList.remove('on'), 130);
+      }
+
+      function resetGame() {
+        state.x = W / 2;
+        state.y = H / 2;
+        state.speed = 260;
+        state.shields = 0;
+        state.score = 0;
+        state.time = 75;
+        state.pulseCd = 0;
+        state.pulseActive = 0;
+        state.pulseRadius = 0;
+        state.invuln = 0;
+        state.ended = false;
+        state.won = false;
+        state.spawnMote = 0.7;
+        state.spawnComet = 1.1;
+        motes.length = 0;
+        comets.length = 0;
+        shards.length = 0;
+        state.trail.length = 0;
+        ui.endcard.classList.remove('show');
+        ui.endcard.classList.remove('win', 'lose');
+        ui.endbadge.textContent = 'Run Complete';
+        ui.endtitle.textContent = 'Run Complete';
+        ui.endstatus.textContent = `Best ${best}`;
+        ui.status.textContent = 'Collect luminous motes to add orbiting shields. Satellites intercept comets for you. When you have no shields left, the next breach ends the run.';
+        resetSatellites();
+        for (let i = 0; i < 4; i++) spawnMote();
+        spawnComet();
+        syncHud();
+      }
+
+      window.addEventListener('keydown', (e) => {
+        const key = e.key.toLowerCase();
+        if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ', 'space', 'w', 'a', 's', 'd', 'r'].includes(key)) {
+          e.preventDefault();
+        }
+        if (key === 'r') {
+          resetGame();
+          return;
+        }
+        if (key === ' ' || key === 'space') pulse();
+        keys.add(key);
+      }, { passive: false });
+
+      window.addEventListener('keyup', (e) => {
+        keys.delete(e.key.toLowerCase());
+      });
+
+      function keyDown(name) {
+        return keys.has(name) || keys.has(`arrow${name}`) || keys.has(name[0]);
+      }
+
+      function update(dt) {
+        if (state.ended) return;
+
+        state.time = Math.max(0, state.time - dt);
+        state.pulseCd = Math.max(0, state.pulseCd - dt);
+        state.pulseActive = Math.max(0, state.pulseActive - dt);
+        state.invuln = Math.max(0, state.invuln - dt);
+
+        const up = keys.has('arrowup') || keys.has('up') || keys.has('w');
+        const down = keys.has('arrowdown') || keys.has('down') || keys.has('s');
+        const left = keys.has('arrowleft') || keys.has('left') || keys.has('a');
+        const right = keys.has('arrowright') || keys.has('right') || keys.has('d');
+        let mx = (right ? 1 : 0) - (left ? 1 : 0);
+        let my = (down ? 1 : 0) - (up ? 1 : 0);
+        const mag = Math.hypot(mx, my) || 1;
+        if (mx || my) {
+          state.x += (mx / mag) * state.speed * dt;
+          state.y += (my / mag) * state.speed * dt;
+        }
+        state.x = clamp(state.x, 24, W - 24);
+        state.y = clamp(state.y, 24, H - 24);
+        state.trail.unshift({ x: state.x, y: state.y });
+        if (state.trail.length > 14) state.trail.pop();
+        if (state.time <= 0) {
+          endRun(true, 'You kept the bloom alive long enough to stabilize the signal.');
+          return;
+        }
+
+        state.spawnMote -= dt;
+        state.spawnComet -= dt;
+        if (state.spawnMote <= 0) {
+          spawnMote();
+          state.spawnMote = Math.max(0.42, 0.85 - (75 - state.time) * 0.004);
+        }
+        if (state.spawnComet <= 0) {
+          spawnComet();
+          state.spawnComet = Math.max(0.32, 1.0 - (75 - state.time) * 0.009);
+        }
+
+        for (const s of stars) {
+          s.tw += s.sp * dt;
+        }
+
+        for (const sat of satellites) {
+          sat.angle += sat.spin * dt * (1 + state.shields * 0.03);
+          sat.wobble += dt * 2.4;
+        }
+
+        for (let i = motes.length - 1; i >= 0; i--) {
+          const m = motes[i];
+          m.wobble += dt * 2.2;
+          m.vx += Math.sin(m.wobble) * 7 * dt;
+          m.vy += Math.cos(m.wobble * 1.3) * 7 * dt;
+          const toCenterX = (W / 2 - m.x) * 0.006;
+          const toCenterY = (H / 2 - m.y) * 0.006;
+          m.vx += toCenterX * dt * 16;
+          m.vy += toCenterY * dt * 16;
+          m.x += m.vx * dt;
+          m.y += m.vy * dt;
+
+          if (m.x < 16 || m.x > W - 16) m.vx *= -0.98;
+          if (m.y < 16 || m.y > H - 16) m.vy *= -0.98;
+          m.x = clamp(m.x, 14, W - 14);
+          m.y = clamp(m.y, 14, H - 14);
+
+          const pulseHit = state.pulseActive > 0 && dist(m, state) < state.pulseRadius;
+          const grab = dist(m, state) < 22;
+          if (pulseHit || grab) {
+            state.score += pulseHit ? 4 : 8;
+            if (state.shields < 6) {
+              addShields(1);
+              sfx.pickup();
+              ui.status.textContent = 'Mote absorbed — a new satellite joined the orbit.';
+            } else {
+              state.score += 3;
+              sfx.pickup();
+              ui.status.textContent = 'Shields are full. Extra motes convert to score instead.';
+            }
+            spark(m.x, m.y, m.hue, pulseHit ? 10 : 12);
+            motes.splice(i, 1);
+          }
+        }
+
+        for (let i = comets.length - 1; i >= 0; i--) {
+          const c = comets[i];
+          const dx = state.x - c.x;
+          const dy = state.y - c.y;
+          const len = Math.hypot(dx, dy) || 1;
+          const turn = c.turn * dt;
+          c.vx += (dx / len) * c.speed * turn;
+          c.vy += (dy / len) * c.speed * turn;
+          c.vx *= 0.985;
+          c.vy *= 0.985;
+          c.wobble += dt * 3.5;
+          c.vx += Math.cos(c.wobble) * 12 * dt;
+          c.vy += Math.sin(c.wobble * 0.9) * 12 * dt;
+          c.x += c.vx * dt;
+          c.y += c.vy * dt;
+          c.trail.unshift({ x: c.x, y: c.y });
+          if (c.trail.length > 12) c.trail.pop();
+
+          let blocked = false;
+          for (let s = satellites.length - 1; s >= 0; s--) {
+            const sat = satellites[s];
+            const sx = state.x + Math.cos(sat.angle) * (sat.radius + Math.sin(sat.wobble) * 2);
+            const sy = state.y + Math.sin(sat.angle) * (sat.radius + Math.sin(sat.wobble) * 2);
+            if (dist(c, { x: sx, y: sy }) < c.radius + 7) {
+              state.score += 6;
+              spark(c.x, c.y, [255, 142, 199], 12);
+              sfx.crack();
+              comets.splice(i, 1);
+              blocked = true;
+              break;
+            }
+          }
+          if (blocked) continue;
+
+          if (dist(c, state) < c.radius + 11) {
+            if (state.invuln > 0) continue;
+            if (state.shields > 0) {
+              state.score += 4;
+              spark(c.x, c.y, [115, 247, 255], 10);
+              comets.splice(i, 1);
+              removeShield();
+              sfx.hit();
+              state.invuln = 0.18;
+              ui.status.textContent = 'A satellite shattered and saved the core.';
+            } else {
+              comets.splice(i, 1);
+              endRun(false, 'A comet reached the core after the final satellite was gone.');
+              return;
+            }
+          }
+        }
+
+        for (let i = shards.length - 1; i >= 0; i--) {
+          const sh = shards[i];
+          sh.life -= dt;
+          sh.x += sh.vx * dt;
+          sh.y += sh.vy * dt;
+          sh.vx *= 0.97;
+          sh.vy *= 0.97;
+          if (sh.life <= 0) shards.splice(i, 1);
+        }
+
+        state.score += dt * 0.2;
+        if (state.pulseActive > 0) {
+          state.pulseRadius = 52 + (0.24 - state.pulseActive) * 700;
+          ui.flash.classList.add('on');
+        } else {
+          ui.flash.classList.remove('on');
+        }
+
+        syncHud();
+      }
+
+      function drawBackground() {
+        const t = performance.now() * 0.001;
+        const g = ctx.createRadialGradient(W / 2, H / 2, 30, W / 2, H / 2, 520);
+        g.addColorStop(0, 'rgba(82, 110, 180, 0.26)');
+        g.addColorStop(0.35, 'rgba(22, 34, 66, 0.14)');
+        g.addColorStop(1, 'rgba(5, 7, 17, 1)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, W, H);
+
+        ctx.save();
+        ctx.globalCompositeOperation = 'screen';
+        ctx.globalAlpha = 0.9;
+        const nebulaStops = [
+          { x: W * 0.18 + Math.sin(t * 0.32) * 16, y: H * 0.24 + Math.cos(t * 0.28) * 10, r: 180, c: [115, 247, 255], a: 0.09 },
+          { x: W * 0.82 + Math.cos(t * 0.26) * 14, y: H * 0.20 + Math.sin(t * 0.31) * 10, r: 160, c: [255, 142, 199], a: 0.08 },
+          { x: W * 0.56 + Math.sin(t * 0.18) * 18, y: H * 0.78 + Math.cos(t * 0.22) * 12, r: 200, c: [140, 255, 200], a: 0.06 },
+        ];
+        for (const n of nebulaStops) {
+          const ng = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r);
+          ng.addColorStop(0, `rgba(${n.c[0]}, ${n.c[1]}, ${n.c[2]}, ${n.a})`);
+          ng.addColorStop(0.45, `rgba(${n.c[0]}, ${n.c[1]}, ${n.c[2]}, ${n.a * 0.45})`);
+          ng.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle = ng;
+          ctx.beginPath();
+          ctx.arc(n.x, n.y, n.r, 0, TAU);
+          ctx.fill();
+        }
+        ctx.restore();
+
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        for (const s of stars) {
+          const v = 0.05 + (Math.sin(s.tw) + 1) * 0.12;
+          ctx.fillStyle = `rgba(220, 235, 255, ${v})`;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.r + Math.sin(s.tw * 1.7) * 0.15, 0, TAU);
+          ctx.fill();
+        }
+        ctx.restore();
+
+        ctx.save();
+        ctx.translate(W / 2, H / 2);
+        ctx.globalAlpha = 0.28;
+        ctx.strokeStyle = 'rgba(120, 165, 255, 0.18)';
+        ctx.lineWidth = 1.4;
+        ctx.setLineDash([8, 12]);
+        for (const r of [120, 168, 220]) {
+          ctx.beginPath();
+          ctx.arc(0, 0, r, 0, TAU);
+          ctx.stroke();
+        }
+        ctx.setLineDash([]);
+        ctx.globalAlpha = 0.12;
+        ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+        for (let i = 0; i < 4; i++) {
+          ctx.beginPath();
+          ctx.arc(0, 0, 90 + i * 50 + Math.sin(t * 0.7 + i) * 3, 0, TAU);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      function drawGame() {
+        drawBackground();
+
+        const drawTrail = (trail, rgb, width, maxAlpha, blur = 0) => {
+          if (trail.length < 2) return;
+          ctx.save();
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          ctx.lineWidth = width;
+          ctx.shadowBlur = blur;
+          ctx.shadowColor = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${maxAlpha})`;
+          for (let i = trail.length - 1; i > 0; i--) {
+            const a = (i / trail.length) * maxAlpha;
+            ctx.strokeStyle = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${a})`;
+            ctx.beginPath();
+            ctx.moveTo(trail[i].x, trail[i].y);
+            ctx.lineTo(trail[i - 1].x, trail[i - 1].y);
+            ctx.stroke();
+          }
+          ctx.restore();
+        };
+
+        // Ambient core glow
+        ctx.save();
+        const coreGlow = ctx.createRadialGradient(state.x, state.y, 8, state.x, state.y, 180);
+        coreGlow.addColorStop(0, 'rgba(115, 247, 255, 0.10)');
+        coreGlow.addColorStop(0.35, 'rgba(115, 247, 255, 0.06)');
+        coreGlow.addColorStop(1, 'rgba(115, 247, 255, 0)');
+        ctx.fillStyle = coreGlow;
+        ctx.beginPath();
+        ctx.arc(state.x, state.y, 180, 0, TAU);
+        ctx.fill();
+        ctx.restore();
+
+        // Player trail
+        drawTrail(state.trail, [115, 247, 255], 9, 0.26, 12);
+
+        // Comet trails
+        for (const c of comets) {
+          drawTrail(c.trail, [255, 94, 116], 5, 0.2, 8);
+        }
+
+        // Motes
+        for (const m of motes) {
+          ctx.save();
+          const grad = ctx.createRadialGradient(m.x, m.y, 0, m.x, m.y, 20);
+          grad.addColorStop(0, `rgba(${m.hue[0]}, ${m.hue[1]}, ${m.hue[2]}, 0.96)`);
+          grad.addColorStop(0.45, `rgba(${m.hue[0]}, ${m.hue[1]}, ${m.hue[2]}, 0.26)`);
+          grad.addColorStop(1, `rgba(${m.hue[0]}, ${m.hue[1]}, ${m.hue[2]}, 0)`);
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(m.x, m.y, 15, 0, TAU);
+          ctx.fill();
+          ctx.fillStyle = `rgb(${m.hue[0]}, ${m.hue[1]}, ${m.hue[2]})`;
+          ctx.beginPath();
+          ctx.arc(m.x, m.y, 4.8, 0, TAU);
+          ctx.fill();
+          ctx.restore();
+        }
+
+        // Comets
+        for (const c of comets) {
+          ctx.save();
+          const cometGlow = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, c.radius + 16);
+          cometGlow.addColorStop(0, 'rgba(255, 94, 116, 0.9)');
+          cometGlow.addColorStop(0.4, 'rgba(255, 94, 116, 0.34)');
+          cometGlow.addColorStop(1, 'rgba(255, 94, 116, 0)');
+          ctx.fillStyle = cometGlow;
+          ctx.beginPath();
+          ctx.arc(c.x, c.y, c.radius + 12, 0, TAU);
+          ctx.fill();
+          ctx.fillStyle = 'rgb(255, 94, 116)';
+          ctx.beginPath();
+          ctx.arc(c.x, c.y, c.radius, 0, TAU);
+          ctx.fill();
+          ctx.restore();
+        }
+
+        // Satellites and orbit rings
+        for (const sat of satellites) {
+          const r = sat.radius + Math.sin(sat.wobble) * 2;
+          const sx = state.x + Math.cos(sat.angle) * r;
+          const sy = state.y + Math.sin(sat.angle) * r;
+          ctx.save();
+          ctx.translate(state.x, state.y);
+          ctx.strokeStyle = `rgba(${sat.color[0]}, ${sat.color[1]}, ${sat.color[2]}, 0.08)`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(0, 0, r, 0, TAU);
+          ctx.stroke();
+          ctx.restore();
+
+          ctx.save();
+          ctx.fillStyle = `rgba(${sat.color[0]}, ${sat.color[1]}, ${sat.color[2]}, 0.22)`;
+          ctx.beginPath();
+          ctx.arc(sx, sy, 14, 0, TAU);
+          ctx.fill();
+          ctx.fillStyle = `rgb(${sat.color[0]}, ${sat.color[1]}, ${sat.color[2]})`;
+          ctx.beginPath();
+          ctx.arc(sx, sy, 7.4, 0, TAU);
+          ctx.fill();
+          ctx.fillStyle = 'rgba(255,255,255,0.75)';
+          ctx.beginPath();
+          ctx.arc(sx - 1.3, sy - 1.5, 1.9, 0, TAU);
+          ctx.fill();
+          ctx.restore();
+        }
+
+        // Shards
+        for (const sh of shards) {
+          const a = clamp(sh.life * 2.8, 0, 1);
+          ctx.save();
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.fillStyle = `rgba(${sh.rgb[0]}, ${sh.rgb[1]}, ${sh.rgb[2]}, ${a})`;
+          ctx.beginPath();
+          ctx.arc(sh.x, sh.y, 2.2 + a * 1.6, 0, TAU);
+          ctx.fill();
+          ctx.restore();
+        }
+
+        // Player glow and core
+        ctx.save();
+        const glow = ctx.createRadialGradient(state.x, state.y, 0, state.x, state.y, 42);
+        glow.addColorStop(0, 'rgba(255,255,255,0.95)');
+        glow.addColorStop(0.25, 'rgba(115, 247, 255, 0.70)');
+        glow.addColorStop(1, 'rgba(115, 247, 255, 0)');
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(state.x, state.y, 32, 0, TAU);
+        ctx.fill();
+        ctx.fillStyle = 'rgb(115, 247, 255)';
+        ctx.beginPath();
+        ctx.arc(state.x, state.y, 12, 0, TAU);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.95)';
+        ctx.beginPath();
+        ctx.arc(state.x, state.y, 4.8, 0, TAU);
+        ctx.fill();
+        ctx.restore();
+
+        // Pulse ring
+        if (state.pulseActive > 0) {
+          ctx.save();
+          const pulseGlow = ctx.createRadialGradient(state.x, state.y, state.pulseRadius * 0.25, state.x, state.y, state.pulseRadius + 12);
+          pulseGlow.addColorStop(0, 'rgba(115, 247, 255, 0.06)');
+          pulseGlow.addColorStop(0.6, 'rgba(115, 247, 255, 0.18)');
+          pulseGlow.addColorStop(1, 'rgba(115, 247, 255, 0)');
+          ctx.fillStyle = pulseGlow;
+          ctx.beginPath();
+          ctx.arc(state.x, state.y, state.pulseRadius + 12, 0, TAU);
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(115, 247, 255, 0.72)';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(state.x, state.y, state.pulseRadius, 0, TAU);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // Faint vignette
+        const vg = ctx.createRadialGradient(W / 2, H / 2, 220, W / 2, H / 2, 470);
+        vg.addColorStop(0, 'rgba(0,0,0,0)');
+        vg.addColorStop(1, 'rgba(0,0,0,0.30)');
+        ctx.fillStyle = vg;
+        ctx.fillRect(0, 0, W, H);
+      }
+
+      function frame(now) {
+        const dt = Math.min(0.033, (now - last) / 1000);
+        last = now;
+        if (!state.ended) update(dt);
+        drawGame();
+        requestAnimationFrame(frame);
+      }
+
+      resetGame();
+      requestAnimationFrame(frame);
+    })();
+  </script>
+</body>
+</html>

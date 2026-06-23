@@ -1,10 +1,10 @@
-title: "Benson Labs Blog"
+title: "b  e  n  s  o  n  l  a  b  s"
 description: "Troubleshooting fixes and personal notes"
 url: "https://bensonlabs.org"
 baseurl: ""
 author:
   name: "Justin Benson"
-  twitter: "@bensonlab"
+  Github: "@bensonlabs"
 
 # Build settings
 markdown: kramdown
