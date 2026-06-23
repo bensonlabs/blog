@@ -1,3 +1,5 @@
+##### Built with Qwen3.6-35B-A3B-NVFP4 in vllm on DGX-Spark using zed.dev IDE
+
 # Neon Todo App
 
 A full-stack todo application built with Node.js, Express, and [Neon](https://neon.tech) Postgres. Demonstrates how to connect a browser-based app to a cloud-hosted database with real-time data persistence.
