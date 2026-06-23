@@ -5,8 +5,9 @@ A collection of interactive projects and tools built for bensonlabs.org.
 ## Projects
 
 - **[focus-lab](/projects/focus-lab/)** - Premium productivity dashboard with Pomodoro timer, focus tasks, synthesized ambient sounds, and weekly metrics.
-- **[games](/projects/games/)** - A collection of browser-based games including 2048, not-Wordle, and brick-break.
+- **[games](/projects/games/)** - A collection of browser-based games including 2048, not-Wordle, brick-break, and orbit-bloom.
 - **[workouts](/projects/workouts/)** - Workout tracking and exercise routines.
+- **[gravitas](/projects/gravitas/)** - Gravity simulator made with Gemini in AntiGravity IDE
 
 ## Contributing
 
