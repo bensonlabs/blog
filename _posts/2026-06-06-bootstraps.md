@@ -17,6 +17,12 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; irm https://raw.githubusercont
 1. Needs to run in an elevated PowerShell window (right-click → Run as Administrator). The script installs system-level software, so it'll fail partway through without admin
   rights. 
 2. Run the Ubuntu bootstrap script in the WSL Ubuntu app or WSL2 terminal.
+
+## Windows
+
+```powershell
+Set-ExecutionPolicy Bypass -Scope Process -Force; irm https://raw.githubusercontent.com/bensonlabs/bootstraps/main/scripts/bootstrap_windows.ps1 -OutFile bootstrap_windows.ps1; .\bootstrap_windows_tracker.ps1
+```
   
 ## macOS
 
