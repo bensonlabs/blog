@@ -18,7 +18,7 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; irm https://raw.githubusercont
   rights. 
 2. Run the Ubuntu bootstrap script in the WSL Ubuntu app or WSL2 terminal.
 
-## Windows
+## Windows - tracker app VM
 
 ```powershell
 Set-ExecutionPolicy Bypass -Scope Process -Force; irm https://raw.githubusercontent.com/bensonlabs/bootstraps/main/scripts/bootstrap_windows.ps1 -OutFile bootstrap_windows.ps1; .\bootstrap_windows_tracker.ps1
