@@ -26,8 +26,19 @@ Interactive browser games built with vanilla HTML/CSS/JavaScript. Extensible hub
 - **2048** — Classic tile-merging puzzle game with undo, score tracking, and mobile support
 - **not-Wordle** — 5-letter word guessing game with statistics tracking
 - **Brick Break** — Classic brick-breaker with 3 difficulty levels, angle-based paddle physics, level progression, and high-score tracking
+- **Orbit Bloom** — Harvest glowing motes as your shield and survive an ever-faster comet swarm
+- **The Last Signal** — Text-based sci-fi adventure with three acts and two endings
 
 Adding a new game: Add one entry to the `GAMES` array in `/projects/games/index.html` and drop the game folder in `/projects/games/`.
+
+### **Focus Lab** (`/projects/focus-lab/`)
+Premium productivity dashboard with Pomodoro timer, focus tasks, synthesized ambient sounds, and weekly metrics.
+
+### **Gravitas** (`/projects/gravitas/`)
+High-fidelity N-body gravity simulator with real-time orbital projection, procedural ambient audio, and a glassmorphic telemetry dashboard.
+
+### **Neon To-Do** (external — [todo-app-l3m0.onrender.com](https://todo-app-l3m0.onrender.com))
+Full-stack todo app backed by Neon Postgres. Source: [bensonlabs/database-demo](https://github.com/bensonlabs/database-demo).
 
 ### **Workouts** (`/projects/workouts/`)
 12-week mesocycle strength training program with detailed day-by-day breakdowns including:
@@ -192,16 +203,19 @@ blog/
 ├── assets/
 │   └── css/
 │       └── main.css     # Site styles (Obsidian dark theme)
-├── games/               # Interactive games hub
-│   ├── index.html       # Games hub page
-│   ├── 2048/
-│   │   └── index.html
-│   ├── not-wordle/
-│   │   └── index.html
-│   └── breakout/
-│       └── index.html
-├── workouts/            # 12-week training program
-│   └── index.html
+├── projects/
+│   ├── index.html       # Projects hub page
+│   ├── games/           # Interactive games hub
+│   │   ├── index.html
+│   │   ├── 2048/
+│   │   ├── not-wordle/
+│   │   ├── breakout/
+│   │   ├── orbit-bloom/
+│   │   └── last-signal/
+│   ├── focus-lab/       # Productivity dashboard
+│   ├── gravitas/        # N-body gravity simulator
+│   ├── to-do-app/       # Neon Postgres todo app
+│   └── workouts/        # 12-week training program
 ├── about.md             # About page
 ├── index.html           # Blog homepage (post list)
 ├── CNAME                # Custom domain (bensonlabs.org)
