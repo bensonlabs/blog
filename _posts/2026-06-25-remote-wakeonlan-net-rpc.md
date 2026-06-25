@@ -8,7 +8,7 @@ categories: [TeamViewer,wakeonlan,Ubuntu,macOS,Windows]
 # Remote wakeonlan fix for TeamViewer using net rpc
 ##### references: https://www.hackingarticles.in/active-directory-enumeration-net-rpc/
 
-### 1. Wake the Hardware (From Mac)
+### 1. Wake the hardware (from Mac)
 Check local ARP cache for MAC if needed (ping hostname to get IP), then: 
 ```bash
 arp -a
@@ -27,10 +27,10 @@ sudo apt install samba-common-bin -y
 ```bash
 net rpc service start TeamViewer -I <IP address> -U <username> -W <domain name>
 ```
-to stop service:
-```bash
-net rpc service stop TeamViewer -I <IP address> -U <username> -W <domain name>
-```
+  ***to stop service:***
+  ```bash
+  net rpc service stop TeamViewer -I <IP address> -U <username> -W <domain name>
+  ```
 
 #### 4. Force Reboot (If service is "Stop Pending" or frozen)
 ```bash
