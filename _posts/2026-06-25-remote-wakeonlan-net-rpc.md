@@ -9,17 +9,17 @@ categories: [TeamViewer,wakeonlan,Ubuntu,macOS,Windows]
 ##### references: https://www.hackingarticles.in/active-directory-enumeration-net-rpc/
 
 ### 1. Wake the Hardware (From Mac)
+Check local ARP cache for MAC if needed (ping hostname to get IP), then: 
 ```bash
-## Check local ARP cache for MAC if needed (ping hostname to get IP), then: 
 arp -a
 brew install wakeonlan
 wakeonlan <mac address>
-ping <ip>
+ping <IP address>
 ```
 
 #### 2. Connect to a linux jump box & Install Tool If missing. (Ubuntu box)
 ```bash
-ssh user@IP
+ssh user@<IP address>
 sudo apt install samba-common-bin -y
 ```
 
