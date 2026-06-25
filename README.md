@@ -6,6 +6,23 @@ Built with [Jekyll](https://jekyllrb.com) and hosted on [GitHub Pages](https://p
 
 ---
 
+## Copilot Prompt — Sync New Content
+
+After adding a new project or game to the repo, paste this into GitHub Copilot to automatically add cards and update the docs:
+
+```
+I've added new content to this repo. Check the `projects/` folder for any
+projects or games that aren't already listed as cards in
+`projects/index.html` (for standalone projects/tools) or
+`projects/games/index.html` (for games). Read each new item's README or
+index.html to get a good title, emoji, and description, then add the
+missing cards. Also update the Site Sections and Project Structure in
+README.md to reflect everything that now exists. When done, commit the
+changes and open a pull request.
+```
+
+---
+
 ## Tech Stack
 
 - **Static Site Generator**: Jekyll (Ruby)
