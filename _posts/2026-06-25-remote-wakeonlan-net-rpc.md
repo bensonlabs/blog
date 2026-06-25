@@ -1,10 +1,16 @@
-
-# remote wakeonlan fix for TeamViewer
+---
+layout: post
+title: "remote wakeonlan fix for TeamViewer with net rpc"
+date: 2026-06-25
+author: Justin Benson
+categories: [TeamViewer,wakeonlan,Ubuntu,macOS,Windows]
+---
+# Remote wakeonlan fix for TeamViewer using net rpc
+##### references: https://www.hackingarticles.in/active-directory-enumeration-net-rpc/
 
 ### 1. Wake the Hardware (From Mac)
 ```bash
-## Check local ARP cache for MAC if needed (ping hostname to get IP), 
-then: 
+## Check local ARP cache for MAC if needed (ping hostname to get IP), then: 
 arp -a
 brew install wakeonlan
 wakeonlan <mac address>
