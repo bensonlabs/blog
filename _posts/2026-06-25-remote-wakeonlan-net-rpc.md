@@ -17,13 +17,13 @@ wakeonlan <mac address>
 ping <IP address>
 ```
 
-#### 2. Connect to a linux jump box & Install Tool If missing. (Ubuntu box)
+#### 2. Connect to a linux jump box & install tool if missing. (Ubuntu box)
 ```bash
 ssh user@<IP address>
 sudo apt install samba-common-bin -y
 ```
 
-#### 3. Check / Start Service (From jump box)
+#### 3. Check / start service (from jump box)
 ```bash
 net rpc service start TeamViewer -I <IP address> -U <username> -W <domain name>
 ```
@@ -32,12 +32,12 @@ net rpc service start TeamViewer -I <IP address> -U <username> -W <domain name>
 net rpc service stop TeamViewer -I <IP address> -U <username> -W <domain name>
 ```
 
-#### 4. Force Reboot (If service is "Stop Pending" or frozen)
+#### 4. Force reboot (if service is "Stop Pending" or frozen)
 ```bash
 net rpc shutdown -r -f -I <IP address> -U <username> -W <domain name>
 ```
 
-#### 5. Confirm Recovery
+#### 5. Confirm recovery
 ```bash
 ping <IP address>
 ```
