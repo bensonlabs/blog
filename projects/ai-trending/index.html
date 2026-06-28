@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Trending &mdash; Benson Labs</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: #1e1e1e; color: #dcddde;
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center;
+  padding: 40px 16px 60px;
+}
+.container { max-width: 960px; width: 100%; }
+h1 {
+  font-size: 2rem; font-weight: 700;
+  color: #a78bfa; margin-bottom: 6px;
+}
+.subtitle {
+  color: #888; font-size: 0.95rem; margin-bottom: 30px;
+}
+.subtitle a { color: #a78bfa; text-decoration: none; }
+.subtitle a:hover { text-decoration: underline; }
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px; margin-bottom: 36px;
+}
+.stat-card {
+  background: #252525; border: 1px solid #3a3a3a;
+  border-radius: 8px; padding: 16px; text-align: center;
+}
+.stat-value { font-size: 1.5rem; font-weight: 700; color: #a78bfa; }
+.stat-label { font-size: 0.8rem; color: #888; margin-top: 4px; }
+h2 {
+  font-size: 1.15rem; font-weight: 600;
+  color: #a78bfa; margin: 32px 0 16px;
+  padding-bottom: 8px; border-bottom: 1px solid #3a3a3a;
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+.card {
+  background: #252525; border: 1px solid #3a3a3a;
+  border-radius: 8px; padding: 16px;
+  transition: border-color 0.2s;
+}
+.card:hover { border-color: #7c3aed; }
+.card a {
+  color: #a78bfa; text-decoration: none;
+  font-weight: 600; font-size: 1.05rem;
+  display: block; margin-bottom: 6px;
+}
+.card a:hover { text-decoration: underline; }
+.card .desc {
+  color: #888; font-size: 0.88rem;
+  line-height: 1.4; margin-bottom: 10px;
+}
+.card .meta {
+  display: flex; gap: 10px; font-size: 0.78rem;
+  color: #888; flex-wrap: wrap; align-items: center;
+}
+.badge {
+  background: #7c3aed; color: #fff;
+  padding: 2px 8px; border-radius: 4px;
+  font-size: 0.72rem; font-weight: 600;
+}
+.score-val { color: #a78bfa; font-weight: 600; }
+.filters {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.filter-btn {
+  background: #252525; color: #888;
+  border: 1px solid #3a3a3a;
+  padding: 5px 12px; border-radius: 6px;
+  font-size: 0.82rem; cursor: pointer;
+  transition: all 0.2s;
+}
+.filter-btn:hover, .filter-btn.active {
+  background: #7c3aed; color: #fff; border-color: #7c3aed;
+}
+.table-wrap { overflow-x: auto; }
+table {
+  width: 100%; border-collapse: collapse;
+  font-size: 0.88rem; min-width: 700px;
+}
+thead { background: #252525; }
+th {
+  text-align: left; padding: 10px 12px;
+  font-weight: 600; color: #888;
+  border-bottom: 1px solid #3a3a3a;
+  white-space: nowrap; font-size: 0.82rem;
+}
+td {
+  padding: 10px 12px; border-bottom: 1px solid #3a3a3a;
+}
+td a { color: #a78bfa; text-decoration: none; }
+td a:hover { text-decoration: underline; }
+.rank { font-weight: 700; color: #a78bfa; text-align: center; width: 36px; }
+.bar-cell { min-width: 80px; }
+.bar { height: 5px; background: #3a3a3a; border-radius: 3px; overflow: hidden; }
+.bar-fill { height: 100%; background: #7c3aed; border-radius: 3px; }
+.footer {
+  color: #888; font-size: 0.78rem;
+  text-align: center; margin-top: 40px;
+  padding-top: 20px; border-top: 1px solid #3a3a3a; width: 100%;
+}
+.footer a { color: #a78bfa; }
+tr.hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>&#x1F916; AI Trending Repos</h1>
+    <p class="subtitle">
+      Daily analysis of trending AI/ML repositories on GitHub &middot;
+      <a href="https://github.com/bensonlabs/ai-trending">Source</a> &middot;
+      Last updated: <strong>2026-06-28</strong>
+    </p>
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-value">17</div>
+        <div class="stat-label">Repositories</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">3</div>
+        <div class="stat-label">Categories</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">100</div>
+        <div class="stat-label">Top Score</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">2026-06-28</div>
+        <div class="stat-label">Analyzed</div>
+      </div>
+    </div>
+    <h2>&#x1F525; Top Repositories</h2>
+    <div class="cards">
+      <div class="card" data-category="AI Tools">
+        <a href="https://github.com/commaai/openpilot" target="_blank">commaai/openpilot</a>
+        <div class="desc">Star commaai / openpilot openpilot is an operating system for robotics. Currently, it upgrades the driver assistance system on 300+ supported cars.</div>
+        <div class="meta">
+          <span class="badge">AI Tools</span>
+          <span class="score-val">Score: 100</span>
+          <span>&#x2B50; 62,362</span>
+          <span>&#x1F354; 11,091</span>
+        </div>
+      </div>
+      <div class="card" data-category="Coding Agent">
+        <a href="https://github.com/xbtlin/ai-berkshire" target="_blank">xbtlin/ai-berkshire</a>
+        <div class="desc">Star xbtlin / ai-berkshire AI 时代的伯克希尔：基于 Claude Code / Codex 的价值投资研究框架。巴菲特·芒格·段永平·李录四大师方法论 + 多Agent并行研究。| AI-era Berkshire: a value investing research framework built for Claude Code / Codex. 4 masters&#x27; methodologies + multi-agent adversarial analysis.</div>
+        <div class="meta">
+          <span class="badge">Coding Agent</span>
+          <span class="score-val">Score: 100</span>
+          <span>&#x2B50; 5,249</span>
+          <span>&#x1F354; 716</span>
+        </div>
+      </div>
+      <div class="card" data-category="AI Tools">
+        <a href="https://github.com/Robbyant/lingbot-map" target="_blank">Robbyant/lingbot-map</a>
+        <div class="desc">Star Robbyant / lingbot-map A feed-forward 3D foundation model for reconstructing scenes from streaming data</div>
+        <div class="meta">
+          <span class="badge">AI Tools</span>
+          <span class="score-val">Score: 100</span>
+          <span>&#x2B50; 8,198</span>
+          <span>&#x1F354; 799</span>
+        </div>
+      </div>
+      <div class="card" data-category="AI Tools">
+        <a href="https://github.com/cupy/cupy" target="_blank">cupy/cupy</a>
+        <div class="desc">Sponsor Star cupy / cupy NumPy &amp;amp; SciPy for GPU</div>
+        <div class="meta">
+          <span class="badge">AI Tools</span>
+          <span class="score-val">Score: 100</span>
+          <span>&#x2B50; 11,499</span>
+          <span>&#x1F354; 1,069</span>
+        </div>
+      </div>
+      <div class="card" data-category="Coding Agent">
+        <a href="https://github.com/opendatalab/MinerU" target="_blank">opendatalab/MinerU</a>
+        <div class="desc">Star opendatalab / MinerU Transforms complex documents like PDFs and Office docs into LLM-ready markdown/JSON for your Agentic workflows.</div>
+        <div class="meta">
+          <span class="badge">Coding Agent</span>
+          <span class="score-val">Score: 100</span>
+          <span>&#x2B50; 71,540</span>
+          <span>&#x1F354; 6,012</span>
+        </div>
+      </div>
+      <div class="card" data-category="Coding Agent">
+        <a href="https://github.com/HKUDS/Vibe-Trading" target="_blank">HKUDS/Vibe-Trading</a>
+        <div class="desc">Star HKUDS / Vibe-Trading &quot;Vibe-Trading: Your Personal Trading Agent&quot;</div>
+        <div class="meta">
+          <span class="badge">Coding Agent</span>
+          <span class="score-val">Score: 100</span>
+          <span>&#x2B50; 14,279</span>
+          <span>&#x1F354; 2,629</span>
+        </div>
+      </div>
+      <div class="card" data-category="Coding Agent">
+        <a href="https://github.com/usestrix/strix" target="_blank">usestrix/strix</a>
+        <div class="desc">Star usestrix / strix Open-source AI hackers to find and fix your app’s vulnerabilities.</div>
+        <div class="meta">
+          <span class="badge">Coding Agent</span>
+          <span class="score-val">Score: 100</span>
+          <span>&#x2B50; 26,693</span>
+          <span>&#x1F354; 2,983</span>
+        </div>
+      </div>
+      <div class="card" data-category="Coding Agent">
+        <a href="https://github.com/browser-use/video-use" target="_blank">browser-use/video-use</a>
+        <div class="desc">Star browser-use / video-use Edit videos with coding agents</div>
+        <div class="meta">
+          <span class="badge">Coding Agent</span>
+          <span class="score-val">Score: 100</span>
+          <span>&#x2B50; 10,996</span>
+          <span>&#x1F354; 1,522</span>
+        </div>
+      </div>
+      <div class="card" data-category="Coding Agent">
+        <a href="https://github.com/luongnv89/claude-howto" target="_blank">luongnv89/claude-howto</a>
+        <div class="desc">Sponsor Star luongnv89 / claude-howto A visual, example-driven guide to Claude Code — from basic concepts to advanced agents, with copy-paste templates that bring immediate value.</div>
+        <div class="meta">
+          <span class="badge">Coding Agent</span>
+          <span class="score-val">Score: 100</span>
+          <span>&#x2B50; 38,814</span>
+          <span>&#x1F354; 4,673</span>
+        </div>
+      </div>
+      <div class="card" data-category="AI Tools">
+        <a href="https://github.com/frappe/frappe" target="_blank">frappe/frappe</a>
+        <div class="desc">Star frappe / frappe Low code web framework for real world applications, in Python and Javascript</div>
+        <div class="meta">
+          <span class="badge">AI Tools</span>
+          <span class="score-val">Score: 100</span>
+          <span>&#x2B50; 10,327</span>
+          <span>&#x1F354; 5,069</span>
+        </div>
+      </div>
+    </div>
+    <h2>&#x1F4CA; Full Rankings</h2>
+    <div class="filters" id="filters">
+      <button class="filter-btn active" data-cat="all">All (17)</button>
+      <button class="filter-btn" data-cat="AI Tools">AI Tools (7)</button>
+      <button class="filter-btn" data-cat="Coding Agent">Coding Agent (9)</button>
+      <button class="filter-btn" data-cat="Inference">Inference (1)</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>Repository</th><th>Category</th>
+            <th>Stars</th><th>Forks</th><th>Velocity</th>
+            <th>Health</th><th>Adoption</th>
+            <th>Composite</th><th>Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr data-cat="AI Tools">
+            <td class="rank">1</td>
+            <td><a href="https://github.com/commaai/openpilot" target="_blank">commaai/openpilot</a></td>
+            <td>AI Tools</td>
+            <td>62,362</td>
+            <td>11,091</td>
+            <td>17.8/d</td>
+            <td>65</td>
+            <td>60</td>
+            <td>100.0</td>
+            <td class="bar-cell"><div class="bar"><div class="bar-fill" style="width:100%"></div></div></td>
+          </tr>
+          <tr data-cat="Coding Agent">
+            <td class="rank">2</td>
+            <td><a href="https://github.com/xbtlin/ai-berkshire" target="_blank">xbtlin/ai-berkshire</a></td>
+            <td>Coding Agent</td>
+            <td>5,249</td>
+            <td>716</td>
+            <td>64.0/d</td>
+            <td>65</td>
+            <td>65</td>
+            <td>100.0</td>
+            <td class="bar-cell"><div class="bar"><div class="bar-fill" style="width:100%"></div></div></td>
+          </tr>
+          <tr data-cat="AI Tools">
+            <td class="rank">3</td>
+            <td><a href="https://github.com/Robbyant/lingbot-map" target="_blank">Robbyant/lingbot-map</a></td>
+            <td>AI Tools</td>
+            <td>8,198</td>
+            <td>799</td>
+            <td>110.8/d</td>
+            <td>65</td>
+            <td>65</td>
+            <td>100.0</td>
+            <td class="bar-cell"><div class="bar"><div class="bar-fill" style="width:100%"></div></div></td>
+          </tr>
+          <tr data-cat="AI Tools">
+            <td class="rank">4</td>
+            <td><a href="https://github.com/cupy/cupy" target="_blank">cupy/cupy</a></td>
+            <td>AI Tools</td>
+            <td>11,499</td>
+            <td>1,069</td>
+            <td>3.3/d</td>
+            <td>75</td>
+            <td>70</td>
+            <td>100.0</td>
+            <td class="bar-cell"><div class="bar"><div class="bar-fill" style="width:100%"></div></div></td>
+          </tr>
+          <tr data-cat="Coding Agent">
+            <td class="rank">5</td>
+            <td><a href="https://github.com/opendatalab/MinerU" target="_blank">opendatalab/MinerU</a></td>
+            <td>Coding Agent</td>
+            <td>71,540</td>
+            <td>6,012</td>
+            <td>84.2/d</td>
+            <td>65</td>
+            <td>75</td>
+            <td>100.0</td>
+            <td class="bar-cell"><div class="bar"><div class="bar-fill" style="width:100%"></div></div></td>
+          </tr>
+          <tr data-cat="Coding Agent">
+            <td class="rank">6</td>
+            <td><a href="https://github.com/HKUDS/Vibe-Trading" target="_blank">HKUDS/Vibe-Trading</a></td>
+            <td>Coding Agent</td>
+            <td>14,279</td>
+            <td>2,629</td>
+            <td>162.3/d</td>
+            <td>65</td>
+            <td>55</td>
+            <td>100.0</td>
+            <td class="bar-cell"><div class="bar"><div class="bar-fill" style="width:100%"></div></div></td>
+          </tr>
+          <tr data-cat="Coding Agent">
+            <td class="rank">7</td>
+            <td><a href="https://github.com/usestrix/strix" target="_blank">usestrix/strix</a></td>
+            <td>Coding Agent</td>
+            <td>26,693</td>
+            <td>2,983</td>
+            <td>81.6/d</td>
+            <td>65</td>
+            <td>70</td>
+            <td>100.0</td>
+            <td class="bar-cell"><div class="bar"><div class="bar-fill" style="width:100%"></div></div></td>
+          </tr>
+          <tr data-cat="Coding Agent">
+            <td class="rank">8</td>
+            <td><a href="https://github.com/browser-use/video-use" target="_blank">browser-use/video-use</a></td>
+            <td>Coding Agent</td>
+            <td>10,996</td>
+            <td>1,522</td>
+            <td>142.8/d</td>
+            <td>50</td>
+            <td>70</td>
+            <td>100.0</td>
+            <td class="bar-cell"><div class="bar"><div class="bar-fill" style="width:100%"></div></div></td>
+          </tr>
+          <tr data-cat="Coding Agent">
+            <td class="rank">9</td>
+            <td><a href="https://github.com/luongnv89/claude-howto" target="_blank">luongnv89/claude-howto</a></td>
+            <td>Coding Agent</td>
+            <td>38,814</td>
+            <td>4,673</td>
+            <td>166.6/d</td>
+            <td>65</td>
+            <td>70</td>
+            <td>100.0</td>
+            <td class="bar-cell"><div class="bar"><div class="bar-fill" style="width:100%"></div></div></td>
+          </tr>
+          <tr data-cat="AI Tools">
+            <td class="rank">10</td>
+            <td><a href="https://github.com/frappe/frappe" target="_blank">frappe/frappe</a></td>
+            <td>AI Tools</td>
+            <td>10,327</td>
+            <td>5,069</td>
+            <td>1.9/d</td>
+            <td>55</td>
+            <td>55</td>
+            <td>100.0</td>
+            <td class="bar-cell"><div class="bar"><div class="bar-fill" style="width:100%"></div></div></td>
+          </tr>
+          <tr data-cat="Coding Agent">
+            <td class="rank">11</td>
+            <td><a href="https://github.com/shuvonsec/claude-bug-bounty" target="_blank">shuvonsec/claude-bug-bounty</a></td>
+            <td>Coding Agent</td>
+            <td>3,605</td>
+            <td>634</td>
+            <td>32.2/d</td>
+            <td>65</td>
+            <td>50</td>
+            <td>100.0</td>
+            <td class="bar-cell"><div class="bar"><div class="bar-fill" style="width:100%"></div></div></td>
+          </tr>
+          <tr data-cat="AI Tools">
+            <td class="rank">12</td>
+            <td><a href="https://github.com/sherlock-project/sherlock" target="_blank">sherlock-project/sherlock</a></td>
+            <td>AI Tools</td>
+            <td>85,809</td>
+            <td>10,033</td>
+            <td>31.3/d</td>
+            <td>65</td>
+            <td>75</td>
+            <td>100.0</td>
+            <td class="bar-cell"><div class="bar"><div class="bar-fill" style="width:100%"></div></div></td>
+          </tr>
+          <tr data-cat="AI Tools">
+            <td class="rank">13</td>
+            <td><a href="https://github.com/pandas-dev/pandas" target="_blank">pandas-dev/pandas</a></td>
+            <td>AI Tools</td>
+            <td>49,214</td>
+            <td>20,052</td>
+            <td>8.5/d</td>
+            <td>75</td>
+            <td>55</td>
+            <td>100.0</td>
+            <td class="bar-cell"><div class="bar"><div class="bar-fill" style="width:100%"></div></div></td>
+          </tr>
+          <tr data-cat="AI Tools">
+            <td class="rank">14</td>
+            <td><a href="https://github.com/scikit-learn/scikit-learn" target="_blank">scikit-learn/scikit-learn</a></td>
+            <td>AI Tools</td>
+            <td>66,611</td>
+            <td>27,122</td>
+            <td>11.5/d</td>
+            <td>75</td>
+            <td>60</td>
+            <td>100.0</td>
+            <td class="bar-cell"><div class="bar"><div class="bar-fill" style="width:100%"></div></div></td>
+          </tr>
+          <tr data-cat="Coding Agent">
+            <td class="rank">15</td>
+            <td><a href="https://github.com/TauricResearch/TradingAgents" target="_blank">TauricResearch/TradingAgents</a></td>
+            <td>Coding Agent</td>
+            <td>89,438</td>
+            <td>17,268</td>
+            <td>163.5/d</td>
+            <td>65</td>
+            <td>60</td>
+            <td>100.0</td>
+            <td class="bar-cell"><div class="bar"><div class="bar-fill" style="width:100%"></div></div></td>
+          </tr>
+          <tr data-cat="Inference">
+            <td class="rank">16</td>
+            <td><a href="https://github.com/Project-MONAI/MONAI" target="_blank">Project-MONAI/MONAI</a></td>
+            <td>Inference</td>
+            <td>8,355</td>
+            <td>1,550</td>
+            <td>3.4/d</td>
+            <td>75</td>
+            <td>50</td>
+            <td>100.0</td>
+            <td class="bar-cell"><div class="bar"><div class="bar-fill" style="width:100%"></div></div></td>
+          </tr>
+          <tr data-cat="Coding Agent">
+            <td class="rank">17</td>
+            <td><a href="https://github.com/Asabeneh/30-Days-Of-Python" target="_blank">Asabeneh/30-Days-Of-Python</a></td>
+            <td>Coding Agent</td>
+            <td>66,569</td>
+            <td>12,431</td>
+            <td>27.6/d</td>
+            <td>50</td>
+            <td>60</td>
+            <td>100.0</td>
+            <td class="bar-cell"><div class="bar"><div class="bar-fill" style="width:100%"></div></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="footer">
+      <p>Data from GitHub Trending + GitHub API &middot;
+        Scoring: velocity x 2.5 + health x 1.5 + adoption x 1.2 + ai_bonus - penalties</p>
+      <p style="margin-top:8px">
+        <a href="https://github.com/bensonlabs/ai-trending/issues/new">Report an issue</a> &middot;
+        <a href="https://github.com/bensonlabs/ai-trending">GitHub repo</a>
+      </p>
+    </div>
+  </div>
+  <script>
+    const filters = document.getElementById('filters');
+    const rows = document.querySelectorAll('tr[data-cat]');
+    filters.addEventListener('click', e => {
+      if (e.target.classList.contains('filter-btn')) {
+        filters.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        const cat = e.target.dataset.cat;
+        rows.forEach(row => {
+          row.classList.toggle('hidden', cat !== 'all' && row.dataset.cat !== cat);
+        });
+      }
+    });
+  </script>
+</body>
+</html>
