@@ -54,6 +54,9 @@ Premium productivity dashboard with Pomodoro timer, focus tasks, synthesized amb
 ### **Gravitas** (`/projects/gravitas/`)
 High-fidelity N-body gravity simulator with real-time orbital projection, procedural ambient audio, and a glassmorphic telemetry dashboard.
 
+### **AI Trending** (`/projects/ai-trending/`)
+Daily analysis of trending AI/ML repositories on GitHub with ranked results, category filtering, and repository scoring.
+
 ### **Neon To-Do** (external — [todo-app-l3m0.onrender.com](https://todo-app-l3m0.onrender.com))
 Full-stack todo app backed by Neon Postgres. Source: [bensonlabs/database-demo](https://github.com/bensonlabs/database-demo).
 
@@ -229,6 +232,7 @@ blog/
 │   │   ├── breakout/
 │   │   ├── orbit-bloom/
 │   │   └── last-signal/
+│   ├── ai-trending/     # AI/ML trending repositories dashboard
 │   ├── focus-lab/       # Productivity dashboard
 │   ├── gravitas/        # N-body gravity simulator
 │   ├── to-do-app/       # Neon Postgres todo app
