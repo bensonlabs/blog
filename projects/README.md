@@ -6,6 +6,7 @@ A collection of interactive projects and tools built for bensonlabs.org.
 
 - **[gravitas](/projects/gravitas/)** - High-fidelity N-body gravity simulator with real-time orbital projection, procedural ambient audio, and a glassmorphic telemetry dashboard.  Vibed by Gemini in Antigravity IDE.
 - **[focus-lab](/projects/focus-lab/)** - Premium productivity dashboard with Pomodoro timer, focus tasks, synthesized ambient sounds, and weekly metrics. Vibed in Gemini CLI
+- **[ai-trending](/projects/ai-trending/)** - Daily analysis of trending AI/ML repositories on GitHub with ranked results, category filtering, and repository scoring.
 - **[games](/projects/games/)** - A growing collection of browser-based games including 2048, not-Wordle, brick-break, Orbit Bloom, and The Last Signal.
 - **[to-do-app](/projects/to-do-app/)** - Full-stack todo app backed by Neon Postgres + Render. [Live demo](https://todo-app-l3m0.onrender.com). Vibed by Qwen3.6-35B-A3-NVFP4 in zed IDE on DGX-Spark.
 - **[workouts](/projects/workouts/)** - Workout tracking and exercise routines. Vibed by Claude Chat + Claude Code.
