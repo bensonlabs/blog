@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ethereal Wardens</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #f8f9fa;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        #game-wrapper {
+            position: relative;
+            background: #ffffff;
+            border-radius: 32px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+            padding: 32px;
+        }
+        
+        canvas {
+            display: block;
+            border-radius: 20px;
+            background: #fafbfc;
+        }
+        
+        #hud {
+            position: absolute;
+            top: 48px;
+            left: 48px;
+            right: 48px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+        
+        .hud-item {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            border-radius: 18px;
+            padding: 16px 28px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+        }
+        
+        .hud-label {
+            font-size: 13px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 4px;
+        }
+        
+        .hud-value {
+            font-size: 28px;
+            font-weight: 600;
+            color: #1a1a1a;
+            line-height: 1;
+        }
+        
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(24px);
+            border-radius: 32px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+        
+        .screen h1 {
+            font-size: 56px;
+            font-weight: 300;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+            letter-spacing: -2px;
+        }
+        
+        .screen .subtitle {
+            font-size: 20px;
+            color: #999;
+            margin-bottom: 56px;
+            font-weight: 400;
+        }
+        
+        .screen h2 {
+            font-size: 40px;
+            font-weight: 300;
+            color: #1a1a1a;
+            margin-bottom: 32px;
+        }
+        
+        .screen .stats {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 48px;
+            text-align: center;
+            line-height: 2.2;
+        }
+        
+        button {
+            background: #1a1a1a;
+            color: #fff;
+            border: none;
+            padding: 18px 56px;
+            font-size: 18px;
+            font-weight: 500;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        button:hover {
+            background: #333;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:active {
+            transform: translateY(-1px);
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-wrapper">
+        <canvas id="game" width="1200" height="700"></canvas>
+        
+        <div id="hud">
+            <div class="hud-item">
+                <div class="hud-label">Wave</div>
+                <div class="hud-value" id="hud-wave">1</div>
+            </div>
+            <div class="hud-item">
+                <div class="hud-label">Points</div>
+                <div class="hud-value" id="hud-points">0</div>
+            </div>
+            <div class="hud-item">
+                <div class="hud-label">Lives</div>
+                <div class="hud-value" id="hud-lives">20</div>
+            </div>
+        </div>
+        
+        <div id="start-screen" class="screen">
+            <h1>Ethereal Wardens</h1>
+            <div class="subtitle">A minimalist tower defense</div>
+            <button id="start-btn">Begin Defense</button>
+        </div>
+        
+        <div id="game-over-screen" class="screen hidden">
+            <h2>Defense Failed</h2>
+            <div class="stats">
+                Waves Survived: <span id="final-wave">0</span><br>
+                Points Earned: <span id="final-points">0</span>
+            </div>
+            <button id="restart-btn">Try Again</button>
+        </div>
+    </div>
+
+    <script>
+        const CANVAS_WIDTH = 1200;
+        const CANVAS_HEIGHT = 700;
+        const MAX_LIVES = 20;
+        const TOWER_UPGRADE_THRESHOLDS = [0, 5, 15, 30, 50, 80];
+        const WAVE_COOLDOWN = 4000;
+        const SPAWN_INTERVAL_BASE = 1800;
+
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+
+        let state = {
+            running: false,
+            wave: 1,
+            points: 0,
+            lives: MAX_LIVES,
+            towers: [],
+            mobs: [],
+            projectiles: [],
+            particles: [],
+            waveTimer: 0,
+            spawnTimer: 0,
+            mobsInWave: 0,
+            lastTime: 0
+        };
+
+        const path = [
+            {x: 0, y: 350},
+            {x: 180, y: 350},
+            {x: 280, y: 180},
+            {x: 450, y: 180},
+            {x: 550, y: 380},
+            {x: 700, y: 380},
+            {x: 800, y: 220},
+            {x: 950, y: 220},
+            {x: 1050, y: 420},
+            {x: 1150, y: 420},
+            {x: 1200, y: 350}
+        ];
+
+        const towerPositions = [
+            {x: 200, y: 260},
+            {x: 500, y: 120},
+            {x: 750, y: 480},
+            {x: 1000, y: 320}
+        ];
+
+        const towerDefs = [
+            {range: 190, damage: 18, fireRate: 750, projSpeed: 9},
+            {range: 210, damage: 14, fireRate: 850, projSpeed: 10},
+            {range: 230, damage: 22, fireRate: 700, projSpeed: 8},
+            {range: 200, damage: 16, fireRate: 800, projSpeed: 9.5}
+        ];
+
+        const mobClasses = [
+            {size: 6,  color: '#e8e8e8', health: 25,  speed: 2.2, value: 1},
+            {size: 8,  color: '#c8daf0', health: 40,  speed: 2.0, value: 2},
+            {size: 10, color: '#88b8e0', health: 65,  speed: 1.7, value: 3},
+            {size: 13, color: '#f0d088', health: 100, speed: 1.5, value: 4},
+            {size: 16, color: '#e88888', health: 150, speed: 1.3, value: 5},
+            {size: 20, color: '#c04040', health: 250, speed: 1.1, value: 10}
+        ];
+
+        function init() {
+            document.getElementById('start-btn').addEventListener('click', startGame);
+            document.getElementById('restart-btn').addEventListener('click', startGame);
+            requestAnimationFrame(gameLoop);
+        }
+
+        function startGame() {
+            state.running = true;
+            state.wave = 1;
+            state.points = 0;
+            state.lives = MAX_LIVES;
+            state.towers = [];
+            state.mobs = [];
+            state.projectiles = [];
+            state.particles = [];
+            state.waveTimer = 0;
+            state.spawnTimer = 0;
+            state.mobsInWave = 6;
+            state.lastTime = performance.now();
+
+            state.towers = towerPositions.map((pos, i) => ({
+                x: pos.x,
+                y: pos.y,
+                level: 1,
+                kills: 0,
+                lastFire: 0,
+                target: null,
+                range: towerDefs[i].range,
+                damage: towerDefs[i].damage,
+                fireRate: towerDefs[i].fireRate,
+                projSpeed: towerDefs[i].projSpeed
+            }));
+
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('game-over-screen').classList.add('hidden');
+            updateHUD();
+        }
+
+        function gameLoop(timestamp) {
+            const dt = timestamp - state.lastTime;
+            state.lastTime = timestamp;
+
+            if (state.running) {
+                update(dt, timestamp);
+            }
+
+            render();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function update(dt, now) {
+            if (dt > 200) dt = 200; // Cap delta time to prevent huge jumps
+
+            state.waveTimer += dt;
+            if (state.waveTimer >= WAVE_COOLDOWN && state.mobsInWave === 0 && state.mobs.length === 0) {
+                nextWave();
+            }
+
+            state.spawnTimer += dt;
+            const spawnInterval = Math.max(600, SPAWN_INTERVAL_BASE - (state.wave * 50));
+            if (state.spawnTimer >= spawnInterval && state.mobsInWave > 0) {
+                spawnMob();
+                state.spawnTimer = 0;
+            }
+
+            for (let i = state.mobs.length - 1; i >= 0; i--) {
+                updateMob(state.mobs[i]);
+                clampMobPosition(state.mobs[i]);
+                if (!state.mobs[i].alive) {
+                    state.mobs.splice(i, 1);
+                }
+            }
+
+            state.towers.forEach(tower => updateTower(tower, now));
+
+            for (let i = state.projectiles.length - 1; i >= 0; i--) {
+                const proj = state.projectiles[i];
+                updateProjectile(proj);
+                if (proj.removed) {
+                    state.projectiles.splice(i, 1);
+                }
+            }
+
+            for (let i = state.particles.length - 1; i >= 0; i--) {
+                const p = state.particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= 0.025;
+                p.size *= 0.94;
+                if (p.life <= 0) {
+                    state.particles.splice(i, 1);
+                }
+            }
+
+            // Cap particle count to prevent memory issues
+            if (state.particles.length > 500) {
+                state.particles.splice(0, state.particles.length - 500);
+            }
+        }
+
+        function nextWave() {
+            state.wave++;
+            state.mobsInWave = Math.min(50, 5 + Math.floor(state.wave * 1.3));
+            state.waveTimer = 0;
+            state.spawnTimer = 0;
+            updateHUD();
+        }
+
+        function spawnMob() {
+            let maxClass = 0;
+            if (state.wave >= 3) maxClass = 1;
+            if (state.wave >= 5) maxClass = 2;
+            if (state.wave >= 8) maxClass = 3;
+            if (state.wave >= 12) maxClass = 4;
+            if (state.wave >= 18) maxClass = 5;
+
+            const classIdx = Math.floor(Math.random() * (maxClass + 1));
+            const def = mobClasses[classIdx];
+            const healthScale = 1 + (state.wave - 1) * 0.15;
+
+            state.mobs.push({
+                x: path[0].x,
+                y: path[0].y,
+                pathIndex: 0,
+                classIdx: classIdx,
+                health: Math.floor(def.health * healthScale),
+                maxHealth: Math.floor(def.health * healthScale),
+                speed: def.speed,
+                size: def.size,
+                color: def.color,
+                value: def.value,
+                alive: true
+            });
+
+            state.mobsInWave--;
+        }
+
+        function updateMob(mob) {
+            if (!mob.alive) return;
+
+            if (mob.pathIndex >= path.length - 1) {
+                mob.alive = false;
+                state.lives--;
+                updateHUD();
+                if (state.lives <= 0) {
+                    gameOver();
+                }
+                return;
+            }
+
+            const target = path[mob.pathIndex + 1];
+            const dx = target.x - mob.x;
+            const dy = target.y - mob.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist <= mob.speed) {
+                mob.x = target.x;
+                mob.y = target.y;
+                mob.pathIndex++;
+            } else {
+                mob.x += (dx / dist) * mob.speed;
+                mob.y += (dy / dist) * mob.speed;
+            }
+        }
+
+        // Prevent mob path overshoot when speed > distance to waypoint
+        function clampMobPosition(mob) {
+            if (mob.pathIndex >= path.length - 1) return;
+            const next = path[mob.pathIndex + 1];
+            const dx = next.x - mob.x;
+            const dy = next.y - mob.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 0.5) {
+                mob.x = next.x;
+                mob.y = next.y;
+            }
+        }
+
+        function updateTower(tower, now) {
+            if (!tower.target || !tower.target.alive || !inRange(tower, tower.target)) {
+                tower.target = findNearestTarget(tower);
+            }
+
+            const fireRate = tower.fireRate / (1 + (tower.level - 1) * 0.18);
+            if (tower.target && now - tower.lastFire >= fireRate) {
+                fireProjectile(tower, tower.target);
+                tower.lastFire = now;
+            }
+        }
+
+        function inRange(tower, target) {
+            const dx = tower.x - target.x;
+            const dy = tower.y - target.y;
+            return Math.sqrt(dx * dx + dy * dy) <= tower.range;
+        }
+
+        function findNearestTarget(tower) {
+            let nearest = null;
+            let minDist = Infinity;
+
+            state.mobs.forEach(mob => {
+                if (!mob.alive) return;
+                const dx = tower.x - mob.x;
+                const dy = tower.y - mob.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist <= tower.range && dist < minDist) {
+                    minDist = dist;
+                    nearest = mob;
+                }
+            });
+
+            return nearest;
+        }
+
+        function fireProjectile(tower, target) {
+            state.projectiles.push({
+                x: tower.x,
+                y: tower.y,
+                target: target,
+                firingTower: tower,
+                speed: tower.projSpeed,
+                damage: tower.damage * (1 + (tower.level - 1) * 0.35),
+                removed: false
+            });
+        }
+
+        function updateProjectile(proj) {
+            if (!proj.target || !proj.target.alive) {
+                proj.removed = true;
+                return;
+            }
+
+            const dx = proj.target.x - proj.x;
+            const dy = proj.target.y - proj.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist < 12) {
+                proj.target.health -= proj.damage;
+                spawnParticles(proj.target.x, proj.target.y, proj.target.color, 6);
+
+                if (proj.target.health <= 0 && proj.target.alive) {
+                    proj.target.alive = false;
+                    state.points += proj.target.value;
+                    updateHUD();
+
+                    // Only the tower that fired this projectile gets the kill
+                    const killingTower = proj.firingTower;
+                    if (killingTower) {
+                        killingTower.kills++;
+                        if (killingTower.kills >= TOWER_UPGRADE_THRESHOLDS[killingTower.level] && killingTower.level < 5) {
+                            killingTower.level++;
+                            spawnParticles(killingTower.x, killingTower.y, '#ffffff', 12);
+                        }
+                    }
+
+                    spawnParticles(proj.target.x, proj.target.y, proj.target.color, 10);
+                }
+
+                proj.removed = true;
+                return;
+            }
+
+            const moveX = (dx / dist) * proj.speed;
+            const moveY = (dy / dist) * proj.speed;
+            proj.x += moveX;
+            proj.y += moveY;
+        }
+
+        function spawnParticles(x, y, color, count) {
+            for (let i = 0; i < count; i++) {
+                const angle = (Math.PI * 2 * i) / count + Math.random() * 0.3;
+                const speed = 2 + Math.random() * 3;
+                state.particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    life: 1.0,
+                    color: color,
+                    size: 3 + Math.random() * 4
+                });
+            }
+        }
+
+        function gameOver() {
+            state.running = false;
+            document.getElementById('final-wave').textContent = state.wave;
+            document.getElementById('final-points').textContent = state.points;
+            document.getElementById('game-over-screen').classList.remove('hidden');
+        }
+
+        function updateHUD() {
+            document.getElementById('hud-wave').textContent = state.wave;
+            document.getElementById('hud-points').textContent = state.points;
+            document.getElementById('hud-lives').textContent = state.lives;
+        }
+
+        function render() {
+            ctx.fillStyle = '#fafbfc';
+            ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+            drawPath();
+
+            state.towers.forEach(tower => drawTower(tower));
+
+            state.mobs.forEach(mob => {
+                if (mob.alive) drawMob(mob);
+            });
+
+            state.projectiles.forEach(proj => drawProjectile(proj));
+
+            state.particles.forEach(p => {
+                ctx.globalAlpha = Math.max(0, p.life);
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, Math.max(0.5, p.size), 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            });
+
+            if (state.waveTimer > 0 && state.waveTimer < 2500 && state.mobsInWave === 0 && state.mobs.length === 0) {
+                ctx.fillStyle = 'rgba(26, 26, 26, 0.7)';
+                ctx.font = '600 52px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(`WAVE ${state.wave}`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+            }
+        }
+
+        function drawPath() {
+            ctx.strokeStyle = '#e8eaed';
+            ctx.lineWidth = 52;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+            ctx.moveTo(path[0].x, path[0].y);
+            for (let i = 1; i < path.length; i++) {
+                ctx.lineTo(path[i].x, path[i].y);
+            }
+            ctx.stroke();
+
+            ctx.strokeStyle = '#d8dbe0';
+            ctx.lineWidth = 56;
+            ctx.globalCompositeOperation = 'destination-over';
+            ctx.stroke();
+            ctx.globalCompositeOperation = 'source-over';
+
+            ctx.strokeStyle = '#dde0e4';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([8, 8]);
+            ctx.beginPath();
+            ctx.moveTo(path[0].x, path[0].y);
+            for (let i = 1; i < path.length; i++) {
+                ctx.lineTo(path[i].x, path[i].y);
+            }
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        function drawTower(tower) {
+            const levelColor = tower.level === 1 ? '#c8cdd2' :
+                              tower.level === 2 ? '#a0c4e0' :
+                              tower.level === 3 ? '#70a8d4' :
+                              tower.level === 4 ? '#5092c8' : '#3878b0';
+
+            ctx.strokeStyle = 'rgba(100, 160, 220, 0.12)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(tower.x, tower.y, tower.range, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.04)';
+            ctx.beginPath();
+            ctx.arc(tower.x + 3, tower.y + 3, 28, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.strokeStyle = '#d0d4d8';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(tower.x, tower.y, 28, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#f4f6f8';
+            ctx.beginPath();
+            ctx.arc(tower.x, tower.y, 18, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = levelColor;
+            ctx.beginPath();
+            ctx.arc(tower.x, tower.y, 10, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '600 13px -apple-system, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(tower.level, tower.x, tower.y);
+
+            ctx.fillStyle = '#999';
+            ctx.font = '400 12px -apple-system, sans-serif';
+            ctx.fillText(`${tower.kills} kills`, tower.x, tower.y + 36);
+        }
+
+        function drawMob(mob) {
+            if (!mob.alive) return;
+
+            ctx.shadowColor = mob.color;
+            ctx.shadowBlur = 16;
+
+            ctx.fillStyle = mob.color;
+            ctx.beginPath();
+            ctx.arc(mob.x, mob.y, mob.size, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+            ctx.beginPath();
+            ctx.arc(mob.x - mob.size * 0.3, mob.y - mob.size * 0.3, mob.size * 0.38, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (mob.health < mob.maxHealth) {
+                const barW = mob.size * 3;
+                const barH = 5;
+                const barX = mob.x - barW / 2;
+                const barY = mob.y - mob.size - 14;
+                const hpPct = mob.health / mob.maxHealth;
+
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+                ctx.fillRect(barX, barY, barW, barH);
+
+                const hpColor = hpPct > 0.6 ? '#66bb6a' : hpPct > 0.3 ? '#ffb74d' : '#ef5350';
+                ctx.fillStyle = hpColor;
+                ctx.fillRect(barX, barY, barW * hpPct, barH);
+            }
+        }
+
+        function drawProjectile(proj) {
+            ctx.fillStyle = 'rgba(100, 170, 230, 0.3)';
+            ctx.beginPath();
+            ctx.arc(proj.x - 3, proj.y - 2, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#6aaee6';
+            ctx.shadowColor = '#6aaee6';
+            ctx.shadowBlur = 10;
+            ctx.beginPath();
+            ctx.arc(proj.x, proj.y, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+
+        init();
+    </script>
+</body>
+</html>
