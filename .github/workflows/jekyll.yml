@@ -37,7 +37,7 @@ jobs:
         run: |
           ruby -v
           bundle -v
-          jekyll -v
+          bundle exec jekyll -v
 
       - name: Build with Jekyll
         run: bundle exec jekyll build --baseurl "${{ steps.pages.outputs.base_path }}"
