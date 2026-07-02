@@ -45,6 +45,8 @@ Interactive browser games built with vanilla HTML/CSS/JavaScript. Extensible hub
 - **Brick Break** — Classic brick-breaker with 3 difficulty levels, angle-based paddle physics, level progression, and high-score tracking
 - **Orbit Bloom** — Harvest glowing motes as your shield and survive an ever-faster comet swarm
 - **The Last Signal** — Text-based sci-fi adventure with three acts and two endings
+- **Ethereal Wardens** — Minimalist tower defense: position wardens to repel enemy waves
+- **Neon Drift** — Auto-accelerating ship survival: drift through formations and graze obstacles to score
 
 Adding a new game: Add one entry to the `GAMES` array in `/projects/games/index.html` and drop the game folder in `/projects/games/`.
 
@@ -231,7 +233,9 @@ blog/
 │   │   ├── not-wordle/
 │   │   ├── breakout/
 │   │   ├── orbit-bloom/
-│   │   └── last-signal/
+│   │   ├── last-signal/
+│   │   ├── ethereal-wardens/
+│   │   └── neon-drift/
 │   ├── ai-trending/     # AI/ML trending repositories dashboard
 │   ├── focus-lab/       # Productivity dashboard
 │   ├── gravitas/        # N-body gravity simulator
