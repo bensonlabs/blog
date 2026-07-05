@@ -292,7 +292,8 @@ function triggerGameOver() {
   spawnBurst(canvas.width * PLAYER_X_RATIO / DPR, state.player.y, '#ff5b89', 24);
 
   const recordDistance = Math.round(state.distance);
-  if (recordDistance > state.bestDistance) {
+  const isNewBest = recordDistance > state.bestDistance;
+  if (isNewBest) {
     state.bestDistance = recordDistance;
   }
 
@@ -307,7 +308,7 @@ function triggerGameOver() {
   updateHud();
 
   summaryTitle.textContent = `You made it ${recordDistance} m`;
-  summaryCopy.textContent = `Fragments recovered: ${state.fragments}. ${recordDistance >= state.bestDistance ? 'A new echo was archived.' : 'Your previous best still anchors the timeline.'}`;
+  summaryCopy.textContent = `Fragments recovered: ${state.fragments}. ${isNewBest ? 'A new echo was archived.' : 'Your previous best still anchors the timeline.'}`;
   showOverlay(gameOverOverlay, true);
 }
 
@@ -557,14 +558,15 @@ function resetStars() {
 
 function spawnBurst(x, y, color, count) {
   for (let index = 0; index < count; index += 1) {
+    const life = randomRange(0.3, 0.9);
     state.particles.push({
       x,
       y,
       velocityX: randomRange(-120, 140),
       velocityY: randomRange(-120, 120),
       gravity: randomRange(30, 90),
-      life: randomRange(0.3, 0.9),
-      maxLife: randomRange(0.3, 0.9),
+      life,
+      maxLife: life,
       size: randomRange(2, 5),
       color,
     });
