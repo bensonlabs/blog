@@ -11,6 +11,7 @@ const startButton = document.getElementById('startButton');
 const restartButton = document.getElementById('restartButton');
 const summaryTitle = document.getElementById('summaryTitle');
 const summaryCopy = document.getElementById('summaryCopy');
+const mobileControls = Array.from(document.querySelectorAll('[data-control]'));
 
 const STORAGE_KEY = 'echoes-of-eternity-save';
 const DPR = Math.min(window.devicePixelRatio || 1, 2);
@@ -22,6 +23,11 @@ const input = {
   up: false,
   down: false,
   boost: false,
+};
+const inputState = {
+  keyboard: { up: false, down: false, boost: false },
+  mobile: { up: false, down: false, boost: false },
+  pointerBoost: false,
 };
 
 const state = {
@@ -42,6 +48,8 @@ const state = {
   fragmentTimer: 0,
   flash: 0,
   touchTargetY: null,
+  touchPointerId: null,
+  pointerBoostId: null,
   time: 0,
 };
 
@@ -59,12 +67,14 @@ window.addEventListener('resize', () => {
 });
 
 window.addEventListener('keydown', (event) => {
-  if (event.code === 'ArrowUp' || event.code === 'KeyW') input.up = true;
-  if (event.code === 'ArrowDown' || event.code === 'KeyS') input.down = true;
+  if (event.code === 'ArrowUp' || event.code === 'KeyW') inputState.keyboard.up = true;
+  if (event.code === 'ArrowDown' || event.code === 'KeyS') inputState.keyboard.down = true;
   if (event.code === 'Space') {
     event.preventDefault();
-    input.boost = true;
+    inputState.keyboard.boost = true;
   }
+
+  syncInput();
 
   if (!state.started && ['Space', 'Enter'].includes(event.code)) {
     event.preventDefault();
@@ -78,13 +88,15 @@ window.addEventListener('keydown', (event) => {
 });
 
 window.addEventListener('keyup', (event) => {
-  if (event.code === 'ArrowUp' || event.code === 'KeyW') input.up = false;
-  if (event.code === 'ArrowDown' || event.code === 'KeyS') input.down = false;
-  if (event.code === 'Space') input.boost = false;
+  if (event.code === 'ArrowUp' || event.code === 'KeyW') inputState.keyboard.up = false;
+  if (event.code === 'ArrowDown' || event.code === 'KeyS') inputState.keyboard.down = false;
+  if (event.code === 'Space') inputState.keyboard.boost = false;
+  syncInput();
 });
 
 canvas.addEventListener('pointerdown', (event) => {
   const pointerY = getPointerY(event);
+  event.preventDefault();
 
   if (!state.started) {
     startGame();
@@ -92,22 +104,51 @@ canvas.addEventListener('pointerdown', (event) => {
     restartGame();
   }
 
+  state.touchPointerId = event.pointerId;
   state.touchTargetY = pointerY;
-  input.boost = true;
+
+  if (event.pointerType === 'mouse') {
+    state.pointerBoostId = event.pointerId;
+    inputState.pointerBoost = true;
+    syncInput();
+  }
 });
 
 canvas.addEventListener('pointermove', (event) => {
-  if (state.touchTargetY === null) return;
+  if (state.touchTargetY === null || event.pointerId !== state.touchPointerId) return;
+  event.preventDefault();
   state.touchTargetY = getPointerY(event);
 });
 
-window.addEventListener('pointerup', () => {
-  state.touchTargetY = null;
-  input.boost = false;
+window.addEventListener('pointerup', (event) => {
+  if (event.pointerId === state.touchPointerId) {
+    state.touchTargetY = null;
+    state.touchPointerId = null;
+  }
+
+  if (event.pointerId === state.pointerBoostId) {
+    state.pointerBoostId = null;
+    inputState.pointerBoost = false;
+    syncInput();
+  }
+});
+
+window.addEventListener('pointercancel', (event) => {
+  if (event.pointerId === state.touchPointerId) {
+    state.touchTargetY = null;
+    state.touchPointerId = null;
+  }
+
+  if (event.pointerId === state.pointerBoostId) {
+    state.pointerBoostId = null;
+    inputState.pointerBoost = false;
+    syncInput();
+  }
 });
 
 startButton.addEventListener('click', startGame);
 restartButton.addEventListener('click', restartGame);
+mobileControls.forEach(bindMobileControl);
 
 let lastTime = 0;
 requestAnimationFrame(loop);
@@ -286,8 +327,7 @@ function triggerGameOver() {
   if (state.gameOver) return;
 
   state.gameOver = true;
-  input.boost = false;
-  state.touchTargetY = null;
+  clearTransientInput();
   state.flash = 1;
   spawnBurst(canvas.width * PLAYER_X_RATIO / DPR, state.player.y, '#ff5b89', 24);
 
@@ -347,7 +387,7 @@ function resetRun(loopNumber) {
   state.spawnTimer = 0.9;
   state.fragmentTimer = 0.55;
   state.flash = 0;
-  state.touchTargetY = null;
+  clearTransientInput();
   state.player = createPlayer();
   state.player.y = viewportHeight * 0.5;
   updateHud();
@@ -582,8 +622,8 @@ function updateHud() {
 
 function resizeCanvas() {
   const { width, height } = canvas.getBoundingClientRect();
-  canvas.width = Math.max(640, Math.floor(width * DPR));
-  canvas.height = Math.max(360, Math.floor(height * DPR));
+  canvas.width = Math.max(480, Math.floor(width * DPR));
+  canvas.height = Math.max(320, Math.floor(height * DPR));
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 }
 
@@ -600,6 +640,55 @@ function getPointerY(event) {
 function showOverlay(element, visible) {
   element.classList.toggle('hidden', !visible);
   element.classList.toggle('visible', visible);
+}
+
+function bindMobileControl(button) {
+  const control = button.dataset.control;
+  const release = (event) => {
+    if (event) event.preventDefault();
+    setMobileControl(control, false);
+    button.classList.remove('active');
+  };
+
+  button.addEventListener('pointerdown', (event) => {
+    event.preventDefault();
+    if (!state.started) {
+      startGame();
+    } else if (state.gameOver) {
+      restartGame();
+    }
+
+    button.setPointerCapture?.(event.pointerId);
+    setMobileControl(control, true);
+    button.classList.add('active');
+  });
+  button.addEventListener('pointerup', release);
+  button.addEventListener('pointercancel', release);
+}
+
+function setMobileControl(control, active) {
+  if (control === 'up') inputState.mobile.up = active;
+  if (control === 'down') inputState.mobile.down = active;
+  if (control === 'boost') inputState.mobile.boost = active;
+  syncInput();
+}
+
+function clearTransientInput() {
+  state.touchTargetY = null;
+  state.touchPointerId = null;
+  state.pointerBoostId = null;
+  inputState.mobile.up = false;
+  inputState.mobile.down = false;
+  inputState.mobile.boost = false;
+  inputState.pointerBoost = false;
+  mobileControls.forEach((button) => button.classList.remove('active'));
+  syncInput();
+}
+
+function syncInput() {
+  input.up = inputState.keyboard.up || inputState.mobile.up;
+  input.down = inputState.keyboard.down || inputState.mobile.down;
+  input.boost = inputState.keyboard.boost || inputState.mobile.boost || inputState.pointerBoost;
 }
 
 function circleRectCollision(circleX, circleY, radius, rect) {

@@ -18,5 +18,7 @@ Echoes of Eternity is now a static browser game designed to run directly from th
 ## Controls
 
 - `W` / `S` or `↑` / `↓` to steer
-- `Space` or pointer/touch hold to boost
+- `Space` or mouse hold to boost
+- On mobile, use the on-screen `↑` / `↓` buttons to steer and `BOOST` to surge
+- On touch devices, you can also drag on the playfield to line up your route without boosting
 - `Enter` to restart after a collapse

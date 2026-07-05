@@ -37,8 +37,9 @@
         <h1>Echoes of Eternity</h1>
         <p class="copy">Ride the memory stream, collect fragments, and survive the collapse. No backend, no installs, just HTML, CSS, and JavaScript.</p>
         <div class="controls">
-          <span>Move: <strong>WASD</strong> or <strong>↑ ↓</strong></span>
-          <span>Boost: <strong>Space</strong> or <strong>Tap</strong></span>
+          <span>Move: <strong>WASD</strong>, <strong>↑ ↓</strong>, or touch <strong>↑ ↓</strong></span>
+          <span>Boost: <strong>Space</strong>, mouse hold, or touch <strong>BOOST</strong></span>
+          <span>Mobile: drag on the stream to line up your route without boosting</span>
         </div>
         <button id="startButton" class="button">Enter the loop</button>
       </div>
@@ -49,6 +50,14 @@
         <p class="copy" id="summaryCopy">Your echoes will persist for the next attempt.</p>
         <button id="restartButton" class="button button-danger">Re-enter</button>
       </div>
+    </section>
+
+    <section class="mobile-controls" aria-label="Mobile controls">
+      <div class="mobile-control-group">
+        <button type="button" class="mobile-control" data-control="up" aria-label="Steer up">↑</button>
+        <button type="button" class="mobile-control" data-control="down" aria-label="Steer down">↓</button>
+      </div>
+      <button type="button" class="mobile-control mobile-control-boost" data-control="boost" aria-label="Boost">BOOST</button>
     </section>
 
     <footer class="footer">
