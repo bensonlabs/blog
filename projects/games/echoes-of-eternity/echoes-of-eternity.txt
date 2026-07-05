@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Echoes of Eternity</title>
+    <style>
+        :root { --bg:#0a0a12; --fg:#e0e0e0; --accent:#00ffc8; --accent2:#ff3366; --ghost:rgba(0,255,200,0.15); --ui-bg:rgba(10,10,18,0.85); }
+        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+        body { background:var(--bg); color:var(--fg); font-family:'Segoe UI', system-ui, sans-serif; overflow:hidden; touch-action:none; height:100vh; display:flex; flex-direction:column; }
+        #gameContainer { position:relative; flex:1; display:flex; justify-content:center; align-items:center; background:radial-gradient(ellipse at center, #12122a 0%, var(--bg) 70%); }
+        canvas { display:block; max-width:100%; max-height:100vh; image-rendering:crisp-edges; image-rendering:pixelated; }
+        #uiLayer { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; display:flex; flex-direction:column; padding:1rem; font-size:clamp(12px, 2.5vw, 18px); }
+        .uiRow { display:flex; justify-content:space-between; width:100%; }
+        .statBox { background:var(--ui-bg); backdrop-filter:blur(4px); border:1px solid rgba(0,255,200,0.2); padding:0.5rem 1rem; border-radius:4px; min-width:80px; text-align:center; }
+        .statLabel { font-size:0.7em; color:#888; text-transform:uppercase; letter-spacing:1px; }
+        .statValue { font-family:'Monospace', monospace; color:var(--accent); font-size:1.2em; font-weight:bold; }
+        #centerMsg { margin-top:auto; margin-bottom:auto; text-align:center; pointer-events:auto; display:none; flex-direction:column; gap:1rem; animation:pulse 2s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+        .btn { background:linear-gradient(135deg, var(--accent), #00cc99); border:none; color:#000; padding:1rem 2.5rem; font-size:1.1rem; font-weight:bold; border-radius:4px; cursor:pointer; text-transform:uppercase; letter-spacing:2px; transition:transform 0.1s, box-shadow 0.2s; box-shadow:0 4px 15px rgba(0,255,200,0.3); }
+        .btn:active { transform:scale(0.97); box-shadow:0 2px 5px rgba(0,255,200,0.3); }
+        .btn.danger { background:linear-gradient(135deg, var(--accent2), #cc0033); box-shadow:0 4px 15px rgba(255,51,102,0.3); }
+        #upgradeScreen { display:none; flex-direction:column; align-items:center; gap:1rem; width:100%; max-width:400px; margin:auto; padding:2rem; background:var(--ui-bg); border:1px solid var(--accent); border-radius:8px; backdrop-filter:blur(10px); z-index:10; pointer-events:auto; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); box-shadow:0 0 30px rgba(0,255,200,0.1); }
+        .upgRow { display:flex; gap:1rem; width:100%; justify-content:center; flex-wrap:wrap; }
+        .upgCard { flex:1; min-width:100px; max-width:180px; background:rgba(0,0,0,0.5); border:2px solid #333; border-radius:6px; padding:1rem; text-align:center; cursor:pointer; transition:all 0.2s; position:relative; }
+        .upgCard:hover, .upgCard.selected { border-color:var(--accent); background:rgba(0,255,200,0.1); box-shadow:0 0 15px rgba(0,255,200,0.2); }
+        .upgCard.locked { opacity:0.4; border-color:#444; cursor:not-allowed; }
+        .upgName { color:var(--accent); font-weight:bold; margin-bottom:0.5rem; }
+        .upgDesc { font-size:0.8rem; color:#aaa; line-height:1.4; }
+        .upgCost { position:absolute; bottom:0.5rem; right:0.5rem; font-size:0.7rem; color:var(--accent2); background:rgba(0,0,0,0.8); padding:0.2rem 0.5rem; border-radius:3px; }
+        #version { position:absolute; bottom:0.5rem; right:1rem; font-size:0.7rem; color:#444; pointer-events:none; }
+        @media (max-width:600px) { #uiLayer { font-size:12px; padding:0.5rem; } .statBox { padding:0.3rem 0.6rem; } .btn { padding:0.8rem 1.5rem; } }
+    </style>
+</head>
+<body>
+<div id="gameContainer">
+    <canvas id="canvas"></canvas>
+    <div id="uiLayer">
+        <div class="uiRow">
+            <div class="statBox"><div class="statLabel">Loop</div><div class="statValue" id="uiLoop">1</div></div>
+            <div class="statBox"><div class="statLabel">Distance</div><div class="statValue" id="uiDist">0m</div></div>
+            <div class="statBox"><div class="statLabel">Fragments</div><div class="statValue" id="uiFrag">0</div></div>
+        </div>
+        <div class="uiRow" style="margin-top:auto; justify-content:center;">
+            <div id="centerMsg">
+                <h1 style="font-size:clamp(1.5rem, 6vw, 3rem); background:linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; text-shadow:0 0 20px rgba(0,255,200,0.5);">ECHOES OF ETERNITY</h1>
+                <p style="color:#888; font-size:clamp(0.8rem, 2vw, 1rem);">Click / Tap / Space to Begin</p>
+                <button class="btn" id="startBtn">Initiate Loop</button>
+            </div>
+        </div>
+    </div>
+    <div id="upgradeScreen">
+        <h2 style="color:var(--accent); margin-bottom:0.5rem; text-transform:uppercase; letter-spacing:2px;">Memory Fragments Recovered</h2>
+        <p style="color:#888; text-align:center; margin-bottom:1rem;">Select an Echo to stabilize (Cost: <span id="upgCost">50</span> Fragments)</p>
+        <div class="upgRow" id="upgOptions"></div>
+        <button class="btn" id="continueBtn">Continue Loop</button>
+    </div>
+    <div id="version">v1.0.0-ALPHA</div>
+</div>
+
+<script>
+/* ==========================================================================
+   ECHOES OF ETERNITY - SINGLE FILE ENGINE
+   Architecture: ECS-lite (Entities, Components, Systems) + Fixed Timestep
+   ========================================================================== */
+
+// --- 1. MATH & UTILITIES ---
+const Rand = (() => {
+    let seed = Date.now();
+    return {
+        setSeed(s) { seed = s >>> 0; },
+        next() { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 0x100000000; },
+        range(min, max) { return min + this.next() * (max - min); },
+        int(min, max) { return Math.floor(this.range(min, max + 1)); },
+        bool(p=0.5) { return this.next() < p; },
+        pick(arr) { return arr[this.int(0, arr.length-1)]; }
+    };
+})();
+
+const Vec2 = {
+    create: (x=0, y=0) => ({x, y}),
+    add: (a,b,out={}) => { out.x=a.x+b.x; out.y=a.y+b.y; return out; },
+    sub: (a,b,out={}) => { out.x=a.x-b.x; out.y=a.y-b.y; return out; },
+    scale: (a,s,out={}) => { out.x=a.x*s; out.y=a.y*s; return out; },
+    len: (a) => Math.hypot(a.x, a.y),
+    norm: (a,out={}) => { const l=Vec2.len(a); if(l===0) return {x:0,y:0}; out.x=a.x/l; out.y=a.y/l; return out; },
+    dot: (a,b) => a.x*b.x + a.y*b.y,
+    lerp: (a,b,t,out={}) => { out.x=a.x+(b.x-a.x)*t; out.y=a.y+(b.y-a.y)*t; return out; },
+    clone: (a) => ({x:a.x, y:a.y}),
+    dist: (a,b) => Math.hypot(a.x-b.x, a.y-b.y)
+};
+
+const Perlin = (() => {
+    const p = new Uint8Array(512);
+    const init = (s) => { Rand.setSeed(s); for(let i=0;i<256;i++) p[i]=i; for(let i=255;i>0;i--){const j=Rand.int(0,i);[p[i],p[j]]=[p[j],p[i]];} for(let i=0;i<256;i++) p[i+256]=p[i]; };
+    const fade = t => t*t*t*(t*(t*6-15)+10);
+    const lerp = (a,b,t) => a+t*(b-a);
+    const grad = (hash,x,y) => { const h=hash&3; const u=h<2?x:y; const v=h<2?y:x; return ((h&1)?-u:u)+((h&2)?-v:v); };
+    return {
+        init,
+        noise2D: (x,y) => {
+            const X=Math.floor(x)&255, Y=Math.floor(y)&255;
+            x-=Math.floor(x); y-=Math.floor(y);
+            const u=fade(x), v=fade(y);
+            const A=p[X]+Y, B=p[X+1]+Y;
+            return lerp(lerp(grad(p[A],x,y), grad(p[B],x-1,y), u), lerp(grad(p[A+1],x,y-1), grad(p[B+1],x-1,y-1), u), v);
+        },
+        fbm: (x,y,oct=4,lac=2.0,gain=0.5) => { let amp=1, freq=1, sum=0, max=0; for(let i=0;i<oct;i++){ sum+=Perlin.noise2D(x*freq,y*freq)*amp; max+=amp; amp*=gain; freq*=lac; } return sum/max; }
+    };
+})();
+
+// --- 2. AUDIO ENGINE (Web Audio API Synthesis) ---
+const AudioEngine = (() => {
+    let ctx, masterGain, musicGain, sfxGain;
+    const notes = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25]; // C Major
+    let currentIntensity = 0;
+    let musicInterval = null;
+    let arpIndex = 0;
+
+    function init() {
+        if(ctx) return;
+        ctx = new (window.AudioContext || window.webkitAudioContext)();
+        masterGain = ctx.createGain(); masterGain.gain.value = 0.3; masterGain.connect(ctx.destination);
+        musicGain = ctx.createGain(); musicGain.gain.value = 0.4; musicGain.connect(masterGain);
+        sfxGain = ctx.createGain(); sfxGain.gain.value = 0.6; sfxGain.connect(masterGain);
+
+        // Master Compressor
+        const comp = ctx.createDynamicsCompressor();
+        comp.threshold.value = ctx.createDynamicsCompressor(); comp.threshold.value=-20; comp.knee.value=10; comp.ratio.value=4; comp.attack.value=0.01; comp.release.value=0.1;
+        masterGain.disconnect(); masterGain.connect(comp); comp.connect(ctx.destination);
+    }
+
+    function resume() { if(ctx && ctx.state === 'suspended') ctx.resume(); }
+
+    function playSfx(freq, type='square', dur=0.1, vol=0.3, pitchBend=0) {
+        if(!ctx) return;
+        const o=ctx.createOscillator(), g=ctx.createGain();
+        o.type=type; o.frequency.value=freq; o.connect(g); g.connect(sfxGain);
+        g.gain.setValueAtTime(vol, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+dur);
+        if(pitchBend) o.frequency.exponentialRampToValueAtTime(freq*Math.pow(2, pitchBend/12), ctx.currentTime+dur);
+        o.start(); o.stop(ctx.currentTime+dur);
+    }
+
+    function setIntensity(val) { currentIntensity = Math.max(0, Math.min(1, val)); }
+
+    function startMusic() {
+        if(musicInterval) return;
+        const playNote = () => {
+            if(ctx.state === 'suspended') return;
+            const baseNote = notes[arpIndex % notes.length];
+            const octave = 1 + Math.floor(currentIntensity * 3); // Octaves 1-4
+            const freq = baseNote * Math.pow(2, octave-4);
+            
+            // Bass
+            if(arpIndex % 4 === 0) playSfx(freq*0.5, 'sawtooth', 0.8, 0.15 * currentIntensity);
+            
+            // Lead Arp
+            playSfx(freq, 'triangle', 0.15, 0.08 * currentIntensity);
+            
+            // Harmony (occasionally)
+            if(Rand.bool(0.2)) playSfx(freq * 1.5, 'sine', 0.3, 0.04 * currentIntensity);
+            
+            arpIndex++;
+        };
+        // Tempo increases with intensity
+        const updateTempo = () => { clearInterval(musicInterval); musicInterval = setInterval(playNote, 60000 / (120 + currentIntensity * 60)); };
+        updateTempo();
+    }
+
+    function stopMusic() { clearInterval(musicInterval); musicInterval = null; }
+
+    // Specific SFX
+    const sfx = {
+        jump: () => playSfx(440, 'square', 0.08, 0.2, 12),
+        dash: () => playSfx(220, 'sawtooth', 0.15, 0.25, -12),
+        collect: () => { playSfx(880, 'sine', 0.1, 0.2); setTimeout(()=>playSfx(1320, 'sine', 0.1, 0.15), 50); },
+        hit: () => playSfx(110, 'square', 0.3, 0.4, -24),
+        death: () => { playSfx(220, 'sawtooth', 0.5, 0.4, -12); setTimeout(()=>playSfx(110, 'sawtooth', 0.8, 0.3, -24), 100); },
+        upgrade: () => { [1, 1.25, 1.5, 2].forEach((m,i)=>setTimeout(()=>playSfx(440*m, 'triangle', 0.2, 0.15), i*80)); },
+        loopReset: () => { playSfx(164, 'sine', 1, 0.3); setTimeout(()=>playSfx(82, 'sine', 1, 0.2), 200); }
+    };
+
+    return { init, resume, setIntensity, startMusic, stopMusic, sfx };
+})();
+
+// --- 3. PROCEDURAL GENERATION ---
+const WorldGen = (() => {
+    let biomeSeed = 0;
+    const BIOMES = {
+        VOID: {col:'#050510', acc:'#00ffc8', name:'THE VOID', diff:1.0, grav:1.0, obsFreq:0.8},
+        NEON: {col:'#100020', acc:'#ff3366', name:'NEON RUINS', diff:1.5, grav:1.0, obsFreq:1.2},
+        GRAV: {col:'#051010', acc:'#ffff00', name:'GRAVITY WELL', diff:2.0, grav:1.5, obsFreq:1.0},
+        CORRUPT: {col:'#1a001a', acc:'#ff00ff', name:'CORRUPTED CORE', diff:3.0, grav:1.2, obsFreq:1.5}
+    };
+    const BIOME_ORDER = ['VOID', 'NEON', 'GRAV', 'CORRUPT'];
+
+    function getBiomeAt(dist, loop) {
+        const phase = Math.floor(dist / 3000) + loop - 1;
+        const idx = Math.min(phase, BIOME_ORDER.length - 1);
+        return BIOMES[BIOME_ORDER[idx]];
+    }
+
+    function getTerrainHeight(x, loop) {
+        const scale = 0.002;
+        const h = Perlin.fbm(x * scale, loop * 100, 4, 2.1, 0.55);
+        return h * 150; // Max height variation
+    }
+
+    function generateSegment(startX, width, loop, dist, entities) {
+        const biome = getBiomeAt(dist, loop);
+        const segData = { biome, platforms: [], hazards: [], enemies: [], pickups: [], bgElements: [] };
+        
+        const step = 50; // Resolution
+        let lastY = 0;
+        
+        for(let x = startX; x < startX + width; x += step) {
+            const h = getTerrainHeight(x, loop);
+            const y = GAME_H - 100 - h; // Ground level baseline
+            
+            // Platforms (Ground)
+            segData.platforms.push({ x, y, w: step, h: 100 + h, type: 'ground', biome });
+            
+            // Floating Platforms (L-System inspired branching logic simplified)
+            if(Rand.bool(0.02 * biome.obsFreq) && y < GAME_H - 200) {
+                const pw = Rand.range(80, 200);
+                segData.platforms.push({ x: x + Rand.range(-50,50), y: y - Rand.range(150, 300), w: pw, h: 20, type: 'float', biome });
+            }
+            
+            // Hazards (Spikes, Lasers)
+            if(Rand.bool(0.015 * biome.diff * biome.obsFreq)) {
+                const type = Rand.pick(['spike', 'laser', 'void']);
+                segData.hazards.push({ x: x + Rand.range(0, step-20), y: y - 20, w: 20, h: 20, type, biome, phase: Rand.range(0, Math.PI*2) });
+            }
+
+            // Enemies (FSM Spawns)
+            if(Rand.bool(0.008 * biome.diff)) {
+                const type = Rand.pick(biome === BIOMES.CORRUPT ? ['chaser','turret','splitter'] : ['walker','flyer']);
+                segData.enemies.push({ x: x + Rand.range(0, step), y: y - 40, type, biome, id: Rand.int(1,9999) });
+            }
+
+            // Pickups (Fragments)
+            if(Rand.bool(0.02)) {
+                segData.pickups.push({ x: x + Rand.range(10, step-10), y: y - 60 - Rand.range(0, 100), type: 'fragment', value: 1, biome });
+            }
+            
+            // Background Parallax Elements
+            if(Rand.bool(0.01)) {
+                segData.bgElements.push({ x: x + Rand.range(-200,200), y: Rand.range(50, GAME_H-200), size: Rand.range(20,100), type: Rand.pick(['arch','pillar','debris']), biome, speed: Rand.range(0.1, 0.5) });
+            }
+        }
+        return segData;
+    }
+
+    return { generateSegment, getBiomeAt, BIOMES };
+})();
+
+// --- 4. ECS CORE ---
+const EntityManager = (() => {
+    let entities = [];
+    let nextId = 1;
+    const pools = {}; // Object pooling
+
+    function create(archetype, data={}) {
+        const e = { id: nextId++, active: true, ...archetype, ...data };
+        entities.push(e);
+        return e;
+    }
+
+    function remove(id) { entities = entities.filter(e => e.id !== id); }
+    function getAll() { return entities; }
+    function clear() { entities = []; nextId = 1; }
+    function find(id) { return entities.find(e => e.id === id); }
+
+    return { create, remove, getAll, clear, find };
+})();
+
+// --- 5. COMPONENTS & ARCHETYPES ---
+const C = {
+    Transform: (x=0,y=0) => ({x,y, vx:0, vy:0, angle:0, scale:1}),
+    Physics: (w=32,h=32, solid=true, grav=1) => ({w,h,solid,grav, grounded:false, friction:0.9, maxSpeed:8, jumpForce:18, dashForce:25, dashCooldown:0, dashTime:0, dashDur:0.15, invuln:0}),
+    Player: () => ({fragments:0, maxHp:3, hp:3, loop:1, totalDist:0, bestDist:0, upgrades:{doubleJump:0,dash:0,shield:0,mult:1,gravResist:0}, echoes:[], echoTimer:0}),
+    Enemy: (type='walker') => ({type, state:'idle', timer:0, patrolDir:1, aggroRange:300, speed:2, hp:1, maxHp:1, stun:0}),
+    Render: (color='#fff', shape='rect', layer=1) => ({color, shape, layer, alpha:1, flash:0, trail:[]}),
+    Collider: (offsetX=0, offsetY=0) => ({offsetX, offsetY, isTrigger:false, tags:[]}),
+    Lifetime: (time=-1) => ({time, maxTime:time}),
+    Pickup: (type='fragment', value=1) => ({type, value, bob:0, collected:false}),
+    Hazard: (dmg=1, knockback=10, type='spike') => ({dmg, knockback, type, active:true, cycle:0}),
+    Camera: () => ({x:0, y:0, shake:0, target:null, lerp:0.1}),
+    Background: (speed=0.2) => ({speed, elements:[]}),
+    AudioEmitter: () => ({})
+};
+
+// --- 6. SYSTEMS ---
+const Systems = (() => {
+    const GRAVITY_BASE = 0.6;
+    const WORLD_W = 9999999;
+    
+    // Input State
+    const Input = { left:false, right:false, up:false, down:false, action:false, actionPressed:false };
+    window.addEventListener('keydown', e=>{ if(e.code==='ArrowLeft'||e.code==='KeyA') Input.left=true; if(e.code==='ArrowRight'||e.code==='KeyD') Input.right=true; if(e.code==='ArrowUp'||e.code==='KeyW'||e.code==='Space') {Input.up=true; Input.actionPressed=true;} if(e.code==='ArrowDown'||e.code==='KeyS') Input.down=true; if(e.code==='ShiftLeft'||e.code==='ShiftRight') Input.action=true; });
+    window.addEventListener('keyup', e=>{ if(e.code==='ArrowLeft'||e.code==='KeyA') Input.left=false; if(e.code==='ArrowRight'||e.code==='KeyD') Input.right=false; if(e.code==='ArrowUp'||e.code==='KeyW'||e.code==='Space') Input.up=false; if(e.code==='ArrowDown'||e.code==='KeyS') Input.down=false; if(e.code==='ShiftLeft'||e.code==='ShiftRight') Input.action=false; });
+    // Touch
+    const touchZones = { left: {x:0,y:0,w:0,h:0}, right:{x:0,y:0,w:0,h:0}, jump:{x:0,y:0,w:0,h:0} };
+    function updateTouchZones(cw, ch) { 
+        touchZones.left = {x:0,y:ch*0.5,w:cw*0.4,h:ch*0.5}; 
+        touchZones.right = {x:cw*0.6,y:ch*0.5,w:cw*0.4,h:ch*0.5}; 
+        touchZones.jump = {x:cw*0.4,y:0,w:cw*0.2,h:ch}; 
+    }
+    function handleTouch(e, start) {
+        Input.left=Input.right=Input.up=Input.down=false;
+        for(const t of e.touches) {
+            if(t.x < touchZones.left.x + touchZones.left.w && t.y > touchZones.left.y) Input.left=true;
+            else if(t.x > touchZones.right.x && t.y > touchZones.right.y) Input.right=true;
+            else if(t.x > touchZones.jump.x && t.x < touchZones.jump.x+touchZones.jump.w) { Input.up=true; if(start) Input.actionPressed=true; }
+        }
+    }
+    window.addEventListener('touchstart', e=>{e.preventDefault(); handleTouch(e, true);}, {passive:false});
+    window.addEventListener('touchmove', e=>{e.preventDefault(); handleTouch(e, false);}, {passive:false});
+    window.addEventListener('touchend', e=>{Input.left=Input.right=Input.up=false; Input.actionPressed=false;});
+
+    // Physics System
+    function physicsSys(dt) {
+        const ents = EntityManager.getAll();
+        const solids = ents.filter(e => e.physics && e.physics.solid);
+        
+        ents.forEach(e => {
+            if(!e.physics || !e.active) return;
+            const ph = e.physics;
+            const tr = e.transform;
+            
+            // Gravity
+            const gravMult = (e.player && e.player.gravResist) ? (1 - e.player.gravResist * 0.15) : 1;
+            ph.vy += GRAVITY_BASE * (ph.grav || 1) * gravMult * dt * 60;
+            
+            // Horizontal Input (Player only)
+            if(e.player) {
+                let ax = 0;
+                if(Input.left) ax -= 1;
+                if(Input.right) ax += 1;
+                const accel = ph.dashTime > 0 ? 0 : 0.8; // No air control during dash
+                ph.vx = Vec2.lerp({x:ph.vx,y:0}, {x:ax*ph.maxSpeed,y:0}, accel * dt * 60).x;
+                
+                // Dash
+                if(ph.dashCooldown > 0) ph.dashCooldown -= dt;
+                if(Input.action && ph.dashCooldown <= 0 && e.player.upgrades.dash > 0 && ph.dashTime <= 0) {
+                    ph.dashTime = ph.dashDur;
+                    ph.dashCooldown = 0.5;
+                    const dir = Input.left ? -1 : (Input.right ? 1 : (tr.vx > 0 ? 1 : -1));
+                    ph.vx = dir * ph.dashForce;
+                    ph.vy = 0;
+                    ph.invuln = 0.3;
+                    AudioEngine.sfx.dash();
+                    // Dash trail
+                    for(let i=0;i<5;i++) spawnParticle(tr.x, tr.y, e.render.color, 0.3, 2);
+                }
+                if(ph.dashTime > 0) { ph.dashTime -= dt; ph.invuln = Math.max(ph.invuln, ph.dashTime); }
+            }
+
+            // Apply Velocity
+            tr.x += ph.vx * dt * 60;
+            tr.y += ph.vy * dt * 60;
+
+            // Collision (Simple AABB Sweep)
+            ph.grounded = false;
+            // Broad phase: check nearby solids
+            solids.forEach(s => {
+                if(s === e || !s.physics.solid) return;
+                if(Math.abs(s.transform.x - tr.x) > (ph.w+s.physics.w) || Math.abs(s.transform.y - tr.y) > (ph.h+s.physics.h)) return;
+                
+                // X Collision
+                if(ph.vx !== 0) {
+                    const overlapX = (ph.w/2 + s.physics.w/2) - Math.abs(tr.x - s.transform.x);
+                    if(overlapX > 0) {
+                        tr.x += Math.sign(tr.x - s.transform.x) * overlapX;
+                        ph.vx = 0;
+                        if(e.enemy) e.enemy.patrolDir *= -1;
+                    }
+                }
+            });
+
+            solids.forEach(s => {
+                if(s === e || !s.physics.solid) return;
+                if(Math.abs(s.transform.x - tr.x) > (ph.w+s.physics.w) || Math.abs(s.transform.y - tr.y) > (ph.h+s.physics.h)) return;
+                
+                // Y Collision
+                if(ph.vy !== 0) {
+                    const overlapY = (ph.h/2 + s.physics.h/2) - Math.abs(tr.y - s.transform.y);
+                    if(overlapY > 0) {
+                        if(ph.vy > 0) { // Falling
+                            tr.y = s.transform.y - s.physics.h/2 - ph.h/2;
+                            ph.vy = 0;
+                            ph.grounded = true;
+                        } else { // Jumping
+                            tr.y = s.transform.y + s.physics.h/2 + ph.h/2;
+                            ph.vy = 0;
+                        }
+                    }
+                }
+            });
+
+            // Jump
+            if(e.player && Input.actionPressed && (ph.grounded || (e.player.upgrades.doubleJump > 0 && !ph.grounded && !e.player._hasDoubleJumped))) {
+                ph.vy = -ph.jumpForce;
+                if(!ph.grounded) { e.player._hasDoubleJumped = true; AudioEngine.sfx.jump(); }
+                else { e.player._hasDoubleJumped = false; AudioEngine.sfx.jump(); }
+            }
+            if(ph.grounded) e.player._hasDoubleJumped = false;
+            Input.actionPressed = false;
+
+            // Invuln / Flash
+            if(ph.invuln > 0) { ph.invuln -= dt; e.render.flash = Math.sin(Date.now()*0.02)*0.5+0.5; }
+            else e.render.flash = 0;
+        });
+    }
+
+    // Enemy AI System (Finite State Machine)
+    function enemySys(dt, playerEnt) {
+        if(!playerEnt) return;
+        EntityManager.getAll().filter(e=>e.enemy && e.active).forEach(e => {
+            const ai = e.enemy;
+            const ph = e.physics;
+            const tr = e.transform;
+            const dist = Vec2.dist(tr, playerEnt.transform);
+            
+            ai.stun = Math.max(0, ai.stun - dt);
+            if(ai.stun > 0) { ph.vx *= 0.9; return; }
+
+            switch(ai.type) {
+                case 'walker':
+                    if(dist < ai.aggroRange) ai.state = 'chase'; else ai.state = 'patrol';
+                    break;
+                case 'flyer':
+                    ai.state = dist < ai.aggroRange ? 'chase' : 'hover';
+                    break;
+                case 'chaser':
+                    ai.state = 'chase';
+                    break;
+                case 'turret':
+                    ai.state = dist < 400 ? 'shoot' : 'idle';
+                    break;
+                case 'splitter':
+                    ai.state = dist < ai.aggroRange ? 'chase' : 'patrol';
+                    break;
+            }
+
+            switch(ai.state) {
+                case 'patrol':
+                    ph.vx = ai.patrolDir * ai.speed;
+                    // Edge detection (simplified)
+                    if(Rand.bool(0.005)) ai.patrolDir *= -1;
+                    break;
+                case 'chase':
+                    const dir = Math.sign(playerEnt.transform.x - tr.x);
+                    ph.vx = dir * ai.speed * (ai.type==='chaser' ? 1.5 : 1);
+                    if(ai.type==='flyer') ph.vy += (playerEnt.transform.y - tr.y) * 0.02;
+                    break;
+                case 'hover':
+                    ph.vy += Math.sin(Date.now()*0.001 + ai.id)*0.05;
+                    ph.vx *= 0.98;
+                    break;
+                case 'shoot':
+                    ph.vx *= 0.5;
+                    ai.timer -= dt;
+                    if(ai.timer <= 0) {
+                        spawnProjectile(tr.x, tr.y, Math.sign(playerEnt.transform.x - tr.x), 'enemy_bullet', e);
+                        ai.timer = 1.5 + Rand.range(0,1);
+                        AudioEngine.sfx.jump(); // Placeholder sound
+                    }
+                    break;
+            }
+        });
+    }
+
+    // World Generation & Management System
+    let generatedChunks = new Map(); // key: chunkIndex -> segmentData
+    const CHUNK_W = 2000;
+    let lastCleanupX = 0;
+
+    function worldSys(playerEnt) {
+        if(!playerEnt) return;
+        const camX = playerEnt.camera?.x || playerEnt.transform.x;
+        const currentChunk = Math.floor(camX / CHUNK_W);
+        
+        // Generate ahead
+        for(let i = currentChunk; i <= currentChunk + 2; i++) {
+            if(!generatedChunks.has(i)) {
+                const data = WorldGen.generateSegment(i * CHUNK_W, CHUNK_W, playerEnt.player.loop, playerEnt.player.totalDist, EntityManager);
+                generatedChunks.set(i, data);
+                instantiateChunk(data, i);
+            }
+        }
+        
+        // Cleanup behind
+        const cleanupThreshold = currentChunk - 2;
+        if(cleanupThreshold > lastCleanupX) {
+            for(let i = lastCleanupX; i <= cleanupThreshold; i++) {
+                if(generatedChunks.has(i)) {
+                    despawnChunk(i);
+                    generatedChunks.delete(i);
+                }
+            }
+            lastCleanupX = cleanupThreshold;
+        }
+    }
+
+    function instantiateChunk(data, index) {
+        const biome = data.biome;
+        // Platforms
+        data.platforms.forEach(p => {
+            EntityManager.create({
+                ...C.Transform(p.x, p.y),
+                ...C.Physics(p.w, p.h, true, biome.grav),
+                ...C.Render(p.type==='ground'? biome.col : biome.acc, 'rect', 1),
+                ...C.Collider(),
+                biomeTag: p.type
+            });
+        });
+        // Hazards
+        data.hazards.forEach(h => {
+            EntityManager.create({
+                ...C.Transform(h.x, h.y),
+                ...C.Physics(h.w, h.h, false),
+                ...C.Render(h.type==='laser'? '#ff0066' : biome.acc, h.type==='laser'?'rect':'tri', 2),
+                ...C.Collider(0,0,{isTrigger:true, tags:['hazard']}),
+                ...C.Hazard(h.type==='laser'?2:3, 15, h.type),
+                biomeTag: 'hazard'
+            });
+        });
+        // Enemies
+        data.enemies.forEach(en => {
+            const stats = {walker:{sp:2, hp:2}, flyer:{sp:1.5, hp:1}, chaser:{sp:3, hp:3}, turret:{sp:0, hp:4}, splitter:{sp:2.5, hp:2}}[en.type];
+            EntityManager.create({
+                ...C.Transform(en.x, en.y),
+                ...C.Physics(32, 32, true, biome.grav),
+                ...C.Render(biome.acc, en.type==='turret'?'rect':'tri', 2),
+                ...C.Collider(0,0,{tags:['enemy']}),
+                ...C.Enemy(en.type),
+                biomeTag: 'enemy'
+            }, { physics: { maxSpeed: stats.sp }, enemy: { maxHp: stats.hp, hp: stats.hp, speed: stats.sp } });
+        });
+        // Pickups
+        data.pickups.forEach(p => {
+            EntityManager.create({
+                ...C.Transform(p.x, p.y),
+                ...C.Physics(16,16,false),
+                ...C.Render('#ffd700', 'star', 2),
+                ...C.Collider(0,0,{isTrigger:true, tags:['pickup']}),
+                ...C.Pickup(p.type, p.value),
+                biomeTag: 'pickup'
+            });
+        });
+        // BG Elements
+        data.bgElements.forEach(bg => {
+            EntityManager.create({
+                ...C.Transform(bg.x, bg.y),
+                ...C.Physics(bg.size, bg.size, false),
+                ...C.Render(bg.biome.acc, bg.type, 0),
+                ...C.Background(bg.speed),
+                biomeTag: 'bg'
+            });
+        });
+    }
+
+    function despawnChunk(index) {
+        EntityManager.getAll().filter(e => e.chunkIndex === index).forEach(e => EntityManager.remove(e.id));
+    }
+
+    // Trigger / Interaction System
+    function triggerSys(playerEnt) {
+        if(!playerEnt) return;
+        const playerCol = { x: playerEnt.transform.x, y: playerEnt.transform.y, w: playerEnt.physics.w, h: playerEnt.physics.h };
+        
+        EntityManager.getAll().filter(e => e.collider && e.collider.isTrigger && e.active).forEach(e => {
+            const col = e.collider;
+            const ex = e.transform.x + col.offsetX;
+            const ey = e.transform.y + col.offsetY;
+            const ew = e.physics.w, eh = e.physics.h;
+            
+            if( playerCol.x < ex+ew && playerCol.x+playerCol.w > ex &&
+                playerCol.y < ey+eh && playerCol.y+playerCol.h > ey ) {
+                
+                if(col.tags.includes('pickup') && e.pickup && !e.pickup.collected) {
+                    e.pickup.collected = true;
+                    playerEnt.player.fragments += e.pickup.value * (playerEnt.player.upgrades.mult || 1);
+                    AudioEngine.sfx.collect();
+                    spawnParticle(ex, ey, '#ffd700', 0.5, 8);
+                    EntityManager.remove(e.id);
+                }
+                else if(col.tags.includes('hazard') && e.hazard && e.hazard.active && playerEnt.physics.invuln <= 0) {
+                    damagePlayer(playerEnt, e.hazard.dmg, Math.sign(playerEnt.transform.x - ex) * e.hazard.knockback);
+                    if(e.hazard.type==='laser') e.hazard.active=false; // One hit laser
+                }
+                else if(col.tags.includes('enemy') && e.enemy && playerEnt.physics.invuln <= 0) {
+                    damagePlayer(playerEnt, 1, Math.sign(playerEnt.transform.x - ex) * 10);
+                    e.enemy.stun = 0.2;
+                }
+            }
+        });
+    }
+
+    function damagePlayer(playerEnt, dmg, knockback) {
+        playerEnt.player.hp -= dmg;
+        playerEnt.physics.vx = knockback;
+        playerEnt.physics.vy = -10;
+        playerEnt.physics.invuln = 1.0;
+        AudioEngine.sfx.hit();
+        screenShake(10);
+        if(playerEnt.player.hp <= 0) killPlayer(playerEnt);
+    }
+
+    function killPlayer(playerEnt) {
+        AudioEngine.sfx.death();
+        AudioEngine.stopMusic();
+        screenShake(30);
+        // Spawn Echo (Ghost)
+        const echo = { 
+            path: playerEnt.player.echoes.slice(-600), // Last 10 seconds @ 60fps
+            loop: playerEnt.player.loop,
+            dist: playerEnt.player.totalDist,
+            color: playerEnt.render.color 
+        };
+        // Save to persistent memory
+        saveEcho(echo);
+        
+        // Trigger Loop Reset UI
+        showDeathScreen(playerEnt);
+    }
+
+    // Camera System
+    function cameraSys(playerEnt) {
+        if(!playerEnt || !playerEnt.camera) return;
+        const cam = playerEnt.camera;
+        const targetX = playerEnt.transform.x + playerEnt.physics.vx * 10; // Lookahead
+        const targetY = playerEnt.transform.y - GAME_H * 0.2;
+        cam.x = Vec2.lerp({x:cam.x,y:0}, {x:targetX,y:0}, cam.lerp).x;
+        cam.y = Vec2.lerp({y:cam.y}, {y:targetY}, cam.lerp*2).y;
+        if(cam.shake > 0) { cam.x += (Rand.range(-1,1)*cam.shake); cam.y += (Rand.range(-1,1)*cam.shake); cam.shake *= 0.9; if(cam.shake<0.5) cam.shake=0; }
+    }
+    function screenShake(power) { const p=EntityManager.getAll().find(e=>e.player); if(p&&p.camera) p.camera.shake=power; }
+
+    // Echo / Memory System
+    function echoSys(playerEnt) {
+        if(!playerEnt) return;
+        // Record position for ghost playback
+        playerEnt.player.echoes.push({x: playerEnt.transform.x, y: playerEnt.transform.y, t: Date.now()});
+        if(playerEnt.player.echoes.length > 1800) playerEnt.player.echoes.shift(); // 30 sec buffer
+        
+        // Spawn visual echoes from memory (past loops)
+        playerEnt.player.echoTimer -= 1/60;
+        if(playerEnt.player.echoTimer <= 0 && GameState.memoryEchoes.length > 0) {
+            const mem = Rand.pick(GameState.memoryEchoes);
+            if(mem.path.length > 10) {
+                spawnEchoEntity(mem);
+                playerEnt.player.echoTimer = Rand.range(5, 15);
+            }
+        }
+    }
+
+    function spawnEchoEntity(mem) {
+        EntityManager.create({
+            ...C.Transform(mem.path[0].x, mem.path[0].y),
+            ...C.Physics(24,24,false),
+            ...C.Render(mem.color || '#00ffc8', 'rect', 3),
+            ...C.Lifetime(10),
+            isEcho: true,
+            echoPath: mem.path,
+            echoIndex: 0
+        });
+    }
+
+    // Particle System
+    const particles = [];
+    function spawnParticle(x,y,color,life,count) {
+        for(let i=0;i<count;i++) particles.push({x,y,vx:Rand.range(-3,3),vy:Rand.range(-5,0),life:life*Rand.range(0.5,1),maxLife:life,color,size:Rand.range(2,5)});
+    }
+    function particleSys(dt) {
+        for(let i=particles.length-1;i>=0;i--) {
+            const p=particles[i];
+            p.x+=p.vx*dt*60; p.y+=p.vy*dt*60; p.vy+=0.2*dt*60; p.life-=dt;
+            if(p.life<=0) particles.splice(i,1);
+        }
+    }
+
+    // Projectile System
+    function spawnProjectile(x,y,dir,type,owner) {
+        EntityManager.create({
+            ...C.Transform(x,y),
+            ...C.Physics(10,10,false),
+            ...C.Render(type==='player'?'#00ffc8':'#ff3366', 'rect', 2),
+            ...C.Collider(0,0,{isTrigger:true, tags:['projectile', type]}),
+            ...C.Lifetime(3),
+            projectile: { dir, speed: 15, ownerId: owner.id, dmg: 1 }
+        });
+    }
+    function projectileSys(dt) {
+        EntityManager.getAll().filter(e=>e.projectile && e.active).forEach(e => {
+            e.transform.x += e.projectile.dir * e.projectile.speed * dt * 60;
+            e.lifetime.time -= dt;
+            if(e.lifetime.time <= 0) { EntityManager.remove(e.id); return; }
+            
+            // Hit check
+            EntityManager.getAll().filter(t=>t.collider && t.collider.tags.includes('enemy') && t.active && t.id!==e.projectile.ownerId).forEach(t=>{
+                if(Vec2.dist(e.transform, t.transform) < 30) {
+                    t.enemy.hp -= e.projectile.dmg;
+                    spawnParticle(e.transform.x, e.transform.y, e.render.color, 0.2, 5);
+                    AudioEngine.sfx.collect();
+                    if(t.enemy.hp <= 0) { killEnemy(t); }
+                    EntityManager.remove(e.id);
+                }
+            });
+        });
+    }
+    function killEnemy(e) {
+        spawnParticle(e.transform.x, e.transform.y, e.render.color, 0.5, 15);
+        AudioEngine.sfx.hit();
+        // Drop fragment
+        EntityManager.create({
+            ...C.Transform(e.transform.x, e.transform.y),
+            ...C.Physics(16,16,false),
+            ...C.Render('#ffd700', 'star', 2),
+            ...C.Collider(0,0,{isTrigger:true, tags:['pickup']}),
+            ...C.Pickup('fragment', 2)
+        });
+        EntityManager.remove(e.id);
+    }
+
+    // Upgrade / Loop System
+    const UPGRADES = [
+        {id:'doubleJump', name:'Quantum Step', desc:'Allows a second jump in mid-air. Echoes of a fall that never happened.', max:1, cost:50},
+        {id:'dash', name:'Phase Shift', desc:'Dash through danger. Invulnerable during dash.', max:1, cost:75},
+        {id:'shield', name:'Aegis Memory', desc:'Survive one fatal hit per loop. Consumes a fragment on trigger.', max:3, cost:100},
+        {id:'mult', name:'Fragment Attraction', desc:'Increases fragment gain by 50% per level.', max:3, cost:150},
+        {id:'gravResist', name:'Gravity Anchor', desc:'Reduces gravity effect by 15% per level.', max:3, cost:200}
+    ];
+
+    function showUpgradeScreen(playerEnt) {
+        const screen = document.getElementById('upgradeScreen');
+        const opts = document.getElementById('upgOptions');
+        opts.innerHTML = '';
+        const cost = 50 + playerEnt.player.loop * 25;
+        document.getElementById('upgCost').textContent = cost;
+        
+        const available = UPGRADES.filter(u => (playerEnt.player.upgrades[u.id]||0) < u.max);
+        const choices = Rand.pick(available, 3); // Need to implement pick multiple
+        // Simple shuffle pick
+        const shuffled = [...available].sort(()=>Rand.next()-0.5).slice(0,3);
+        
+        shuffled.forEach(u => {
+            const lvl = playerEnt.player.upgrades[u.id] || 0;
+            const card = document.createElement('div');
+            card.className = 'upgCard' + (playerEnt.player.fragments < cost ? ' locked' : '');
+            card.innerHTML = `<div class="upgName">${u.name} ${lvl>0?`(Lv.${lvl+1})`:''}</div><div class="upgDesc">${u.desc}</div><div class="upgCost">${cost} Frags</div>`;
+            card.onclick = () => {
+                if(playerEnt.player.fragments >= cost && lvl < u.max) {
+                    playerEnt.player.fragments -= cost;
+                    playerEnt.player.upgrades[u.id] = lvl + 1;
+                    AudioEngine.sfx.upgrade();
+                    hideUpgradeScreen();
+                    resumeGame(playerEnt);
+                }
+            };
+            opts.appendChild(card);
+        });
+        screen.style.display = 'flex';
+        GameState.paused = true;
+    }
+    function hideUpgradeScreen() { document.getElementById('upgradeScreen').style.display = 'none'; }
+    
+    function showDeathScreen(playerEnt) {
+        document.getElementById('centerMsg').innerHTML = `
+            <h1 style="color:var(--accent2);">LOOP TERMINATED</h1>
+            <p>Distance: ${Math.floor(playerEnt.player.totalDist)}m | Loop: ${playerEnt.player.loop}</p>
+            <p>Fragments Lost: ${playerEnt.player.fragments}</p>
+            <button class="btn danger" id="retryBtn">Re-Enter Loop</button>
+        `;
+        document.getElementById('centerMsg').style.display = 'flex';
+        document.getElementById('retryBtn').onclick = () => hardReset(playerEnt);
+        GameState.running = false;
+    }
+
+    function hardReset(playerEnt) {
+        document.getElementById('centerMsg').style.display = 'none';
+        // Persist Memory
+        GameState.totalFragments += playerEnt.player.fragments;
+        saveGame();
+        
+        // Reset World
+        EntityManager.clear();
+        generatedChunks.clear();
+        lastCleanupX = 0;
+        particles.length = 0;
+        
+        // New Loop
+        const newLoop = playerEnt.player.loop + 1;
+        initPlayer(newLoop);
+        GameState.running = true;
+        AudioEngine.startMusic();
+        AudioEngine.setIntensity(Math.min(1, newLoop * 0.15));
+    }
+
+    function resumeGame(playerEnt) { GameState.paused = false; GameState.running = true; }
+
+    return { physicsSys, enemySys, worldSys, triggerSys, cameraSys, echoSys, particleSys, projectileSys, showUpgradeScreen, spawnProjectile, UPGRADES };
+})();
+
+// --- 7. GAME STATE & PERSISTENCE ---
+const GameState = {
+    running: false,
+    paused: false,
+    playerEnt: null,
+    memoryEchoes: [], // Persistent across reloads
+    totalFragments: 0,
+    highScore: 0,
+    init() {
+        this.load();
+        Perlin.init(12345); // Fixed seed for consistent world per session, or use loop#?
+        AudioEngine.init();
+        setupCanvas();
+        requestAnimationFrame(gameLoop);
+    },
+    load() {
+        try {
+            const d = JSON.parse(localStorage.getItem('echoes_save') || '{}');
+            this.memoryEchoes = d.echoes || [];
+            this.totalFragments = d.frags || 0;
+            this.highScore = d.high || 0;
+            // Limit memory echoes
+            if(this.memoryEchoes.length > 20) this.memoryEchoes = this.memoryEchoes.slice(-20);
+        } catch(e) { console.warn('Save corrupt', e); }
+    },
+    save() {
+        localStorage.setItem('echoes_save', JSON.stringify({
+            echoes: this.memoryEchoes,
+            frags: this.totalFragments,
+            high: this.highScore
+        }));
+    }
+};
+
+// --- 8. RENDERING ---
+let canvas, ctx, GAME_W, GAME_H, DPR=1;
+function setupCanvas() {
+    canvas = document.getElementById('canvas');
+    ctx = canvas.getContext('2d');
+    resize();
+    window.addEventListener('resize', resize);
+}
+function resize() {
+    const container = document.getElementById('gameContainer');
+    GAME_W = container.clientWidth;
+    GAME_H = container.clientHeight;
+    DPR = window.devicePixelRatio || 1;
+    canvas.width = GAME_W * DPR;
+    canvas.height = GAME_H * DPR;
+    canvas.style.width = GAME_W + 'px';
+    canvas.style.height = GAME_H + 'px';
+    ctx.scale(DPR, DPR);
+    Systems.cameraSys(GameState.playerEnt); // Update camera target
+    updateTouchZones(GAME_W, GAME_H);
+}
+
+function render(dt) {
+    if(!GameState.playerEnt) return;
+    const cam = GameState.playerEnt.camera;
+    const biome = WorldGen.getBiomeAt(GameState.playerEnt.player.totalDist, GameState.playerEnt.player.loop);
+    
+    // Clear
+    ctx.fillStyle = biome.col;
+    ctx.fillRect(0,0,GAME_W,GAME_H);
+    
+    // Grid / Atmosphere
+    drawBackground(cam, biome);
+    
+    // Translate to Camera
+    ctx.save();
+    ctx.translate(-cam.x + GAME_W/2, -cam.y + GAME_H/2);
+    
+    // Draw Entities (Sorted by Layer)
+    const ents = EntityManager.getAll().filter(e=>e.render && e.active).sort((a,b)=> (a.render.layer||0)-(b.render.layer||0));
+    
+    ents.forEach(e => drawEntity(e, cam, biome));
+    
+    // Particles
+    particles.forEach(p => {
+        ctx.globalAlpha = p.life / p.maxLife;
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x - p.size/2, p.y - p.size/2, p.size, p.size);
+    });
+    ctx.globalAlpha = 1;
+    
+    // Echoes (Memory Ghosts)
+    GameState.memoryEchoes.forEach(mem => drawEchoPath(mem, cam, biome));
+    
+    ctx.restore();
+    
+    // UI Overlay (Health, Loop Info)
+    drawHUD(GameState.playerEnt, biome);
+}
+
+function drawEntity(e, cam, biome) {
+    if(!e.active) return;
+    const tr = e.transform;
+    const ph = e.physics;
+    const ren = e.render;
+    
+    // Frustum Culling
+    if(tr.x + ph.w/2 < cam.x - GAME_W/2 || tr.x - ph.w/2 > cam.x + GAME_W/2 ||
+       tr.y + ph.h/2 < cam.y - GAME_H/2 || tr.y - ph.h/2 > cam.y + GAME_H/2) return;
+
+    ctx.save();
+    ctx.translate(tr.x, tr.y);
+    ctx.rotate(tr.angle || 0);
+    ctx.scale(tr.scale||1, tr.scale||1);
+    
+    // Flash/Invuln
+    if(ren.flash > 0) ctx.globalAlpha = 0.5 + Math.sin(Date.now()*0.05)*0.3;
+    else if(e.isEcho) ctx.globalAlpha = 0.3;
+    else ctx.globalAlpha = ren.alpha || 1;
+    
+    // Trails (Player Dash)
+    if(e.player && ph.dashTime > 0) {
+        ren.trail.unshift({x:tr.x, y:tr.y, life:0.2});
+        if(ren.trail.length > 10) ren.trail.pop();
+    }
+    ren.trail.forEach((t,i)=>{ ctx.globalAlpha=(1-i/ren.trail.length)*0.3; drawShape(ctx, ren.shape, ren.color, ph.w, ph.h, t.x-tr.x, t.y-tr.y); });
+    ctx.globalAlpha = ren.alpha || 1;
+
+    drawShape(ctx, ren.shape, ren.color, ph.w, ph.h);
+    
+    // Enemy HP Bar
+    if(e.enemy && e.enemy.hp < e.enemy.maxHp) {
+        ctx.fillStyle='#333'; ctx.fillRect(-ph.w/2, -ph.h/2 - 6, ph.w, 4);
+        ctx.fillStyle=ren.color; ctx.fillRect(-ph.w/2, -ph.h/2 - 6, ph.w * (e.enemy.hp/e.enemy.maxHp), 4);
+    }
+    
+    ctx.restore();
+}
+
+function drawShape(ctx, shape, color, w, h, ox=0, oy=0) {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    switch(shape) {
+        case 'rect': ctx.roundRect(ox-w/2, oy-h/2, w, h, 4); break;
+        case 'tri': ctx.moveTo(ox, oy-h/2); ctx.lineTo(ox+w/2, oy+h/2); ctx.lineTo(ox-w/2, oy+h/2); ctx.closePath(); break;
+        case 'star': 
+            const r=w/2; for(let i=0;i<5;i++){const a=i*Math.PI*2/5-Math.PI/2; ctx.lineTo(ox+Math.cos(a)*r, oy+Math.sin(a)*r); const a2=a+Math.PI/5; ctx.lineTo(ox+Math.cos(a2)*r*0.5, oy+Math.sin(a2)*r*0.5);} ctx.closePath(); break;
+        case 'arch': ctx.moveTo(ox-w/2, oy+h/2); ctx.quadraticCurveTo(ox, oy-h/2, ox+w/2, oy+h/2); ctx.lineTo(ox+w/2, oy+h/2); ctx.lineTo(ox-w/2, oy+h/2); break;
+        case 'pillar': ctx.fillRect(ox-w/2, oy-h/2, w, h); break;
+        case 'debris': ctx.moveTo(ox, oy-h/2); ctx.lineTo(ox+w/2, oy); ctx.lineTo(ox, oy+h/2); ctx.lineTo(ox-w/2, oy); ctx.closePath(); break;
+    }
+    ctx.fill();
+}
+
+function drawBackground(cam, biome) {
+    // Parallax Stars/Structures
+    EntityManager.getAll().filter(e=>e.background && e.active).forEach(e => {
+        const px = e.transform.x - cam.x * e.background.speed;
+        const py = e.transform.y - cam.y * e.background.speed * 0.5;
+        // Wrap X
+        const wx = ((px - cam.x + GAME_W/2) % (GAME_W*2)) + cam.x - GAME_W;
+        ctx.globalAlpha = 0.15;
+        drawShape(ctx, e.render.shape, e.render.color, e.physics.w, e.physics.h, wx - cam.x + GAME_W/2, py - cam.y + GAME_H/2);
+    });
+    ctx.globalAlpha = 1;
+    
+    // Fog/Vignette
+    const grad = ctx.createRadialGradient(GAME_W/2, GAME_H/2, 0, GAME_W/2, GAME_H/2, Math.max(GAME_W,GAME_H));
+    grad.addColorStop(0, 'transparent');
+    grad.addColorStop(1, biome.col);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0,0,GAME_W,GAME_H);
+}
+
+function drawEchoPath(mem, cam, biome) {
+    if(!mem.path || mem.path.length < 2) return;
+    ctx.save();
+    ctx.strokeStyle = mem.color || '#00ffc8';
+    ctx.globalAlpha = 0.1;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    mem.path.forEach((p,i) => {
+        const x = p.x - cam.x + GAME_W/2;
+        const y = p.y - cam.y + GAME_H/2;
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+    ctx.restore();
+}
+
+function drawHUD(player, biome) {
+    // Health
+    const hp = player.player.hp;
+    const maxHp = player.player.maxHp;
+    for(let i=0;i<maxHp;i++) {
+        ctx.fillStyle = i < hp ? biome.acc : '#333';
+        ctx.beginPath();
+        ctx.arc(30 + i*30, 30, 10, 0, Math.PI*2);
+        ctx.fill();
+        if(i < hp) { ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(30 + i*30, 30, 4, 0, Math.PI*2); ctx.fill(); }
+    }
+    // Loop indicator top center
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillRect(GAME_W/2 - 100, 10, 200, 40);
+    ctx.fillStyle = biome.acc;
+    ctx.font = 'bold 20px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(`LOOP ${player.player.loop} | ${Math.floor(player.player.totalDist)}m`, GAME_W/2, 38);
+    
+    // Upgrade Indicators
+    let ux = GAME_W - 10;
+    Object.entries(player.player.upgrades).forEach(([k,v])=>{
+        if(v>0) {
+            const u = Systems.UPGRADES.find(x=>x.id===k);
+            if(u) {
+                ctx.fillStyle = 'rgba(0,0,0,0.7)';
+                ctx.fillRect(GAME_W - 120, ux - 20, 110, 20);
+                ctx.fillStyle = biome.acc;
+                ctx.font = '10px monospace';
+                ctx.textAlign = 'right';
+                ctx.fillText(`${u.name} x${v}`, GAME_W - 15, ux);
+                ux -= 22;
+            }
+        }
+    });
+}
+
+// --- 9. PLAYER INIT ---
+function initPlayer(loop) {
+    EntityManager.clear();
+    generatedChunks.clear();
+    lastCleanupX = 0;
+    particles.length = 0;
+    
+    const startX = 100;
+    const startY = GAME_H - 200;
+    
+    const player = EntityManager.create({
+        ...C.Transform(startX, startY),
+        ...C.Physics(24, 36, true),
+        ...C.Render('#00ffc8', 'rect', 2),
+        ...C.Collider(),
+        ...C.Player(),
+        ...C.Camera()
+    }, { player: { loop, totalDist: 0, echoes: [], hp: 3 + (loop>3?1:0) } });
+    
+    player.camera.target = player;
+    GameState.playerEnt = player;
+    
+    // Initial Chunks
+    for(let i=0;i<3;i++) {
+        const data = WorldGen.generateSegment(i*CHUNK_W, CHUNK_W, loop, 0, EntityManager);
+        generatedChunks.set(i, data);
+        instantiateChunk(data, i);
+    }
+    
+    // Initial Echo Spawns from Memory
+    GameState.memoryEchoes.forEach((mem, i) => {
+        if(i < 2 && mem.path.length > 10) setTimeout(()=>Systems.echoSys(player), 1000*i); // Hack to spawn
+    });
+}
+
+// --- 10. MAIN LOOP ---
+let lastTime = 0;
+const FIXED_DT = 1/60;
+let accumulator = 0;
+
+function gameLoop(time) {
+    const dt = Math.min((time - lastTime) / 1000, 0.1); // Cap delta
+    lastTime = time;
+    
+    if(GameState.running && !GameState.paused) {
+        accumulator += dt;
+        while(accumulator >= FIXED_DT) {
+            fixedStep(FIXED_DT);
+            accumulator -= FIXED_DT;
+        }
+        render(dt); // Render with interpolation if needed
+    } else if(GameState.playerEnt) {
+        render(0); // Render paused state
+    }
+    
+    requestAnimationFrame(gameLoop);
+}
+
+function fixedStep(dt) {
+    const player = GameState.playerEnt;
+    if(!player) return;
+    
+    // Update Distance
+    player.player.totalDist = Math.max(player.player.totalDist, player.transform.x - 100);
+    
+    // Systems
+    Systems.physicsSys(dt);
+    Systems.enemySys(dt, player);
+    Systems.worldSys(player);
+    Systems.triggerSys(player);
+    Systems.cameraSys(player);
+    Systems.echoSys(player);
+    Systems.particleSys(dt);
+    Systems.projectileSys(dt);
+    
+    // Player Shooting (Action key held)
+    if(Input.action && player.physics.dashTime <= 0) { // Reuse action for shoot? No, Shift is dash. Let's add shoot on 'KeyJ' or click.
+        // We'll add shoot on mouse click / touch right side? 
+        // For simplicity: Auto-fire if upgrade? No. Let's bind 'KeyK' or similar.
+    }
+    
+    // Check Loop Completion (Distance milestones)
+    if(player.player.totalDist > 5000 * player.player.loop) {
+        // Offer Upgrade
+        Systems.showUpgradeScreen(player);
+    }
+    
+    // Update UI
+    document.getElementById('uiLoop').textContent = player.player.loop;
+    document.getElementById('uiDist').textContent = Math.floor(player.player.totalDist) + 'm';
+    document.getElementById('uiFrag').textContent = player.player.fragments;
+    
+    // Audio Intensity
+    const speedIntensity = Math.min(1, Math.abs(player.physics.vx) / 20);
+    const dangerIntensity = EntityManager.getAll().filter(e=>e.enemy && Vec2.dist(e.transform, player.transform) < 400).length * 0.1;
+    AudioEngine.setIntensity(Math.min(1, 0.2 + speedIntensity + dangerIntensity + (player.player.loop * 0.05)));
+}
+
+// --- 11. INPUT: SHOOTING ---
+window.addEventListener('click', e => {
+    if(!GameState.running || GameState.paused) return;
+    const player = GameState.playerEnt;
+    if(player && player.player.upgrades.dash > 0) return; // Dash is shift. Shoot on click?
+    // Let's make Click = Shoot (Projectile)
+    if(player) {
+        const rect = canvas.getBoundingClientRect();
+        const mx = (e.clientX - rect.left) * DPR + player.camera.x - GAME_W/2;
+        const my = (e.clientY - rect.top) * DPR + player.camera.y - GAME_H/2;
+        const dir = mx > player.transform.x ? 1 : -1;
+        Systems.spawnProjectile(player.transform.x, player.transform.y, dir, 'player', player);
+        AudioEngine.sfx.jump(); // pew sound
+    }
+});
+window.addEventListener('keydown', e => { if(e.code === 'KeyK' || e.code === 'KeyJ') { const p=GameState.playerEnt; if(p) { Systems.spawnProjectile(p.transform.x, p.transform.y, p.physics.vx>0?1:-1, 'player', p); AudioEngine.sfx.jump(); } } });
+
+// --- 12. MEMORY PERSISTENCE ---
+function saveEcho(echo) {
+    GameState.memoryEchoes.push(echo);
+    if(GameState.memoryEchoes.length > 20) GameState.memoryEchoes.shift();
+    GameState.save();
+}
+
+// --- 13. STARTUP ---
+const CHUNK_W = 2000; // Global const for WorldGen
+document.getElementById('startBtn').onclick = () => {
+    AudioEngine.resume();
+    document.getElementById('centerMsg').style.display = 'none';
+    initPlayer(1);
+    GameState.running = true;
+    AudioEngine.startMusic();
+};
+
+GameState.init();
+
+// Helper for Rand.pick multiple (shuffle)
+Rand.pick = function(arr, count=1) {
+    if(count===1) return arr[this.int(0, arr.length-1)];
+    const shuffled = [...arr].sort(()=>this.next()-0.5);
+    return shuffled.slice(0, count);
+};
+
+// Polyfill for roundRect
+if(!CanvasRenderingContext2D.prototype.roundRect) {
+    CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r) { this.beginPath(); this.moveTo(x+r,y); this.lineTo(x+w-r,y); this.quadraticCurveTo(x+w,y,x+w,y+r); this.lineTo(x+w,y+h-r); this.quadraticCurveTo(x+w,y+h,x+w-r,y+h); this.lineTo(x+r,y+h); this.quadraticCurveTo(x,y+h,x,y+h-r); this.lineTo(x,y+r); this.quadraticCurveTo(x,y,x+r,y); this.closePath(); return this; };
+}
+</script>
+</body>
+</html>
