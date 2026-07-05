@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'">
+  <title>Echoes of Eternity</title>
+  <meta name="description" content="A static browser action game built for GitHub Pages. Collect fragments, dodge collapse waves, and carry your echoes across loops.">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="hud">
+      <div class="stat">
+        <span class="label">Loop</span>
+        <span class="value" id="loopValue">1</span>
+      </div>
+      <div class="stat">
+        <span class="label">Distance</span>
+        <span class="value" id="distanceValue">0 m</span>
+      </div>
+      <div class="stat">
+        <span class="label">Fragments</span>
+        <span class="value" id="fragmentValue">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">Best</span>
+        <span class="value" id="bestValue">0 m</span>
+      </div>
+    </header>
+
+    <section class="stage">
+      <canvas id="gameCanvas" width="1280" height="720" aria-label="Echoes of Eternity game area"></canvas>
+
+      <div class="overlay visible" id="startOverlay">
+        <p class="eyebrow">Static GitHub Pages prototype</p>
+        <h1>Echoes of Eternity</h1>
+        <p class="copy">Ride the memory stream, collect fragments, and survive the collapse. No backend, no installs, just HTML, CSS, and JavaScript.</p>
+        <div class="controls">
+          <span>Move: <strong>WASD</strong> or <strong>↑ ↓</strong></span>
+          <span>Boost: <strong>Space</strong> or <strong>Tap</strong></span>
+        </div>
+        <button id="startButton" class="button">Enter the loop</button>
+      </div>
+
+      <div class="overlay hidden" id="gameOverOverlay">
+        <p class="eyebrow">Loop collapsed</p>
+        <h2 id="summaryTitle">You made it 0 m</h2>
+        <p class="copy" id="summaryCopy">Your echoes will persist for the next attempt.</p>
+        <button id="restartButton" class="button button-danger">Re-enter</button>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <a href="/projects/games/">← Back to games</a>
+      <span>Runs entirely in the browser with localStorage persistence.</span>
+    </footer>
+  </main>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
