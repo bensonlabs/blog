@@ -11,9 +11,9 @@ Echoes of Eternity is now a static browser game designed to run directly from th
 
 ## Files
 
-- `/home/runner/work/blog/blog/projects/games/echoes-of-eternity/index.html`
-- `/home/runner/work/blog/blog/projects/games/echoes-of-eternity/style.css`
-- `/home/runner/work/blog/blog/projects/games/echoes-of-eternity/main.js`
+- `projects/games/echoes-of-eternity/index.html`
+- `projects/games/echoes-of-eternity/style.css`
+- `projects/games/echoes-of-eternity/main.js`
 
 ## Controls
 

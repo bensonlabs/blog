@@ -468,7 +468,7 @@ function drawObstacles(height) {
   }
 
   ctx.fillStyle = 'rgba(255,255,255,0.03)';
-  ctx.fillRect(0, height * GROUND_RATIO, widthFromCanvas(), height * (1 - GROUND_RATIO));
+  ctx.fillRect(0, height * GROUND_RATIO, canvas.width / DPR, height * (1 - GROUND_RATIO));
 }
 
 function drawPlayer() {
@@ -642,10 +642,6 @@ function save() {
       echoes: state.echoes,
     }),
   );
-}
-
-function widthFromCanvas() {
-  return canvas.width / DPR;
 }
 
 function randomRange(min, max) {
