@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Echoes of Eternity – AI‑Powered Procedural Runner</title>
+<style>
+  body{margin:0;background:#111;color:#eee;font-family:sans-serif;overflow:hidden;}
+  #ui{position:absolute;top:10px;left:10px;z-index:10;background:rgba(0,0,0,0.5);padding:10px;border-radius:5px;}
+  #debug{position:absolute;bottom:10px;left:10px;z-index:10;font-size:0.9em;color:#afa;}
+</style>
+</head>
+<body>
+<div id="ui">
+  <h2>Echoes of Eternity</h2>
+  <p>Score: <span id="score">0</span> &nbsp;|&nbsp; Best: <span id="best">0</span></p>
+  <button id="reset">Reset Run</button>
+</div>
+<div id="debug"></div>
+
+<!-- ==== LIBRARIES (CDN) ==== -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.4.0/dist/tf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone.js/14.8.29/Tone.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/simplex-noise/2.4.0/simplex-noise.min.js"></script>
+
+<script>
+/* --------------------------------------------------------------
+   GAME SETTINGS & STATE
+-------------------------------------------------------------- */
+const SETTINGS = {
+  WORLD_WIDTH: 2000,          // procedural world width (units)
+  SEGMENT_LEN: 50,           // length of each terrain segment
+  PLAYER_SPEED: 6,           // base forward speed
+  GRAVITY: 0.8,              // downward acceleration
+  JUMP_FORCE: 12,            // upward impulse
+  ENEMY_COUNT: 8,
+  MAX_ENEMY_SPEED: 4,
+  MEMORY_KEY: 'echoes_memory' // localStorage key for time‑loop memory
+};
+
+let state = {
+  score: 0,
+  bestScore: 0,
+  segmentOffset: 0,          // how far we have procedurally generated
+  memory: [],                // array of past runs (each run = {score, obstacles})
+  // three.js / matter.js objects
+  scene: null, camera: null, renderer: null,
+  playerBody: null, playerMesh: null,
+  groundBody: null,
+  enemies: [],               // {body, mesh}
+  obstacles: [],             // procedural obstacle data (for rendering)
+  // audio
+  synth: null,
+  // misc
+  clock: new THREE.Clock(),
+  simplex: new SimplexNoise(),
+  tfModel: null
+};
+
+/* --------------------------------------------------------------
+   INITIALISATION
+-------------------------------------------------------------- */
+function init() {
+  // ---- Three.js scene -------------------------------------------------
+  state.scene = new THREE.Scene();
+  state.scene.background = new THREE.Color(0x0a0a0a);
+  state.camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 2000);
+  state.camera.position.set(0, 10, 20);
+  state.camera.lookAt(0,0,0);
+  state.renderer = new THREE.WebGLRenderer({antialias:true});
+  state.renderer.setSize(innerWidth, innerHeight);
+  document.body.appendChild(state.renderer.domElement);
+
+  // ---- Matter.js physics world ----------------------------------------
+  const world = Matter.World.create({gravity:{y:SETTINGS.GRAVITY}});
+  state.world = world;
+
+  // ---- Ground (infinite procedural) ------------------------------------
+  const groundOptions = {isStatic:true, restitution:0.2, friction:0.5};
+  state.groundBody = Matter.Bodies.rectangle(0,0,SETTINGS.WORLD_WIDTH*2,50,groundOptions);
+  Matter.World.add(world, [state.groundBody]);
+
+  // ---- Player (capsule) ------------------------------------------------
+  const playerRadius = 1.2, playerHeight = 2.5;
+  const playerShape = Matter.Bodies.circle(0,0,playerRadius,{restitution:0.1});
+  // fake a capsule by giving it a tall collision shape
+  state.playerBody = Matter.Bodies.rectangle(0,0,playerRadius*2,playerHeight,{restitution:0.1});
+  Matter.Body.setMass(state.playerBody,0.1);
+  Matter.World.add(world, [state.playerBody, playerShape]);
+
+  const playerGeo = new THREE.CapsuleGeometry(playerRadius,playerHeight,4,8);
+  const playerMat = new THREE.MeshStandardMaterial({color:0x00ff88});
+  state.playerMesh = new THREE.Mesh(playerGeo,playerMat);
+  state.scene.add(state.playerMesh);
+
+  // ---- Enemies (simple steering) ---------------------------------------
+  for(let i=0;i<SETTINGS.ENEMY_COUNT;i++){
+    const eBody = Matter.Bodies.circle(0,0,0.8,{restitution:0.2});
+    Matter.World.add(world, eBody);
+    const eGeo = new THREE.SphereGeometry(0.8,12,12);
+    const eMat = new THREE.MeshStandardMaterial({color:0xff5555});
+    const eMesh = new THREE.Mesh(eGeo,eMat);
+    state.scene.add(eMesh);
+    state.enemies.push({body:eBody, mesh:eMesh, target:null});
+  }
+
+  // ---- Lights ----------------------------------------------------------
+  const hemi = new THREE.HemisphereSkyLight(0xffffbb,0x080820,1.2);
+  state.scene.add(hemi);
+  const dir = new THREE.DirectionalLight(0xffffff,0.8);
+  dir.position.set(5,10,7);
+  state.scene.add(dir);
+
+  // ---- Audio (Tone.js) -------------------------------------------------
+  state.synth = new Tone.PolySynth(Tone.Synth).toDestination();
+  state.synth.volume.value = -12;
+
+  // ---- Load memory (time‑loop) -----------------------------------------
+  const saved = localStorage.getItem(SETTINGS.MEMORY_KEY);
+  if(saved){
+    try{ state.memory = JSON.parse(saved); }catch(e){ state.memory = []; }
+  }
+
+  // ---- Tiny TF model: predicts next obstacle difficulty ----------------
+  // Input: [scoreNormalized, lastSegmentNoise] -> Output: difficulty (0-1)
+  state.tfModel = tf.sequential();
+  state.tfModel.add(tf.layers.dense({units:8, activation:'relu', inputShape:[2]}));
+  state.tfModel.add(tf.layers.dense({units:4, activation:'relu'}));
+  state.tfModel.add(tf.layers.dense({units:1, activation:'sigmoid'}));
+  state.tfModel.compile({optimizer:'adam', loss:'meanSquaredError'});
+
+  // ---- UI --------------------------------------------------------------
+  document.getElementById('reset').onclick = resetRun;
+  updateBestScore();
+
+  // ---- Start game loop -------------------------------------------------
+  requestAnimationFrame(gameLoop);
+}
+
+/* --------------------------------------------------------------
+   PROCEDURAL WORLD (Simplex Noise)
+-------------------------------------------------------------- */
+function generateSegment(xStart){
+  const yBase = 0; // ground level
+  const points = [];
+  for(let i=0;i<=SETTINGS.SEGMENT_LEN;i++){
+    const nx = xStart + i;
+    const ny = yBase + 2 * state.simplex.noise3D(nx*0.05, state.segmentOffset*0.1, Date.now()*0.000001);
+    points.push({x:nx, y:ny});
+  }
+  return points;
+}
+
+/* Turn a noise segment into static obstacles (spikes, pits) */
+function spawnObstaclesFromSegment(segment){
+  // Simple rule: high spikes where noise derivative is large
+  for(let i=1;i<segment.length;i++){
+    const dy = Math.abs(segment[i].y - segment[i-1].y);
+    if(dy>1.5 && Math.random()<0.3){
+      const obstacle = {
+        x:(segment[i-1].x+segment[i].x)/2,
+        y:segment[i].y+1.5, // sit on top of ground
+        width:0.8+Math.random()*1.2,
+        height:0.6+Math.random()*1.0
+      };
+      state.obstacles.push(obstacle);
+      // Matter.js body (static spike)
+      const spike = Matter.Bodies.trapezoid(obstacle.x, obstacle.y, obstacle.width, obstacle.height, 0.2, {isStatic:true, restitution:0});
+      Matter.World.add(state.world, spike);
+      // visual
+      const geo = new THREE.Shape();
+      const halfW = obstacle.width/2;
+      geo.moveTo(-halfW,0);
+      geo.lineTo(0,-obstacle.height);
+      geo.lineTo(halfW,0);
+      const extrudeSettings = {depth:0.2, bevelEnabled:false};
+      const geometry = new THREE.ExtrudeGeometry(geo, extrudeSettings);
+      const material = new THREE.MeshStandardMaterial({color:0x555555});
+      const mesh = new THREE.Mesh(geometry,material);
+      mesh.rotation.x = -Math.PI/2;
+      state.scene.add(mesh);
+      obstacle.mesh = mesh;
+      obstacle.body = spike;
+    }
+  }
+}
+
+/* --------------------------------------------------------------
+   AI ENEMY BEHAVIOUR (steering + tiny TF prediction)
+-------------------------------------------------------------- */
+function updateEnemies(dt){
+  state.enemies.forEach(e=>{
+    // Target = player position with slight look‑ahead based on TF prediction
+    const playerPos = state.playerBody.position;
+    // Normalise inputs for TF
+    const scoreNorm = Math.min(state.score/500,1);
+    const lastNoise = state.obstacles.length>0 ?
+      state.simplex.noise3D(state.obstacles[state.obstacles.length-1].x*0.05,0,0) : 0;
+    const input = tf.tensor2d([[scoreNorm, lastNoise]]);
+    state.tfModel.predict(input).data().then(pred=>{
+      const lookAhead = 10 + (pred[0]*30); // 10-40 units ahead
+      e.target = {
+        x: playerPos.x + lookAhead,
+        y: playerPos.y + 2,
+        z: playerPos.z
+      };
+    });
+
+    // Simple seek steering
+    const desired = new THREE.Vector3(e.target.x - e.body.position.x,
+                                      e.target.y - e.body.position.y,
+                                      e.target.z - e.body.position.z);
+    desired.setLength(SETTINGS.MAX_ENEMY_SPEED);
+    const steer = new THREE.Vector3().subVectors(desired, new THREE.Vector3(e.body.velocity.x, e.body.velocity.y, e.body.velocity.z));
+    steer.limitLength(0.2); // max steering force
+    Matter.Body.applyForce(e.body, e.body.position, {x:steer.x, y:steer.y, z:steer.z});
+
+    // sync mesh
+    e.mesh.position.set(e.body.position.x, e.body.position.y, e.body.position.z);
+  });
+}
+
+/* --------------------------------------------------------------
+   PLAYER CONTROLS & PHYSICS
+-------------------------------------------------------------- */
+function handleInput(){
+  if(TouchEvent && navigator.userAgent.match(/Mobi/)){
+    // mobile: tap to jump
+    window.addEventListener('touchstart',jump,{passive:true});
+  }else{
+    window.addEventListener('keydown',e=>{
+      if(e.code==='Space' || e.code==='ArrowUp') jump();
+    });
+  }
+}
+function jump(){
+  const vel = state.playerBody.velocity;
+  if(Math.abs(vel.y)<0.5){ // only jump if near ground
+    Matter.Body.applyForce(state.playerBody, state.playerBody.position, {x:0, y:-state.JUMP_FORCE});
+    // play a short note
+    state.synth.triggerAttackRelease("C4","8n");
+  }
+}
+
+/* --------------------------------------------------------------
+   DYNAMIC SOUNDTRACK (Tone.js)
+-------------------------------------------------------------- */
+function updateAudio(){
+  // base note rises with score
+  const base = Math.min(60 + state.score/10, 84); // midi note C4=60
+  state.synth.set({volume: -12 + Math.min(state.score/30,6)}); // get louder
+  // arpeggiate every second
+  if(Math.floor(state.score)%4===0 && Math.random()<0.2){
+    const note = Tone.Frequency(base,"midi").toNote();
+    state.synth.triggerAttackRelease(note,"4n");
+  }
+}
+
+/* --------------------------------------------------------------
+   GAME LOOP
+-------------------------------------------------------------- */
+function gameLoop(){
+  const dt = state.clock.getDelta();
+  // ---- Physics step -------------------------------------------------
+  Matter.Engine.update(state.engine, dt*1000);
+
+  // ---- Move world forward (simulate running) -----------------------
+  const move = SETTINGS.PLAYER_SPEED * dt;
+  state.segmentOffset += move;
+  Matter.Body.translate(state.playerBody, {x:move, y:0});
+  state.camera.position.x += move;
+  state.camera.position.z += move*0.2; // slight parallax
+
+  // ---- Procedural terrain generation --------------------------------
+  while(state.segmentOffset > state.lastGeneratedX + SETTINGS.SEGMENT_LEN){
+    const seg = generateSegment(state.lastGeneratedX + SETTINGS.SEGMENT_LEN);
+    spawnObstaclesFromSegment(seg);
+    state.lastGeneratedX += SETTINGS.SEGMENT_LEN;
+  }
+
+  // ---- Update obstacles (remove far behind) -------------------------
+  state.obstacles = state.obstacles.filter(o=>{
+    const tooFar = o.x < state.playerBody.position.x - 200;
+    if(tooFar){
+      Matter.World.remove(state.world, o.body);
+      state.scene.remove(o.mesh);
+    }
+    return !tooFar;
+  });
+
+  // ---- Enemy AI ------------------------------------------------------
+  updateEnemies(dt);
+
+  // ---- Collision detection (player vs obstacles/enemies) ----------
+  let dead = false;
+  state.obstacles.forEach(o=>{
+    if(Matter.SAT.collides(state.playerBody, o.body).collided){
+      dead = true;
+    }
+  });
+  state.enemies.forEach(e=>{
+    if(Matter.SAT.collides(state.playerBody, e.body).collided){
+      dead = true;
+    }
+  });
+
+  if(dead){
+    endRun();
+    return;
+  }
+
+  // ---- Scoring -------------------------------------------------------
+  state.score += dt*10; // points per second
+  document.getElementById('score').textContent = Math.floor(state.score);
+  if(state.score>state.bestScore){
+    state.bestScore = Math.floor(state.score);
+    document.getElementById('best').textContent = state.bestScore;
+  }
+
+  // ---- Audio ---------------------------------------------------------
+  updateAudio();
+
+  // ---- Render --------------------------------------------------------
+  state.playerMesh.position.set(state.playerBody.position.x,
+                                state.playerBody.position.y,
+                                state.playerBody.position.z);
+  state.playerMesh.rotation.y = state.playerBody.angle;
+  state.renderer.render(state.scene, state.camera);
+
+  // ---- Debug overlay -------------------------------------------------
+  document.getElementById('debug').innerHTML = 
+    `Segments:${Math.floor(state.lastGeneratedX/SETTINGS.SEGMENT_LEN)} `+
+    `Obstacles:${state.obstacles.length} `+
+    `Enemies:${state.enemies.length}`;
+
+  requestAnimationFrame(gameLoop);
+}
+
+/* --------------------------------------------------------------
+   RUN MANAGEMENT (time‑loop memory)
+-------------------------------------------------------------- */
+function endRun(){
+  // store this run in memory
+  state.memory.push({
+    score: state.score,
+    timestamp: Date.now(),
+    // we could store obstacle patterns, but for brevity just keep score
+  });
+  // keep only last 5 runs
+  if(state.memory.length>5) state.memory.splice(0, state.memory.length-5);
+  localStorage.setItem(SETTINGS.MEMORY_KEY, JSON.stringify(state.memory));
+  // show game over overlay
+  const over = document.createElement('div');
+  over.style.position='absolute';
+  over.style.top='40%';
+  over.style.left='0';
+  over.style.width='100%';
+  over.style.textAlign='center';
+  over.style.color='#ff5555';
+  over.style.fontSize='2em';
+  over.textContent=`TIME LOOP RESET\nScore:${Math.floor(state.score)} Best:${state.bestScore}`;
+  document.body.appendChild(over);
+  // pause a moment then reset
+  setTimeout(()=>{
+    document.body.removeChild(over);
+    resetRun();
+  },1500);
+}
+function resetRun(){
+  // reset physics bodies to start line
+  Matter.Body.setPosition(state.playerBody, {x:0, y:2});
+  Matter.Body.setVelocity(state.playerBody, {x:0, y:0});
+  state.segmentOffset = 0;
+  state.lastGeneratedX = -SETTINGS.SEGMENT_LEN; // so first segment generates at 0
+  state.score = 0;
+  state.obstacles.forEach(o=>{
+    Matter.World.remove(state.world, o.body);
+    state.scene.remove(o.mesh);
+  });
+  state.obstacles = [];
+  // reset enemies to random start positions
+  state.enemies.forEach(e=>{
+    const randX = (Math.random()-0.5)*SETTINGS.WORLD_WIDTH;
+    const randZ = (Math.random()-0.5)*SETTINGS.WORLD_WIDTH;
+    Matter.Body.setPosition(e.body, {x:randX, y:2, z:randZ});
+    Matter.Body.setVelocity(e.body, {x:0, y:0});
+  });
+  document.getElementById('score').textContent = '0';
+}
+
+/* --------------------------------------------------------------
+   ENGINE & START
+-------------------------------------------------------------- */
+function start(){
+  state.engine = Matter.Engine.create();
+  Matter.World.add(state.engine.world, [state.groundBody, state.playerBody]);
+  handleInput();
+  init();
+}
+start();
+</script>
+</body>
+</html>
