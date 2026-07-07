@@ -19,16 +19,7 @@
   {% seo %}
 </head>
 <body>
-  <header class="site-header">
-    <div class="container">
-      <a class="site-title" href="{{ '/' | relative_url }}">{{ site.title }}</a>
-      <nav class="site-nav">
-        <a href="{{ '/projects/' | relative_url }}">projects</a>
-        <a href="{{ '/bootstraps/' | relative_url }}" style="color: #fca5a5;">bootstraps</a>
-        <a href="{{ '/about/' | relative_url }}">about</a>
-      </nav>
-    </div>
-  </header>
+  {% include nav.html %}
 
   <main class="container">
     {{ content }}

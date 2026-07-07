@@ -1,0 +1,16 @@
+name: Nav consistency
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  nav-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - name: Run navigation invariants check
+        run: bash .github/scripts/check-nav.sh
