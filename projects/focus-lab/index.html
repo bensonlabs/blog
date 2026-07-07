@@ -14,6 +14,52 @@
   <link rel="stylesheet" crossorigin href="/projects/focus-lab/assets/index-BBM9ZfTZ.css">
 
   <body class="theme-obsidian">
+<!-- bl-nav:canonical -->
+<!-- SHARED NAV SNIPPET — standalone apps
+     Paste this block immediately after <body> in each standalone app.
+     It is self-contained (own palette, no external CSS dependency) so it
+     renders identically regardless of the app's own theme.
+     To change nav links later, this snippet is the thing to keep in sync;
+     prefer generating it from _data/navigation.yml if you automate. -->
+<nav class="bl-nav" id="bl-nav">
+  <a href="/" class="bl-nav__brand">bensonlabs</a>
+  <div class="bl-nav__links">
+    <a href="/" class="bl-nav__link">Blog</a>
+    <a href="/projects/" class="bl-nav__link">Projects</a>
+    <a href="/projects/games/" class="bl-nav__link">Games</a>
+    <a href="/projects/workouts/" class="bl-nav__link">Workouts</a>
+    <a href="/bootstraps/" class="bl-nav__link">Bootstraps</a>
+    <a href="/about/" class="bl-nav__link">About</a>
+  </div>
+</nav>
+<style>
+  .bl-nav{display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;
+    padding:.6rem 1.25rem;background:#252525;border-bottom:1px solid #3a3a3a;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    position:sticky;top:0;z-index:9999;}
+  .bl-nav__brand{color:#a78bfa;font-weight:700;font-size:1.1rem;
+    text-decoration:none;letter-spacing:-.01em;}
+  .bl-nav__brand:hover{color:#7c3aed;}
+  .bl-nav__links{display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;}
+  .bl-nav__link{color:#888;text-decoration:none;font-size:.95rem;
+    transition:color .15s;white-space:nowrap;}
+  .bl-nav__link:hover{color:#a78bfa;}
+  /* Auto-hide: add class="nav-autohide" to <body> of game pages only */
+  .nav-autohide .bl-nav{transform:translateY(-100%);transition:transform .2s ease;}
+  .nav-autohide .bl-nav.is-visible{transform:translateY(0);}
+  .nav-autohide .bl-nav__trigger{position:fixed;top:0;left:0;right:0;height:10px;z-index:9998;}
+</style>
+<div class="bl-nav__trigger"></div>
+<script>
+  (function(){
+    if(!document.body.classList.contains('nav-autohide'))return;
+    var nav=document.getElementById('bl-nav');
+    var trigger=document.querySelector('.bl-nav__trigger');
+    if(!nav||!trigger)return;
+    trigger.addEventListener('mouseenter',function(){nav.classList.add('is-visible');});
+    nav.addEventListener('mouseleave',function(){nav.classList.remove('is-visible');});
+  })();
+</script>
     <div id="app" class="app-container">
       <!-- Animated Background Gradients -->
       <div class="bg-gradient-shapes">

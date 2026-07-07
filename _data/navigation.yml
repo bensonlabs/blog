@@ -1,0 +1,14 @@
+# Single source of truth for site nav links.
+# Add a page here and it appears in the nav everywhere. Nothing else to edit.
+- title: Blog
+  url: /
+- title: Projects
+  url: /projects/
+- title: Games
+  url: /projects/games/
+- title: Workouts
+  url: /projects/workouts/
+- title: Bootstraps
+  url: /bootstraps/
+- title: About
+  url: /about/
