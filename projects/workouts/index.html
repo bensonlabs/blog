@@ -171,51 +171,102 @@ layout: null
 </head>
 <body>
 <!-- bl-nav:canonical -->
-<!-- SHARED NAV SNIPPET — standalone apps
-     Paste this block immediately after <body> in each standalone app.
-     It is self-contained (own palette, no external CSS dependency) so it
-     renders identically regardless of the app's own theme.
-     To change nav links later, this snippet is the thing to keep in sync;
-     prefer generating it from _data/navigation.yml if you automate. -->
+<!-- SHARED NAV SNIPPET - standalone apps. Paste immediately after <body>.
+     Self-contained, high-specificity. To change links, keep in sync with _data/navigation.yml. -->
 <nav class="bl-nav" id="bl-nav">
   <a href="/" class="bl-nav__brand">bensonlabs</a>
-  <div class="bl-nav__links">
+  <button class="bl-nav__toggle" id="bl-nav-toggle" aria-label="Menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="bl-nav__links" id="bl-nav-links">
     <a href="/" class="bl-nav__link">Blog</a>
-    <a href="/projects/" class="bl-nav__link">Projects</a>
-    <a href="/projects/games/" class="bl-nav__link">Games</a>
-    <a href="/projects/workouts/" class="bl-nav__link">Workouts</a>
-    <a href="/bootstraps/" class="bl-nav__link">Bootstraps</a>
-    <a href="/about/" class="bl-nav__link">About</a>
+      <a href="/projects/" class="bl-nav__link">Projects</a>
+      <a href="/projects/games/" class="bl-nav__link">Games</a>
+      <a href="/projects/workouts/" class="bl-nav__link">Workouts</a>
+      <a href="/bootstraps/" class="bl-nav__link">Bootstraps</a>
+      <a href="/about/" class="bl-nav__link">About</a>
   </div>
 </nav>
 <style>
-  .bl-nav{display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;
-    padding:.6rem 1.25rem;background:#252525;border-bottom:1px solid #3a3a3a;
+  #bl-nav{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:1rem;padding:.65rem 1.25rem;
+    background:#252525 !important;border-bottom:1px solid #3a3a3a;
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-    position:sticky;top:0;z-index:9999;}
-  .bl-nav__brand{color:#a78bfa;font-weight:700;font-size:1.1rem;
-    text-decoration:none;letter-spacing:-.01em;}
-  .bl-nav__brand:hover{color:#7c3aed;}
-  .bl-nav__links{display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;}
-  .bl-nav__link{color:#888;text-decoration:none;font-size:.95rem;
-    transition:color .15s;white-space:nowrap;}
-  .bl-nav__link:hover{color:#a78bfa;}
-  /* Auto-hide: add class="nav-autohide" to <body> of game pages only */
-  .nav-autohide .bl-nav{transform:translateY(-100%);transition:transform .2s ease;}
-  .nav-autohide .bl-nav.is-visible{transform:translateY(0);}
-  .nav-autohide .bl-nav__trigger{position:fixed;top:0;left:0;right:0;height:10px;z-index:9998;}
+    position:sticky;top:0;z-index:99999;box-sizing:border-box;
+  }
+  #bl-nav *{box-sizing:border-box;}
+  #bl-nav .bl-nav__brand{
+    color:#a78bfa !important;font-weight:700;font-size:1.1rem;
+    text-decoration:none !important;letter-spacing:-.01em;flex:0 0 auto;
+  }
+  #bl-nav .bl-nav__brand:hover{color:#7c3aed !important;}
+  #bl-nav .bl-nav__links{display:flex;align-items:center;gap:1.5rem;}
+  #bl-nav .bl-nav__link{
+    color:#c9c9c9 !important;text-decoration:none !important;
+    font-size:.95rem;white-space:nowrap;transition:color .15s;
+    background:none !important;border:none;padding:0;
+  }
+  #bl-nav .bl-nav__link:hover{color:#a78bfa !important;}
+  #bl-nav .bl-nav__link.is-active{color:#fff !important;font-weight:600;}
+  #bl-nav .bl-nav__toggle{
+    display:none;flex-direction:column;gap:5px;
+    background:none !important;border:none;cursor:pointer;padding:6px;flex:0 0 auto;
+  }
+  #bl-nav .bl-nav__toggle span{
+    display:block;width:24px;height:2px;background:#dcddde;border-radius:2px;
+    transition:transform .2s,opacity .2s;
+  }
+  #bl-nav.is-open .bl-nav__toggle span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+  #bl-nav.is-open .bl-nav__toggle span:nth-child(2){opacity:0;}
+  #bl-nav.is-open .bl-nav__toggle span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+
+  @media (max-width:680px){
+    #bl-nav .bl-nav__toggle{display:flex;}
+    #bl-nav .bl-nav__links{
+      display:none;position:absolute;top:100%;left:0;right:0;
+      flex-direction:column;align-items:flex-start;gap:0;
+      background:#252525 !important;border-bottom:1px solid #3a3a3a;
+      padding:.25rem 0;
+    }
+    #bl-nav.is-open .bl-nav__links{display:flex;}
+    #bl-nav .bl-nav__link{
+      width:100%;padding:.75rem 1.25rem !important;font-size:1rem;
+    }
+    #bl-nav .bl-nav__link:hover{background:#2d2d2d !important;}
+  }
+
+  /* Auto-hide (games only): opaque, slides fully out of view */
+  .nav-autohide #bl-nav{transform:translateY(-100%);transition:transform .2s ease;}
+  .nav-autohide #bl-nav.is-visible,
+  .nav-autohide #bl-nav.is-open{transform:translateY(0);}
+  .nav-autohide .bl-nav__trigger{position:fixed;top:0;left:0;right:0;height:12px;z-index:99998;}
 </style>
 <div class="bl-nav__trigger"></div>
 <script>
   (function(){
-    if(!document.body.classList.contains('nav-autohide'))return;
     var nav=document.getElementById('bl-nav');
-    var trigger=document.querySelector('.bl-nav__trigger');
-    if(!nav||!trigger)return;
-    trigger.addEventListener('mouseenter',function(){nav.classList.add('is-visible');});
-    nav.addEventListener('mouseleave',function(){nav.classList.remove('is-visible');});
+    var toggle=document.getElementById('bl-nav-toggle');
+    if(nav&&toggle){
+      toggle.addEventListener('click',function(){
+        var open=nav.classList.toggle('is-open');
+        toggle.setAttribute('aria-expanded',open?'true':'false');
+      });
+    }
+    if(document.body.classList.contains('nav-autohide')){
+      var trigger=document.querySelector('.bl-nav__trigger');
+      if(nav&&trigger){
+        trigger.addEventListener('mouseenter',function(){nav.classList.add('is-visible');});
+        nav.addEventListener('mouseleave',function(){
+          if(!nav.classList.contains('is-open'))nav.classList.remove('is-visible');
+        });
+        // touch: tap the trigger zone to reveal on mobile
+        trigger.addEventListener('touchstart',function(e){e.preventDefault();nav.classList.add('is-visible');},{passive:false});
+      }
+    }
   })();
 </script>
+
   <div class="app">
     <div class="app-header">
       <h1>12-Week Plan</h1>
