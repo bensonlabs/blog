@@ -1,0 +1,58 @@
+name: Games registry
+
+# Runs automatically whenever a game's index.html is added or changed --
+# no agent/human needs to remember to trigger anything by hand.
+on:
+  push:
+    branches: [master]
+    paths:
+      - "projects/games/**/index.html"
+  pull_request:
+    paths:
+      - "projects/games/**/index.html"
+  workflow_dispatch:
+
+jobs:
+  build-registry:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # need a real ref (not detached HEAD) so the auto-commit step below
+          # can push directly back to the branch that triggered the run.
+          ref: ${{ github.head_ref || github.ref }}
+
+      - name: Validate nav invariants
+        run: bash .github/scripts/check-nav.sh
+
+      - name: Validate game metadata & regenerate listing
+        run: python3 .github/scripts/build_games_registry.py
+
+      - name: Fail PRs if the listing is out of date
+        if: github.event_name == 'pull_request'
+        run: |
+          git diff --exit-code projects/games/index.html || {
+            echo "::error::projects/games/index.html is stale -- run \
+            'python3 .github/scripts/build_games_registry.py' and commit the result."
+            exit 1
+          }
+
+      - name: Commit regenerated listing
+        if: github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add projects/games/index.html
+          if ! git diff --cached --quiet; then
+            # Deliberately no "[skip ci]" here -- this commit must still
+            # trigger the Pages deploy workflow so the new game goes live.
+            # It will also re-trigger this workflow once; that run finds no
+            # diff and exits immediately, so it's self-terminating.
+            git commit -m "Auto-update games registry"
+            git push
+          else
+            echo "No registry changes to commit."
+          fi
