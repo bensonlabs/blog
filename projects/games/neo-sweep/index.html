@@ -391,7 +391,7 @@ function scanCell(x, y) {
   if (!gameGrid[y][x].mine) {
     cell.className = 'revealed cell';
     setTimeout(() => {
-      if (!gameGrid[y][x].mine && !cell.className.includes('revealed')) {
+      if (!gameGrid[y][x].mine) {
         revealCell_COORD(x, y, false);
       } else {
         cell.className = 'cell';
