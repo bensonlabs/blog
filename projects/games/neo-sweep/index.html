@@ -11,7 +11,6 @@ description: Uncover the neon grid without triggering quantum mines. Manage your
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>NeoSweep XZ9</title>
 <style>
-/* Enhanced Mobile CSS */
 body, html {
   font-family: Arial, sans-serif;
   background-color: #1A1D23;
@@ -27,15 +26,14 @@ body, html {
 }
 #game-grid {
   display: grid;
-  grid-template-columns: repeat(10, 40px);
-  gap: 0px;
+  gap: 0;
   width: fit-content;
   margin: auto;
-  max-width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+  /* No column-gap/row-gap needed since they default to 0 */
 }
 .cell {
-  width: 40px;
-  height: 40px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -44,6 +42,9 @@ body, html {
   touch-action: manipulation;
   border: none;
   font-size: inherit;
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
 }
 .cell:focus {
   outline: 2px solid white;
@@ -89,12 +90,6 @@ button:disabled {
   font-size: 18px;
   margin: 0 10px;
 }
-/* Media Query for Smaller Screens */
-@media only screen and (max-width: 480px) {
-  #game-grid {
-    gap: 0px;
-  }
-}
 </style>
 </head>
 <body>
@@ -112,7 +107,6 @@ button:disabled {
     <span id="scans-remaining" class="info-label"></span>
     <span id="mines-info" class="info-label"></span>
   </div>
-  <!-- Game Result Overlay -->
   <div id="game-over-overlay" role="dialog" aria-live="assertive" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; flex-direction: column;">
     <h2 id="game-result-title">Game Over!</h2>
     <p id="game-over-message"></p>
@@ -138,7 +132,6 @@ function getSettings() {
   };
 }
 
-// Cached elements
 const gameGridElement = document.getElementById('game-grid');
 const gameOverMessageElement = document.getElementById('game-over-message');
 const gameResultTitle = document.getElementById('game-result-title');
@@ -151,13 +144,11 @@ let gameGrid = [], revealedCells = [], scansRemaining = 0, totalMines = 0;
 scansElement.innerText = '';
 minesInfoElement.innerText = '';
 
-// Difficulty selector
 difficultySelect.addEventListener('change', () => {
   currentDifficulty = difficultySelect.value;
   initGame();
 });
 
-// Initialize Game
 initGame();
 
 function initGame() {
@@ -170,7 +161,15 @@ function initGame() {
   gameOverOverlay.style.display = 'none';
   document.getElementById('scan-btn').disabled = false;
 
-  // Generate Grid
+  // Compute cell size to fit in viewport — prevents overflow on hard
+  const vw = window.innerWidth - 40;
+  const vh = window.innerHeight - 300;
+  const maxCellSize = Math.floor(Math.min(vw, vh) / Math.max(settings.width, settings.height));
+  const cellSize = Math.min(40, Math.max(20, maxCellSize));
+
+  gameGridElement.style.gridTemplateColumns = `repeat(${settings.width}, ${cellSize}px)`;
+  gameGridElement.style.gridAutoRows = `${cellSize}px`;
+
   for (let y = 0; y < settings.height; y++) {
     gameGrid[y] = [];
     for (let x = 0; x < settings.width; x++) {
@@ -178,7 +177,6 @@ function initGame() {
     }
   }
 
-  // Place Mines
   let minesPlaced = 0;
   while (minesPlaced < settings.mines) {
     const x = Math.floor(Math.random() * settings.width);
@@ -198,11 +196,12 @@ function initGame() {
     }
   }
 
-  // Draw Grid
   for (let y = 0; y < settings.height; y++) {
     for (let x = 0; x < settings.width; x++) {
       const cell = document.createElement('div');
       cell.className = 'cell';
+      cell.style.width = cellSize + 'px';
+      cell.style.height = cellSize + 'px';
       cell.dataset.x = x;
       cell.dataset.y = y;
       cell.setAttribute('tabindex', '0');
@@ -253,7 +252,6 @@ function revealCell_COORD(x, y, directReveal) {
     }
   }
 
-  // Check for win condition
   const settings = getSettings();
   const totalCells = settings.width * settings.height;
   if (revealedCells.length >= totalCells - settings.mines) {
