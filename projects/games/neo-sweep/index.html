@@ -14,7 +14,7 @@ description: Uncover the neon grid without triggering quantum mines. Manage your
 /* Enhanced Mobile CSS */
 body, html {
   font-family: Arial, sans-serif;
-  background-color: #1A1D23; /* Deep Space Blue */
+  background-color: #1A1D23;
   color: white;
   margin: 0;
   padding: 0;
@@ -39,7 +39,7 @@ body, html {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #6c5ce7; /* Neon Purple */
+  background-color: #6c5ce7;
   cursor: pointer;
   touch-action: manipulation;
   border: none;
@@ -50,25 +50,44 @@ body, html {
   box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 }
 .cell.revealed {
-  background-color: #33CC33; /* Higher contrast green */
+  background-color: #33CC33;
 }
 .cell.mine {
-  background-color: #FF3737; /* Danger Red */
+  background-color: #FF3737;
   color: black;
 }
 #controls {
   margin-top: 20px;
   text-align: center;
   padding: 0 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+select {
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #333;
+  color: white;
+  border: 1px solid #6c5ce7;
+  border-radius: 4px;
+  cursor: pointer;
 }
 button {
   margin: 0 5px;
   padding: 10px 20px;
   font-size: 16px;
+  cursor: pointer;
 }
 button:disabled {
   background-color: #555;
   cursor: not-allowed;
+}
+.info-label {
+  font-size: 18px;
+  margin: 0 10px;
 }
 /* Media Query for Smaller Screens */
 @media only screen and (max-width: 480px) {
@@ -87,9 +106,15 @@ button:disabled {
   <h1 style="text-align: center; margin-bottom: 20px;">NeoSweep XZ9</h1>
   <div id="game-grid"></div>
   <div id="controls">
+    <select id="difficulty-select">
+      <option value="easy">Easy</option>
+      <option value="medium" selected>Medium</option>
+      <option value="hard">Hard</option>
+    </select>
     <button id="scan-btn">Scan (3 remaining)</button>
     <button id="restart-btn">Restart</button>
-    <span id="scans-remaining" style="font-size: 18px; margin: 0 10px;"></span>
+    <span id="scans-remaining" class="info-label"></span>
+    <span id="mines-info" class="info-label"></span>
   </div>
   <!-- Game Result Overlay -->
   <div id="game-over-overlay" role="dialog" aria-live="assertive" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; flex-direction: column;">
@@ -100,12 +125,22 @@ button:disabled {
 </main>
 
 <script>
-const GAME_SETTINGS = {
-  width: 10,
-  height: 10,
-  mines: 5,
-  scans: 3
+const DIFFICULTY_PRESETS = {
+  easy:   { width: 8,  height: 8,  mines: 5,  scans: 5 },
+  medium: { width: 10, height: 10, mines: 10, scans: 5 },
+  hard:   { width: 12, height: 12, mines: 20, scans: 3 }
 };
+
+let currentDifficulty = 'medium';
+
+function getSettings() {
+  return {
+    width: DIFFICULTY_PRESETS[currentDifficulty].width,
+    height: DIFFICULTY_PRESETS[currentDifficulty].height,
+    mines: DIFFICULTY_PRESETS[currentDifficulty].mines,
+    scans: DIFFICULTY_PRESETS[currentDifficulty].scans
+  };
+}
 
 // Cached elements
 const gameGridElement = document.getElementById('game-grid');
@@ -113,43 +148,54 @@ const gameOverMessageElement = document.getElementById('game-over-message');
 const gameResultTitle = document.getElementById('game-result-title');
 const gameOverOverlay = document.getElementById('game-over-overlay');
 const scansElement = document.getElementById('scans-remaining');
+const minesInfoElement = document.getElementById('mines-info');
+const difficultySelect = document.getElementById('difficulty-select');
 
-let gameGrid = [], revealedCells = [], scansRemaining = GAME_SETTINGS.scans;
-scansElement.innerText = `Scans: ${scansRemaining}`;
+let gameGrid = [], revealedCells = [], scansRemaining = 0, totalMines = 0;
+scansElement.innerText = '';
+minesInfoElement.innerText = '';
+
+// Difficulty selector
+difficultySelect.addEventListener('change', () => {
+  currentDifficulty = difficultySelect.value;
+  initGame();
+});
 
 // Initialize Game
 initGame();
 
 function initGame() {
-  // Reset
-  gameGrid = [];
-  revealedCells = [];
-  scansRemaining = GAME_SETTINGS.scans;
+  const settings = getSettings();
+  scansRemaining = settings.scans;
+  totalMines = settings.mines;
   scansElement.innerText = `Scans: ${scansRemaining}`;
+  minesInfoElement.innerText = `Mines: ${totalMines}`;
   gameGridElement.innerHTML = '';
   gameOverOverlay.style.display = 'none';
   document.getElementById('scan-btn').disabled = false;
 
+  // Set grid CSS
+  gameGridElement.style.gridTemplateColumns = `repeat(${settings.width}, 40px)`;
+
   // Generate Grid
-  for (let y = 0; y < GAME_SETTINGS.height; y++) {
+  for (let y = 0; y < settings.height; y++) {
     gameGrid[y] = [];
-    for (let x = 0; x < GAME_SETTINGS.width; x++) {
+    for (let x = 0; x < settings.width; x++) {
       gameGrid[y][x] = { mine: false, adjacentMines: 0, revealed: false };
     }
   }
 
   // Place Mines
   let minesPlaced = 0;
-  while (minesPlaced < GAME_SETTINGS.mines) {
-    const x = Math.floor(Math.random() * GAME_SETTINGS.width);
-    const y = Math.floor(Math.random() * GAME_SETTINGS.height);
+  while (minesPlaced < settings.mines) {
+    const x = Math.floor(Math.random() * settings.width);
+    const y = Math.floor(Math.random() * settings.height);
     if (!gameGrid[y][x].mine) {
       gameGrid[y][x].mine = true;
       minesPlaced++;
-      // Increment adjacent mines count for neighboring cells
       for (let dx = -1; dx <= 1; dx++) {
         for (let dy = -1; dy <= 1; dy++) {
-          if (x + dx >= 0 && x + dx < GAME_SETTINGS.width && y + dy >= 0 && y + dy < GAME_SETTINGS.height) {
+          if (x + dx >= 0 && x + dx < settings.width && y + dy >= 0 && y + dy < settings.height) {
             if (!gameGrid[y + dy][x + dx].mine) {
               gameGrid[y + dy][x + dx].adjacentMines++;
             }
@@ -160,8 +206,8 @@ function initGame() {
   }
 
   // Draw Grid
-  for (let y = 0; y < GAME_SETTINGS.height; y++) {
-    for (let x = 0; x < GAME_SETTINGS.width; x++) {
+  for (let y = 0; y < settings.height; y++) {
+    for (let x = 0; x < settings.width; x++) {
       const cell = document.createElement('div');
       cell.className = 'cell';
       cell.dataset.x = x;
@@ -169,7 +215,6 @@ function initGame() {
       cell.setAttribute('tabindex', '0');
       cell.addEventListener('click', revealCell);
       cell.addEventListener('contextmenu', (e) => { e.preventDefault(); scanCell(x, y); });
-      // **New: Long Press for Scan on Mobile**
       let longPress = false;
       cell.addEventListener('touchstart', () => { longPress = true; setTimeout(() => { if (longPress) scanCell(x, y); }, 500); });
       cell.addEventListener('touchend', () => { longPress = false; });
@@ -187,7 +232,7 @@ function revealCell(e) {
   const x = parseInt(cell.dataset.x);
   const y = parseInt(cell.dataset.y);
   if (gameGrid[y][x].mine) {
-    gameOverMessageElement.innerText = "Mine triggered! You revealed " + revealedCells.length + " cells.";
+    gameOverMessageElement.innerText = `Mine triggered! You revealed ${revealedCells.length} of ${totalMines} safe cells.`;
     gameResultTitle.innerText = "Game Over!";
     gameOverOverlay.style.display = 'flex';
     document.getElementById('scan-btn').disabled = true;
@@ -205,22 +250,22 @@ function revealCell_COORD(x, y, directReveal) {
   if (gameGrid[y][x].adjacentMines > 0) {
     cell.innerText = gameGrid[y][x].adjacentMines;
   } else if (directReveal) {
-    // Recursively reveal adjacent empty cells
+    const settings = getSettings();
     for (let dx = -1; dx <= 1; dx++) {
       for (let dy = -1; dy <= 1; dy++) {
-        if (x + dx >= 0 && x + dx < GAME_SETTINGS.width && y + dy >= 0 && y + dy < GAME_SETTINGS.height) {
+        if (x + dx >= 0 && x + dx < settings.width && y + dy >= 0 && y + dy < settings.height) {
           revealCell_COORD(x + dx, y + dy, true);
         }
       }
     }
   }
-  
+
   // Check for win condition
-  const totalCells = GAME_SETTINGS.width * GAME_SETTINGS.height;
-  const mineCount = GAME_SETTINGS.mines;
-  if (revealedCells.length >= totalCells - mineCount) {
+  const settings = getSettings();
+  const totalCells = settings.width * settings.height;
+  if (revealedCells.length >= totalCells - settings.mines) {
     gameResultTitle.innerText = "🎉 You Win!";
-    gameOverMessageElement.innerText = `You cleared the grid with ${scansRemaining} scans remaining!`;
+    gameOverMessageElement.innerText = `Cleared the grid with ${scansRemaining} scans remaining!`;
     gameOverOverlay.style.display = 'flex';
     scansElement.innerText = `Scans: 0`;
     document.getElementById('scan-btn').disabled = true;
@@ -259,8 +304,9 @@ function scanCellRandom() {
     alert("No scans left.");
     return;
   }
-  const x = Math.floor(Math.random() * GAME_SETTINGS.width);
-  const y = Math.floor(Math.random() * GAME_SETTINGS.height);
+  const settings = getSettings();
+  const x = Math.floor(Math.random() * settings.width);
+  const y = Math.floor(Math.random() * settings.height);
   scanCell(x, y);
 }
 </script>
