@@ -265,6 +265,8 @@ function updateScanButton() {
 
 function initGame() {
   const settings = getSettings();
+  gameGrid = [];
+  revealedCells = [];
   scansRemaining = settings.scans;
   totalMines = settings.mines;
   scansElement.innerText = `Scans: ${scansRemaining}`;
