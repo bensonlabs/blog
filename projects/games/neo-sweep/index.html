@@ -50,6 +50,7 @@ body, html {
 }
 .cell.revealed {
   background-color: #33CC33;
+  outline: none;
 }
 .cell.mine {
   background-color: #FF3737;
@@ -391,10 +392,10 @@ function scanCell(x, y) {
   if (!gameGrid[y][x].mine) {
     cell.className = 'revealed cell';
     setTimeout(() => {
-      if (!gameGrid[y][x].mine) {
-        revealCell_COORD(x, y, false);
-      } else {
+      if (gameGrid[y][x].mine) {
         cell.className = 'cell';
+      } else {
+        revealCell_COORD(x, y, false);
       }
     }, 1500);
     if (gameGrid[y][x].adjacentMines > 0) {
