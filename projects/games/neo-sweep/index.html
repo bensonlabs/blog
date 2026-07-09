@@ -16,14 +16,14 @@ body, html {
   font-family: Arial, sans-serif;
   background-color: #1A1D23; /* Deep Space Blue */
   color: white;
-  margin: 0; /* Added for mobile */
-  padding: 0; /* Added for mobile */
+  margin: 0;
+  padding: 0;
 }
 #game-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px; /* Added for mobile comfort */
+  padding: 20px;
 }
 #game-grid {
   display: grid;
@@ -31,7 +31,7 @@ body, html {
   gap: 2px;
   width: fit-content;
   margin: auto;
-  max-width: 100%; /* Ensure grid doesn't overflow on small screens */
+  max-width: 100%;
 }
 .cell {
   width: 40px;
@@ -41,10 +41,16 @@ body, html {
   align-items: center;
   background-color: #6c5ce7; /* Neon Purple */
   cursor: pointer;
-  touch-action: manipulation; /* Improve touch responsiveness */
+  touch-action: manipulation;
+  border: none;
+  font-size: inherit;
+}
+.cell:focus {
+  outline: 2px solid white;
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 }
 .cell.revealed {
-  background-color: #34C759; /* Glow Green */
+  background-color: #33CC33; /* Higher contrast green */
 }
 .cell.mine {
   background-color: #FF3737; /* Danger Red */
@@ -53,17 +59,17 @@ body, html {
 #controls {
   margin-top: 20px;
   text-align: center;
-  padding: 0 10px; /* Added for mobile button spacing */
+  padding: 0 10px;
 }
 button {
   margin: 0 5px;
-  padding: 10px 20px; /* Increased for better tap target */
-  font-size: 16px; /* Increased for readability */
+  padding: 10px 20px;
+  font-size: 16px;
 }
 /* Media Query for Smaller Screens */
 @media only screen and (max-width: 480px) {
   #game-grid {
-    grid-template-columns: repeat(10, 30px); /* Smaller cells on very small screens */
+    grid-template-columns: repeat(10, 30px);
   }
   .cell {
     width: 30px;
@@ -73,7 +79,7 @@ button {
 </style>
 </head>
 <body>
-<div id="game-container">
+<main id="game-container">
   <h1 style="text-align: center; margin-bottom: 20px;">NeoSweep XZ9</h1>
   <div id="game-grid"></div>
   <div id="controls">
@@ -81,13 +87,13 @@ button {
     <button id="restart-btn">Restart</button>
     <span id="scans-remaining" style="font-size: 18px; margin: 0 10px;"></span>
   </div>
-  <!-- Game Over Overlay (New) -->
-  <div id="game-over-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; flex-direction: column;">
+  <!-- Game Over Overlay -->
+  <div id="game-over-overlay" role="dialog" aria-live="assertive" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; flex-direction: column;">
     <h2>Game Over!</h2>
     <p id="game-over-message"></p>
     <button id="play-again-btn">Play Again</button>
   </div>
-</div>
+</main>
 
 <script>
 const GAME_SETTINGS = {
@@ -96,8 +102,15 @@ const GAME_SETTINGS = {
   mines: 5,
   scans: 3
 };
+
+// Cached elements
+const gameGridElement = document.getElementById('game-grid');
+const gameOverMessageElement = document.getElementById('game-over-message');
+const gameOverOverlay = document.getElementById('game-over-overlay');
+const scansElement = document.getElementById('scans-remaining');
+
 let gameGrid = [], revealedCells = [], scansRemaining = GAME_SETTINGS.scans;
-document.getElementById('scans-remaining').innerText = `Scans: ${scansRemaining}`;
+scansElement.innerText = `Scans: ${scansRemaining}`;
 
 // Initialize Game
 initGame();
@@ -107,10 +120,10 @@ function initGame() {
   gameGrid = [];
   revealedCells = [];
   scansRemaining = GAME_SETTINGS.scans;
-  document.getElementById('scans-remaining').innerText = `Scans: ${scansRemaining}`;
-  document.getElementById('game-grid').innerHTML = '';
-  document.getElementById('game-over-overlay').style.display = 'none'; // Hide game over screen
-  
+  scansElement.innerText = `Scans: ${scansRemaining}`;
+  gameGridElement.innerHTML = '';
+  gameOverOverlay.style.display = 'none';
+
   // Generate Grid
   for (let y = 0; y < GAME_SETTINGS.height; y++) {
     gameGrid[y] = [];
@@ -118,11 +131,12 @@ function initGame() {
       gameGrid[y][x] = { mine: false, adjacentMines: 0, revealed: false };
     }
   }
-  
+
   // Place Mines
   let minesPlaced = 0;
   while (minesPlaced < GAME_SETTINGS.mines) {
-    const x = Math.floor(Math.random() * GAME_SETTINGS.width), y = Math.floor(Math.random() * GAME_SETTINGS.height);
+    const x = Math.floor(Math.random() * GAME_SETTINGS.width);
+    const y = Math.floor(Math.random() * GAME_SETTINGS.height);
     if (!gameGrid[y][x].mine) {
       gameGrid[y][x].mine = true;
       minesPlaced++;
@@ -130,45 +144,45 @@ function initGame() {
       for (let dx = -1; dx <= 1; dx++) {
         for (let dy = -1; dy <= 1; dy++) {
           if (x + dx >= 0 && x + dx < GAME_SETTINGS.width && y + dy >= 0 && y + dy < GAME_SETTINGS.height) {
-            if (!gameGrid[y+dy][x+dx].mine) {
-              gameGrid[y+dy][x+dx].adjacentMines++;
+            if (!gameGrid[y + dy][x + dx].mine) {
+              gameGrid[y + dy][x + dx].adjacentMines++;
             }
           }
         }
       }
     }
   }
-  
+
   // Draw Grid
-  const gridElement = document.getElementById('game-grid');
   for (let y = 0; y < GAME_SETTINGS.height; y++) {
     for (let x = 0; x < GAME_SETTINGS.width; x++) {
       const cell = document.createElement('div');
       cell.className = 'cell';
       cell.dataset.x = x;
       cell.dataset.y = y;
+      cell.setAttribute('tabindex', '0');
       cell.addEventListener('click', revealCell);
       cell.addEventListener('contextmenu', (e) => { e.preventDefault(); scanCell(x, y); });
       // **New: Long Press for Scan on Mobile**
       let longPress = false;
       cell.addEventListener('touchstart', () => { longPress = true; setTimeout(() => { if (longPress) scanCell(x, y); }, 500); });
       cell.addEventListener('touchend', () => { longPress = false; });
-      gridElement.appendChild(cell);
+      gameGridElement.appendChild(cell);
     }
   }
 }
 
 document.getElementById('scan-btn').addEventListener('click', scanCellRandom);
 document.getElementById('restart-btn').addEventListener('click', initGame);
-document.getElementById('play-again-btn').addEventListener('click', initGame); // **New**
+document.getElementById('play-again-btn').addEventListener('click', initGame);
 
 function revealCell(e) {
   const cell = e.target;
-  const x = parseInt(cell.dataset.x), y = parseInt(cell.dataset.y);
+  const x = parseInt(cell.dataset.x);
+  const y = parseInt(cell.dataset.y);
   if (gameGrid[y][x].mine) {
-    // **New Game Over Screen**
-    document.getElementById('game-over-message').innerText = "Mine triggered! You revealed " + revealedCells.length + " cells.";
-    document.getElementById('game-over-overlay').style.display = 'flex';
+    gameOverMessageElement.innerText = "Mine triggered! You revealed " + revealedCells.length + " cells.";
+    gameOverOverlay.style.display = 'flex';
     return;
   }
   revealCell_COORD(x, y, true);
@@ -177,7 +191,8 @@ function revealCell(e) {
 function revealCell_COORD(x, y, directReveal) {
   if (revealedCells.find(coord => coord.x === x && coord.y === y)) return;
   revealedCells.push({x, y});
-  const cell = document.querySelector(`#game-grid .cell[data-x="${x}"][data-y="${y}"]`);
+  const cell = gameGridElement.querySelector(`.cell[data-x="${x}"][data-y="${y}"]`);
+  if (!cell) return;
   cell.className = 'revealed cell';
   if (gameGrid[y][x].adjacentMines > 0) {
     cell.innerText = gameGrid[y][x].adjacentMines;
@@ -199,8 +214,9 @@ function scanCell(x, y) {
     return;
   }
   scansRemaining--;
-  document.getElementById('scans-remaining').innerText = `Scans: ${scansRemaining}`;
-  const cell = document.querySelector(`#game-grid .cell[data-x="${x}"][data-y="${y}"]`);
+  scansElement.innerText = `Scans: ${scansRemaining}`;
+  const cell = gameGridElement.querySelector(`.cell[data-x="${x}"][data-y="${y}"]`);
+  if (!cell) return;
   if (!gameGrid[y][x].mine) {
     cell.className = 'revealed cell';
     setTimeout(() => {
@@ -224,9 +240,11 @@ function scanCellRandom() {
     alert("No scans left.");
     return;
   }
-  const x = Math.floor(Math.random() * GAME_SETTINGS.width), y = Math.floor(Math.random() * GAME_SETTINGS.height);
+  const x = Math.floor(Math.random() * GAME_SETTINGS.width);
+  const y = Math.floor(Math.random() * GAME_SETTINGS.height);
   scanCell(x, y);
 }
 </script>
+</main>
 </body>
 </html>
