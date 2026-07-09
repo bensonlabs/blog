@@ -31,7 +31,6 @@ body, html {
   margin: auto;
   overflow: hidden;
   box-sizing: border-box;
-  /* No column-gap/row-gap needed since they default to 0 */
 }
 .cell {
   display: flex;
@@ -40,11 +39,9 @@ body, html {
   background-color: #6c5ce7;
   cursor: pointer;
   touch-action: manipulation;
-  border: none;
+  border: 1px solid #1A1D23;
   font-size: inherit;
   box-sizing: border-box;
-  padding: 0;
-  margin: 0;
 }
 .cell:focus {
   outline: 2px solid white;
@@ -138,6 +135,7 @@ const gameResultTitle = document.getElementById('game-result-title');
 const gameOverOverlay = document.getElementById('game-over-overlay');
 const scansElement = document.getElementById('scans-remaining');
 const minesInfoElement = document.getElementById('mines-info');
+const scanButton = document.getElementById('scan-btn');
 const difficultySelect = document.getElementById('difficulty-select');
 
 let gameGrid = [], revealedCells = [], scansRemaining = 0, totalMines = 0;
@@ -151,17 +149,22 @@ difficultySelect.addEventListener('change', () => {
 
 initGame();
 
+function updateScanButton() {
+  scanButton.innerText = `Scan (${scansRemaining} remaining)`;
+}
+
 function initGame() {
   const settings = getSettings();
   scansRemaining = settings.scans;
   totalMines = settings.mines;
   scansElement.innerText = `Scans: ${scansRemaining}`;
   minesInfoElement.innerText = `Mines: ${totalMines}`;
+  updateScanButton();
   gameGridElement.innerHTML = '';
   gameOverOverlay.style.display = 'none';
-  document.getElementById('scan-btn').disabled = false;
+  scanButton.disabled = false;
 
-  // Compute cell size to fit in viewport — prevents overflow on hard
+  // Compute cell size to fit in viewport
   const vw = window.innerWidth - 40;
   const vh = window.innerHeight - 300;
   const maxCellSize = Math.floor(Math.min(vw, vh) / Math.max(settings.width, settings.height));
@@ -215,7 +218,7 @@ function initGame() {
   }
 }
 
-document.getElementById('scan-btn').addEventListener('click', scanCellRandom);
+scanButton.addEventListener('click', scanCellRandom);
 document.getElementById('restart-btn').addEventListener('click', initGame);
 document.getElementById('play-again-btn').addEventListener('click', initGame);
 
@@ -227,7 +230,7 @@ function revealCell(e) {
     gameOverMessageElement.innerText = `Mine triggered! You revealed ${revealedCells.length} of ${totalMines} safe cells.`;
     gameResultTitle.innerText = "Game Over!";
     gameOverOverlay.style.display = 'flex';
-    document.getElementById('scan-btn').disabled = true;
+    scanButton.disabled = true;
     return;
   }
   revealCell_COORD(x, y, true);
@@ -259,7 +262,8 @@ function revealCell_COORD(x, y, directReveal) {
     gameOverMessageElement.innerText = `Cleared the grid with ${scansRemaining} scans remaining!`;
     gameOverOverlay.style.display = 'flex';
     scansElement.innerText = `Scans: 0`;
-    document.getElementById('scan-btn').disabled = true;
+    updateScanButton();
+    scanButton.disabled = true;
   }
 }
 
@@ -270,6 +274,7 @@ function scanCell(x, y) {
   }
   scansRemaining--;
   scansElement.innerText = `Scans: ${scansRemaining}`;
+  updateScanButton();
   const cell = gameGridElement.querySelector(`.cell[data-x="${x}"][data-y="${y}"]`);
   if (!cell) return;
   if (!gameGrid[y][x].mine) {
