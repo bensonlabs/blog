@@ -66,6 +66,10 @@ button {
   padding: 10px 20px;
   font-size: 16px;
 }
+button:disabled {
+  background-color: #555;
+  cursor: not-allowed;
+}
 /* Media Query for Smaller Screens */
 @media only screen and (max-width: 480px) {
   #game-grid {
@@ -87,9 +91,9 @@ button {
     <button id="restart-btn">Restart</button>
     <span id="scans-remaining" style="font-size: 18px; margin: 0 10px;"></span>
   </div>
-  <!-- Game Over Overlay -->
+  <!-- Game Result Overlay -->
   <div id="game-over-overlay" role="dialog" aria-live="assertive" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; flex-direction: column;">
-    <h2>Game Over!</h2>
+    <h2 id="game-result-title">Game Over!</h2>
     <p id="game-over-message"></p>
     <button id="play-again-btn">Play Again</button>
   </div>
@@ -106,6 +110,7 @@ const GAME_SETTINGS = {
 // Cached elements
 const gameGridElement = document.getElementById('game-grid');
 const gameOverMessageElement = document.getElementById('game-over-message');
+const gameResultTitle = document.getElementById('game-result-title');
 const gameOverOverlay = document.getElementById('game-over-overlay');
 const scansElement = document.getElementById('scans-remaining');
 
@@ -123,6 +128,7 @@ function initGame() {
   scansElement.innerText = `Scans: ${scansRemaining}`;
   gameGridElement.innerHTML = '';
   gameOverOverlay.style.display = 'none';
+  document.getElementById('scan-btn').disabled = false;
 
   // Generate Grid
   for (let y = 0; y < GAME_SETTINGS.height; y++) {
@@ -182,7 +188,9 @@ function revealCell(e) {
   const y = parseInt(cell.dataset.y);
   if (gameGrid[y][x].mine) {
     gameOverMessageElement.innerText = "Mine triggered! You revealed " + revealedCells.length + " cells.";
+    gameResultTitle.innerText = "Game Over!";
     gameOverOverlay.style.display = 'flex';
+    document.getElementById('scan-btn').disabled = true;
     return;
   }
   revealCell_COORD(x, y, true);
@@ -205,6 +213,17 @@ function revealCell_COORD(x, y, directReveal) {
         }
       }
     }
+  }
+  
+  // Check for win condition
+  const totalCells = GAME_SETTINGS.width * GAME_SETTINGS.height;
+  const mineCount = GAME_SETTINGS.mines;
+  if (revealedCells.length >= totalCells - mineCount) {
+    gameResultTitle.innerText = "🎉 You Win!";
+    gameOverMessageElement.innerText = `You cleared the grid with ${scansRemaining} scans remaining!`;
+    gameOverOverlay.style.display = 'flex';
+    scansElement.innerText = `Scans: 0`;
+    document.getElementById('scan-btn').disabled = true;
   }
 }
 
