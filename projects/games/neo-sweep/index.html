@@ -339,7 +339,9 @@ function revealCell(e) {
   const x = parseInt(cell.dataset.x);
   const y = parseInt(cell.dataset.y);
   if (gameGrid[y][x].mine) {
-    gameOverMessageElement.innerText = `Mine triggered! You revealed ${revealedCells.length} of ${totalMines} safe cells.`;
+    const settings = getSettings();
+    const totalSafeCells = settings.width * settings.height - settings.mines;
+    gameOverMessageElement.innerText = `Mine triggered! You revealed ${revealedCells.length} of ${totalSafeCells} safe cells.`;
     gameResultTitle.innerText = "Game Over!";
     gameOverOverlay.style.display = 'flex';
     scanButton.disabled = true;
@@ -368,8 +370,8 @@ function revealCell_COORD(x, y, directReveal) {
   }
 
   const settings = getSettings();
-  const totalCells = settings.width * settings.height;
-  if (revealedCells.length >= totalCells - settings.mines) {
+  const totalSafeCells = settings.width * settings.height - settings.mines;
+  if (revealedCells.length >= totalSafeCells) {
     gameResultTitle.innerText = "🎉 You Win!";
     gameOverMessageElement.innerText = `Cleared the grid with ${scansRemaining} scans remaining!`;
     gameOverOverlay.style.display = 'flex';
