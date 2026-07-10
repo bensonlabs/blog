@@ -388,6 +388,7 @@
     }
 
     .joypad {
+      margin-left: 20px;
       display: grid;
       gap: 10px;
       justify-items: start;
@@ -502,6 +503,23 @@
     .touch-controls .restart {
       color: var(--gold);
     }
+
+    .touch-controls .restart.small {
+      min-width: 44px;
+      min-height: 44px;
+      padding: 0 10px;
+      font-size: 16px;
+      opacity: 0.5;
+      border-radius: 50%;
+      line-height: 1;
+      margin-top: 12px;
+    }
+
+    .touch-controls .restart.small:active,
+    .touch-controls .restart.small.is-down {
+      opacity: 1;
+    }
+
 
     body.mobile.playing #hud .topbar,
     body.mobile.playing #hud .help {
@@ -618,14 +636,15 @@
     </div>
   </div>
   <div class="touch-controls" id="touch-controls" aria-label="Touch controls">
-    <div class="joypad">
-      <div class="stick-track" id="stick-track" role="application" aria-label="Virtual joystick">
-        <div class="stick-thumb" id="stick-thumb"></div>
+      <div class="joypad">
+        <div class="stick-track" id="stick-track" role="application" aria-label="Virtual joystick">
+          <div class="stick-thumb" id="stick-thumb"></div>
+        </div>
       </div>
-      <button type="button" class="pulse" data-action="pulse">Pulse</button>
-    </div>
-    <div class="actions">
-      <button type="button" class="restart" data-action="restart">Restart</button>
+      <div class="actions">
+        <button type="button" class="pulse" data-action="pulse">Pulse</button>
+        <button type="button" class="restart small" data-action="restart">↺</button>
+      </div>
     </div>
   </div>
   <div id="flash"></div>
