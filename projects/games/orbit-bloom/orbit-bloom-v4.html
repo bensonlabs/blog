@@ -502,37 +502,17 @@
     }
 
     .touch-controls .restart {
+      min-width: 112px;
       color: var(--gold);
       text-shadow: 0 0 12px rgba(255, 215, 107, 0.6), 0 0 28px rgba(255, 215, 107, 0.3);
-      min-width: 92px;
-      font-size: 14px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      font-weight: 700;
     }
 
     .touch-controls .restart:active,
     .touch-controls .restart.is-down {
-      color: var(--gold);
       border-color: rgba(255, 215, 107, 0.65);
       text-shadow: 0 0 18px rgba(255, 215, 107, 0.9), 0 0 40px rgba(255, 215, 107, 0.5);
     }
 
-    .touch-controls .restart.small {
-      min-width: 44px;
-      min-height: 44px;
-      padding: 0 10px;
-      font-size: 16px;
-      opacity: 0.5;
-      border-radius: 50%;
-      line-height: 1;
-      margin-top: 12px;
-    }
-
-    .touch-controls .restart.small:active,
-    .touch-controls .restart.small.is-down {
-      opacity: 1;
-    }
 
 
     body.mobile.playing #hud .topbar,
@@ -655,7 +635,7 @@
           <div class="stick-thumb" id="stick-thumb"></div>
         </div>
       </div>
-      <button type="button" class="restart" data-action="restart" aria-label="Restart" style="min-width: 92px; padding: 0 16px; font-size: 14px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700; text-align: center;">Restart</button>
+      <button type="button" class="restart" data-action="restart" aria-label="Restart">Restart</button>
       <button type="button" class="pulse" data-action="pulse">Pulse</button>
   </div>
   </div>
