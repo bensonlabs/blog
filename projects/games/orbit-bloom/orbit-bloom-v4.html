@@ -529,6 +529,14 @@
       place-items: start center;
     }
 
+    body.mobile.playing .touch-controls .restart {
+      display: none;
+    }
+
+    body.mobile:not(.playing) .touch-controls .restart {
+      display: block;
+    }
+
     @media (prefers-reduced-motion: reduce) {
       *,
       *::before,
