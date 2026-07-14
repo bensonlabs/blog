@@ -8,17 +8,16 @@ Built with [Jekyll](https://jekyllrb.com) and hosted on [GitHub Pages](https://p
 
 ## Copilot Prompt — Sync New Content
 
-After adding a new project or game to the repo, paste this into GitHub Copilot to automatically add cards and update the docs:
+After adding a new project or game to the repo, paste this into GitHub Copilot to automatically keep the docs and registry in sync:
 
 ```
 I've added new content to this repo. Check the `projects/` folder for any
-projects or games that aren't already listed as cards in
-`projects/index.html` (for standalone projects/tools) or
-`projects/games/index.html` (for games). Read each new item's README or
-index.html to get a good title, emoji, and description, then add the
-missing cards. Also update the Site Sections and Project Structure in
-README.md to reflect everything that now exists. When done, commit the
-changes and open a pull request.
+projects or games that aren't already reflected in the site docs.
+For games, read each new game's `index.html`, add a `bl-game-meta` block
+if it is missing, then run `.github/scripts/build_games_registry.py` so
+`projects/games/index.html` stays in sync. Also update the Site Sections
+and Project Structure in README.md to reflect everything that now exists.
+When done, commit the changes and open a pull request.
 ```
 
 ---
@@ -45,10 +44,11 @@ Interactive browser games built with vanilla HTML/CSS/JavaScript. Extensible hub
 - **Brick Break** — Classic brick-breaker with 3 difficulty levels, angle-based paddle physics, level progression, and high-score tracking
 - **Orbit Bloom** — Harvest glowing motes as your shield and survive an ever-faster comet swarm
 - **The Last Signal** — Text-based sci-fi adventure with three acts and two endings
+- **LumenTrace** — Neon sliding-block puzzle where you trace charged paths through the grid without getting trapped
 - **Ethereal Wardens** — Minimalist tower defense: position wardens to repel enemy waves
 - **Neon Drift** — Auto-accelerating ship survival: drift through formations and graze obstacles to score
 
-Adding a new game: Add one entry to the `GAMES` array in `/projects/games/index.html` and drop the game folder in `/projects/games/`.
+Adding a new game: Add a `<!-- bl-game-meta ... -->` block in the game's own `index.html` and let `/.github/scripts/build_games_registry.py` regenerate the `GAMES` array in `/projects/games/index.html`.
 
 ### **Focus Lab** (`/projects/focus-lab/`)
 Premium productivity dashboard with Pomodoro timer, focus tasks, synthesized ambient sounds, and weekly metrics.
@@ -234,6 +234,7 @@ blog/
 │   │   ├── breakout/
 │   │   ├── orbit-bloom/
 │   │   ├── last-signal/
+│   │   ├── lumen-trace/
 │   │   ├── ethereal-wardens/
 │   │   └── neon-drift/
 │   ├── ai-trending/     # AI/ML trending repositories dashboard
