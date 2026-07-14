@@ -179,7 +179,7 @@ fn restart_button_rect(sw: f32, sh: f32, offset_y: f32, grid_size: f32) -> (f32,
     let x = sw / 2.0 - w / 2.0;
     let bottom_space = sh - (offset_y + grid_size);
     let info_y = offset_y + grid_size + bottom_space / 2.0;
-    let y = (info_y + 12.0).min(sh - h - 8.0);
+    let y = (info_y + 34.0).min(sh - h - 8.0);
     (x, y, w, h)
 }
 
@@ -196,13 +196,21 @@ fn restart_confirm_buttons(sw: f32, sh: f32) -> ((f32, f32, f32, f32), (f32, f32
     )
 }
 
-fn has_available_move(grid: &[[u8; 8]; 8], player_row: usize, player_col: usize) -> bool {
+fn has_available_move(
+    grid: &[[u8; 8]; 8],
+    player_row: usize,
+    player_col: usize,
+    cross_charge_available: bool,
+) -> bool {
     let dirs = [(-1, 0), (1, 0), (0, -1), (0, 1)];
     for &(dy, dx) in &dirs {
         let nr = player_row as i32 + dy;
         let nc = player_col as i32 + dx;
-        if nr >= 0 && nr < 8 && nc >= 0 && nc < 8 && grid[nr as usize][nc as usize] == 0 {
-            return true;
+        if nr >= 0 && nr < 8 && nc >= 0 && nc < 8 {
+            let cell = grid[nr as usize][nc as usize];
+            if cell == 0 || (cross_charge_available && cell == 2) {
+                return true;
+            }
         }
     }
     false
@@ -234,10 +242,12 @@ async fn main() {
     
     // Animation/Movement variables
     let mut slide_dir: Option<(i32, i32)> = None;
+    let mut crossing_active = false;
+    let mut cross_charge_available = true;
     let mut step_timer = 0.0;
     let step_duration = 0.04; // Seconds per step
     let mut drag_start: Option<Vec2> = None;
-    let drag_threshold = 14.0;
+    let drag_threshold = 10.0;
     let mut show_restart_confirm = false;
     
     // Particles
@@ -279,6 +289,8 @@ async fn main() {
                 if is_key_pressed(KeyCode::Space) || is_key_pressed(KeyCode::Enter) || is_mouse_button_pressed(MouseButton::Left) {
                     state = GameState::Playing;
                     init_level(current_level_idx, &mut grid, &mut player_row, &mut player_col);
+                    crossing_active = false;
+                    cross_charge_available = true;
                     show_restart_confirm = false;
                 }
             }
@@ -287,6 +299,8 @@ async fn main() {
                 if is_key_pressed(KeyCode::R) {
                     init_level(current_level_idx, &mut grid, &mut player_row, &mut player_col);
                     slide_dir = None;
+                    crossing_active = false;
+                    cross_charge_available = true;
                     drag_start = None;
                     show_restart_confirm = false;
                 }
@@ -308,6 +322,8 @@ async fn main() {
                         ) {
                             init_level(current_level_idx, &mut grid, &mut player_row, &mut player_col);
                             slide_dir = None;
+                            crossing_active = false;
+                            cross_charge_available = true;
                             drag_start = None;
                             show_restart_confirm = false;
                         } else if point_in_rect(
@@ -358,13 +374,23 @@ async fn main() {
                                         max_lifetime: 0.5,
                                     });
                                 }
+                            } else if grid[nr][nc] == 2 && (crossing_active || cross_charge_available) {
+                                // Consume one cross ability the first time we step onto charged trail.
+                                if !crossing_active {
+                                    crossing_active = true;
+                                    cross_charge_available = false;
+                                }
+                                player_row = nr;
+                                player_col = nc;
                             } else {
                                 // Hit a wall or trail
                                 slide_dir = None;
+                                crossing_active = false;
                             }
                         } else {
                             // Hit grid boundary
                             slide_dir = None;
+                            crossing_active = false;
                         }
                         
                         // Check states after step finishes
@@ -385,7 +411,12 @@ async fn main() {
                                 } else {
                                     state = GameState::GameComplete;
                                 }
-                            } else if !has_available_move(&grid, player_row, player_col) {
+                            } else if !has_available_move(
+                                &grid,
+                                player_row,
+                                player_col,
+                                cross_charge_available,
+                            ) {
                                 state = GameState::Stuck;
                             }
                         }
@@ -445,11 +476,28 @@ async fn main() {
                         if next_row >= 0 && next_row < 8 && next_col >= 0 && next_col < 8 {
                             if grid[next_row as usize][next_col as usize] == 0 {
                                 slide_dir = Some((dx, dy));
+                                crossing_active = false;
                                 step_timer = step_duration; // Trigger first step immediately
-                            } else if !has_available_move(&grid, player_row, player_col) {
+                            } else if grid[next_row as usize][next_col as usize] == 2
+                                && cross_charge_available
+                            {
+                                slide_dir = Some((dx, dy));
+                                crossing_active = false;
+                                step_timer = step_duration; // Trigger first step immediately
+                            } else if !has_available_move(
+                                &grid,
+                                player_row,
+                                player_col,
+                                cross_charge_available,
+                            ) {
                                 state = GameState::Stuck;
                             }
-                        } else if !has_available_move(&grid, player_row, player_col) {
+                        } else if !has_available_move(
+                            &grid,
+                            player_row,
+                            player_col,
+                            cross_charge_available,
+                        ) {
                             state = GameState::Stuck;
                         }
                     }
@@ -460,6 +508,8 @@ async fn main() {
                     current_level_idx += 1;
                     state = GameState::Playing;
                     init_level(current_level_idx, &mut grid, &mut player_row, &mut player_col);
+                    crossing_active = false;
+                    cross_charge_available = true;
                     drag_start = None;
                     show_restart_confirm = false;
                 }
@@ -469,6 +519,8 @@ async fn main() {
                     state = GameState::Playing;
                     init_level(current_level_idx, &mut grid, &mut player_row, &mut player_col);
                     slide_dir = None;
+                    crossing_active = false;
+                    cross_charge_available = true;
                     drag_start = None;
                     show_restart_confirm = false;
                 }
@@ -479,6 +531,8 @@ async fn main() {
                     state = GameState::Playing;
                     init_level(current_level_idx, &mut grid, &mut player_row, &mut player_col);
                     slide_dir = None;
+                    crossing_active = false;
+                    cross_charge_available = true;
                     drag_start = None;
                     show_restart_confirm = false;
                 }
@@ -703,6 +757,20 @@ async fn main() {
                         ..Default::default()
                     },
                 );
+
+                let rules_3 = "You can cross charged trail once per level.";
+                let r3_center = get_text_center(rules_3, font_ref, 18, 1.0, 0.0);
+                draw_text_ex(
+                    rules_3,
+                    sw / 2.0 - r3_center.x,
+                    sh / 2.0 + 120.0,
+                    TextParams {
+                        font: font_ref,
+                        font_size: 18,
+                        color: Color::from_rgba(150, 210, 175, 255),
+                        ..Default::default()
+                    },
+                );
             }
             GameState::Playing => {
                 let info = "Arrow/WASD or Drag to Slide | R or Restart... button";
@@ -715,6 +783,27 @@ async fn main() {
                         font: font_ref,
                         font_size: 18,
                         color: Color::from_rgba(150, 150, 180, 255),
+                        ..Default::default()
+                    },
+                );
+                let cross_text = if cross_charge_available {
+                    "Trail Cross: READY (1 use)"
+                } else {
+                    "Trail Cross: USED"
+                };
+                let cross_center = get_text_center(cross_text, font_ref, 18, 1.0, 0.0);
+                draw_text_ex(
+                    cross_text,
+                    sw / 2.0 - cross_center.x,
+                    sh - (sh - (offset_y + grid_size)) / 2.0 + 22.0,
+                    TextParams {
+                        font: font_ref,
+                        font_size: 18,
+                        color: if cross_charge_available {
+                            Color::from_rgba(140, 220, 180, 255)
+                        } else {
+                            Color::from_rgba(160, 120, 120, 255)
+                        },
                         ..Default::default()
                     },
                 );
