@@ -98,6 +98,18 @@ fn restart_confirm_buttons(sw: f32, sh: f32) -> ((f32, f32, f32, f32), (f32, f32
     )
 }
 
+fn has_available_move(grid: &[[u8; 8]; 8], player_row: usize, player_col: usize) -> bool {
+    let dirs = [(-1, 0), (1, 0), (0, -1), (0, 1)];
+    for &(dy, dx) in &dirs {
+        let nr = player_row as i32 + dy;
+        let nc = player_col as i32 + dx;
+        if nr >= 0 && nr < 8 && nc >= 0 && nc < 8 && grid[nr as usize][nc as usize] == 0 {
+            return true;
+        }
+    }
+    false
+}
+
 fn window_conf() -> Conf {
     Conf {
         window_title: "LumenTrace".to_owned(),
@@ -275,23 +287,8 @@ async fn main() {
                                 } else {
                                     state = GameState::GameComplete;
                                 }
-                            } else {
-                                // Check if stuck
-                                let mut can_move = false;
-                                let dirs = [(-1, 0), (1, 0), (0, -1), (0, 1)];
-                                for &(dy, dx) in &dirs {
-                                    let nr = player_row as i32 + dy;
-                                    let nc = player_col as i32 + dx;
-                                    if nr >= 0 && nr < 8 && nc >= 0 && nc < 8 {
-                                        if grid[nr as usize][nc as usize] == 0 {
-                                            can_move = true;
-                                            break;
-                                        }
-                                    }
-                                }
-                                if !can_move {
-                                    state = GameState::Stuck;
-                                }
+                            } else if !has_available_move(&grid, player_row, player_col) {
+                                state = GameState::Stuck;
                             }
                         }
                     }
@@ -351,7 +348,11 @@ async fn main() {
                             if grid[next_row as usize][next_col as usize] == 0 {
                                 slide_dir = Some((dx, dy));
                                 step_timer = step_duration; // Trigger first step immediately
+                            } else if !has_available_move(&grid, player_row, player_col) {
+                                state = GameState::Stuck;
                             }
+                        } else if !has_available_move(&grid, player_row, player_col) {
+                            state = GameState::Stuck;
                         }
                     }
                 }
