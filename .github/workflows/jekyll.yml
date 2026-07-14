@@ -23,15 +23,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@1.97.0
-        with:
-          targets: wasm32-unknown-unknown
-
-      - name: Build LumenTrace WASM
-        working-directory: ./projects/games/lumen-trace
-        run: cargo build --target wasm32-unknown-unknown --release
-
       - name: Setup Pages
         uses: actions/configure-pages@v6
 
