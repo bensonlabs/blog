@@ -71,6 +71,37 @@ struct Particle {
     max_lifetime: f32,
 }
 
+fn point_in_rect(px: f32, py: f32, x: f32, y: f32, w: f32, h: f32) -> bool {
+    px >= x && px <= x + w && py >= y && py <= y + h
+}
+
+fn restart_button_rect(sw: f32, sh: f32, offset_y: f32, grid_size: f32) -> (f32, f32, f32, f32) {
+    let w = 164.0;
+    let h = 36.0;
+    let x = sw / 2.0 - w / 2.0;
+    let top_space = offset_y;
+    let bottom_space = sh - (offset_y + grid_size);
+    let y = if bottom_space >= top_space {
+        offset_y + grid_size + ((bottom_space - h) / 2.0).max(8.0)
+    } else {
+        ((top_space - h) / 2.0).max(8.0)
+    };
+    (x, y, w, h)
+}
+
+fn restart_confirm_buttons(sw: f32, sh: f32) -> ((f32, f32, f32, f32), (f32, f32, f32, f32)) {
+    let button_w = 120.0;
+    let button_h = 42.0;
+    let gap = 16.0;
+    let total_w = button_w * 2.0 + gap;
+    let left_x = sw / 2.0 - total_w / 2.0;
+    let y = sh / 2.0 + 28.0;
+    (
+        (left_x, y, button_w, button_h),
+        (left_x + button_w + gap, y, button_w, button_h),
+    )
+}
+
 fn window_conf() -> Conf {
     Conf {
         window_title: "LumenTrace".to_owned(),
@@ -100,7 +131,8 @@ async fn main() {
     let mut step_timer = 0.0;
     let step_duration = 0.04; // Seconds per step
     let mut drag_start: Option<Vec2> = None;
-    let drag_threshold = 24.0;
+    let drag_threshold = 14.0;
+    let mut show_restart_confirm = false;
     
     // Particles
     let mut particles: Vec<Particle> = Vec::new();
@@ -118,6 +150,14 @@ async fn main() {
     
     loop {
         let dt = get_frame_time();
+        let sw = screen_width();
+        let sh = screen_height();
+        let grid_size = f32::min(sw * 0.7, sh * 0.7);
+        let cell_size = grid_size / 8.0;
+        let offset_x = (sw - grid_size) / 2.0;
+        let offset_y = (sh - grid_size) / 2.0;
+        let (restart_btn_x, restart_btn_y, restart_btn_w, restart_btn_h) =
+            restart_button_rect(sw, sh, offset_y, grid_size);
         
         // Update particles
         particles.retain_mut(|p| {
@@ -133,6 +173,7 @@ async fn main() {
                 if is_key_pressed(KeyCode::Space) || is_key_pressed(KeyCode::Enter) || is_mouse_button_pressed(MouseButton::Left) {
                     state = GameState::Playing;
                     init_level(current_level_idx, &mut grid, &mut player_row, &mut player_col);
+                    show_restart_confirm = false;
                 }
             }
             GameState::Playing => {
@@ -141,10 +182,40 @@ async fn main() {
                     init_level(current_level_idx, &mut grid, &mut player_row, &mut player_col);
                     slide_dir = None;
                     drag_start = None;
+                    show_restart_confirm = false;
                 }
-                
-                // Sliding physics
-                if let Some((dx, dy)) = slide_dir {
+
+                if show_restart_confirm {
+                    if is_key_pressed(KeyCode::Escape) {
+                        show_restart_confirm = false;
+                    }
+                    if is_mouse_button_pressed(MouseButton::Left) {
+                        let (mx, my) = mouse_position();
+                        let (confirm_btn, cancel_btn) = restart_confirm_buttons(sw, sh);
+                        if point_in_rect(
+                            mx,
+                            my,
+                            confirm_btn.0,
+                            confirm_btn.1,
+                            confirm_btn.2,
+                            confirm_btn.3,
+                        ) {
+                            init_level(current_level_idx, &mut grid, &mut player_row, &mut player_col);
+                            slide_dir = None;
+                            drag_start = None;
+                            show_restart_confirm = false;
+                        } else if point_in_rect(
+                            mx,
+                            my,
+                            cancel_btn.0,
+                            cancel_btn.1,
+                            cancel_btn.2,
+                            cancel_btn.3,
+                        ) {
+                            show_restart_confirm = false;
+                        }
+                    }
+                } else if let Some((dx, dy)) = slide_dir {
                     step_timer += dt;
                     if step_timer >= step_duration {
                         step_timer = 0.0;
@@ -243,20 +314,20 @@ async fn main() {
 
                     if is_mouse_button_pressed(MouseButton::Left) {
                         let (mx, my) = mouse_position();
-                        let sw = screen_width();
-                        let sh = screen_height();
-                        let grid_size = f32::min(sw * 0.7, sh * 0.7);
-                        let cell_size = grid_size / 8.0;
-                        let offset_x = (sw - grid_size) / 2.0;
-                        let offset_y = (sh - grid_size) / 2.0;
-                        let tile_x = offset_x + player_col as f32 * cell_size;
-                        let tile_y = offset_y + player_row as f32 * cell_size;
-                        if mx >= tile_x
-                            && mx <= tile_x + cell_size
-                            && my >= tile_y
-                            && my <= tile_y + cell_size
+                        if point_in_rect(mx, my, restart_btn_x, restart_btn_y, restart_btn_w, restart_btn_h)
                         {
-                            drag_start = Some(vec2(mx, my));
+                            show_restart_confirm = true;
+                            drag_start = None;
+                        } else {
+                            let tile_x = offset_x + player_col as f32 * cell_size;
+                            let tile_y = offset_y + player_row as f32 * cell_size;
+                            if mx >= tile_x
+                                && mx <= tile_x + cell_size
+                                && my >= tile_y
+                                && my <= tile_y + cell_size
+                            {
+                                drag_start = Some(vec2(mx, my));
+                            }
                         }
                     }
 
@@ -264,7 +335,7 @@ async fn main() {
                         if is_mouse_button_down(MouseButton::Left) {
                             let (mx, my) = mouse_position();
                             let drag = vec2(mx, my) - start;
-                            if drag.length_squared() >= drag_threshold * drag_threshold {
+                            if drag.x.abs().max(drag.y.abs()) >= drag_threshold {
                                 if drag.x.abs() > drag.y.abs() {
                                     intended_dir = Some((if drag.x > 0.0 { 1 } else { -1 }, 0));
                                 } else {
@@ -295,6 +366,7 @@ async fn main() {
                     state = GameState::Playing;
                     init_level(current_level_idx, &mut grid, &mut player_row, &mut player_col);
                     drag_start = None;
+                    show_restart_confirm = false;
                 }
             }
             GameState::Stuck => {
@@ -303,6 +375,7 @@ async fn main() {
                     init_level(current_level_idx, &mut grid, &mut player_row, &mut player_col);
                     slide_dir = None;
                     drag_start = None;
+                    show_restart_confirm = false;
                 }
             }
             GameState::GameComplete => {
@@ -312,6 +385,7 @@ async fn main() {
                     init_level(current_level_idx, &mut grid, &mut player_row, &mut player_col);
                     slide_dir = None;
                     drag_start = None;
+                    show_restart_confirm = false;
                 }
             }
         }
@@ -536,7 +610,7 @@ async fn main() {
                 );
             }
             GameState::Playing => {
-                let info = "Arrow/WASD or Drag to Slide | Press R to Restart";
+                let info = "Arrow/WASD or Drag to Slide | R or Restart... button";
                 let info_center = get_text_center(info, font_ref, 18, 1.0, 0.0);
                 draw_text_ex(
                     info,
@@ -549,6 +623,139 @@ async fn main() {
                         ..Default::default()
                     },
                 );
+
+                draw_rectangle(
+                    restart_btn_x,
+                    restart_btn_y,
+                    restart_btn_w,
+                    restart_btn_h,
+                    Color::from_rgba(45, 45, 58, 220),
+                );
+                draw_rectangle_lines(
+                    restart_btn_x,
+                    restart_btn_y,
+                    restart_btn_w,
+                    restart_btn_h,
+                    2.0,
+                    Color::from_rgba(130, 130, 170, 220),
+                );
+                let restart_label = "Restart...";
+                let restart_center = get_text_center(restart_label, font_ref, 22, 1.0, 0.0);
+                draw_text_ex(
+                    restart_label,
+                    restart_btn_x + restart_btn_w / 2.0 - restart_center.x,
+                    restart_btn_y + restart_btn_h / 2.0 + restart_center.y / 2.0,
+                    TextParams {
+                        font: font_ref,
+                        font_size: 22,
+                        color: Color::from_rgba(230, 230, 255, 255),
+                        ..Default::default()
+                    },
+                );
+
+                if show_restart_confirm {
+                    draw_rectangle(0.0, 0.0, sw, sh, Color::from_rgba(8, 8, 16, 190));
+                    let panel_w = 430.0;
+                    let panel_h = 190.0;
+                    let panel_x = sw / 2.0 - panel_w / 2.0;
+                    let panel_y = sh / 2.0 - panel_h / 2.0;
+                    draw_rectangle(panel_x, panel_y, panel_w, panel_h, Color::from_rgba(30, 30, 45, 245));
+                    draw_rectangle_lines(
+                        panel_x,
+                        panel_y,
+                        panel_w,
+                        panel_h,
+                        2.0,
+                        Color::from_rgba(120, 120, 190, 220),
+                    );
+
+                    let confirm_msg = "Restart this level?";
+                    let msg_center = get_text_center(confirm_msg, font_ref, 34, 1.0, 0.0);
+                    draw_text_ex(
+                        confirm_msg,
+                        sw / 2.0 - msg_center.x,
+                        panel_y + 70.0,
+                        TextParams {
+                            font: font_ref,
+                            font_size: 34,
+                            color: Color::from_rgba(240, 240, 255, 255),
+                            ..Default::default()
+                        },
+                    );
+
+                    let detail = "Your current trail progress will be reset.";
+                    let detail_center = get_text_center(detail, font_ref, 18, 1.0, 0.0);
+                    draw_text_ex(
+                        detail,
+                        sw / 2.0 - detail_center.x,
+                        panel_y + 102.0,
+                        TextParams {
+                            font: font_ref,
+                            font_size: 18,
+                            color: Color::from_rgba(180, 180, 210, 255),
+                            ..Default::default()
+                        },
+                    );
+
+                    let (confirm_btn, cancel_btn) = restart_confirm_buttons(sw, sh);
+                    draw_rectangle(
+                        confirm_btn.0,
+                        confirm_btn.1,
+                        confirm_btn.2,
+                        confirm_btn.3,
+                        Color::from_rgba(100, 40, 40, 240),
+                    );
+                    draw_rectangle_lines(
+                        confirm_btn.0,
+                        confirm_btn.1,
+                        confirm_btn.2,
+                        confirm_btn.3,
+                        2.0,
+                        Color::from_rgba(255, 120, 120, 220),
+                    );
+                    let confirm_label = "Restart";
+                    let confirm_center = get_text_center(confirm_label, font_ref, 24, 1.0, 0.0);
+                    draw_text_ex(
+                        confirm_label,
+                        confirm_btn.0 + confirm_btn.2 / 2.0 - confirm_center.x,
+                        confirm_btn.1 + confirm_btn.3 / 2.0 + confirm_center.y / 2.0,
+                        TextParams {
+                            font: font_ref,
+                            font_size: 24,
+                            color: Color::from_rgba(255, 240, 240, 255),
+                            ..Default::default()
+                        },
+                    );
+
+                    draw_rectangle(
+                        cancel_btn.0,
+                        cancel_btn.1,
+                        cancel_btn.2,
+                        cancel_btn.3,
+                        Color::from_rgba(45, 45, 58, 240),
+                    );
+                    draw_rectangle_lines(
+                        cancel_btn.0,
+                        cancel_btn.1,
+                        cancel_btn.2,
+                        cancel_btn.3,
+                        2.0,
+                        Color::from_rgba(130, 130, 170, 220),
+                    );
+                    let cancel_label = "Cancel";
+                    let cancel_center = get_text_center(cancel_label, font_ref, 24, 1.0, 0.0);
+                    draw_text_ex(
+                        cancel_label,
+                        cancel_btn.0 + cancel_btn.2 / 2.0 - cancel_center.x,
+                        cancel_btn.1 + cancel_btn.3 / 2.0 + cancel_center.y / 2.0,
+                        TextParams {
+                            font: font_ref,
+                            font_size: 24,
+                            color: Color::from_rgba(230, 230, 255, 255),
+                            ..Default::default()
+                        },
+                    );
+                }
             }
             GameState::LevelClear => {
                 draw_rectangle(0.0, 0.0, sw, sh, Color::from_rgba(10, 20, 15, 200));
