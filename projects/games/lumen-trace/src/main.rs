@@ -99,6 +99,8 @@ async fn main() {
     let mut slide_dir: Option<(i32, i32)> = None;
     let mut step_timer = 0.0;
     let step_duration = 0.04; // Seconds per step
+    let mut drag_start: Option<Vec2> = None;
+    let drag_threshold = 24.0;
     
     // Particles
     let mut particles: Vec<Particle> = Vec::new();
@@ -138,6 +140,7 @@ async fn main() {
                 if is_key_pressed(KeyCode::R) {
                     init_level(current_level_idx, &mut grid, &mut player_row, &mut player_col);
                     slide_dir = None;
+                    drag_start = None;
                 }
                 
                 // Sliding physics
@@ -226,20 +229,55 @@ async fn main() {
                         }
                     }
                 } else {
-                    // Check for keyboard input to start slide
-                    let mut dx = 0;
-                    let mut dy = 0;
+                    // Check for keyboard/touch drag input to start slide
+                    let mut intended_dir: Option<(i32, i32)> = None;
                     if is_key_pressed(KeyCode::Left) || is_key_pressed(KeyCode::A) {
-                        dx = -1;
+                        intended_dir = Some((-1, 0));
                     } else if is_key_pressed(KeyCode::Right) || is_key_pressed(KeyCode::D) {
-                        dx = 1;
+                        intended_dir = Some((1, 0));
                     } else if is_key_pressed(KeyCode::Up) || is_key_pressed(KeyCode::W) {
-                        dy = -1;
+                        intended_dir = Some((0, -1));
                     } else if is_key_pressed(KeyCode::Down) || is_key_pressed(KeyCode::S) {
-                        dy = 1;
+                        intended_dir = Some((0, 1));
+                    }
+
+                    if is_mouse_button_pressed(MouseButton::Left) {
+                        let (mx, my) = mouse_position();
+                        let sw = screen_width();
+                        let sh = screen_height();
+                        let grid_size = f32::min(sw * 0.7, sh * 0.7);
+                        let cell_size = grid_size / 8.0;
+                        let offset_x = (sw - grid_size) / 2.0;
+                        let offset_y = (sh - grid_size) / 2.0;
+                        let tile_x = offset_x + player_col as f32 * cell_size;
+                        let tile_y = offset_y + player_row as f32 * cell_size;
+                        if mx >= tile_x
+                            && mx <= tile_x + cell_size
+                            && my >= tile_y
+                            && my <= tile_y + cell_size
+                        {
+                            drag_start = Some(vec2(mx, my));
+                        }
+                    }
+
+                    if let Some(start) = drag_start {
+                        if is_mouse_button_down(MouseButton::Left) {
+                            let (mx, my) = mouse_position();
+                            let drag = vec2(mx, my) - start;
+                            if drag.length_squared() >= drag_threshold * drag_threshold {
+                                if drag.x.abs() > drag.y.abs() {
+                                    intended_dir = Some((if drag.x > 0.0 { 1 } else { -1 }, 0));
+                                } else {
+                                    intended_dir = Some((0, if drag.y > 0.0 { 1 } else { -1 }));
+                                }
+                                drag_start = None;
+                            }
+                        } else {
+                            drag_start = None;
+                        }
                     }
                     
-                    if dx != 0 || dy != 0 {
+                    if let Some((dx, dy)) = intended_dir {
                         let next_row = player_row as i32 + dy;
                         let next_col = player_col as i32 + dx;
                         if next_row >= 0 && next_row < 8 && next_col >= 0 && next_col < 8 {
@@ -256,6 +294,7 @@ async fn main() {
                     current_level_idx += 1;
                     state = GameState::Playing;
                     init_level(current_level_idx, &mut grid, &mut player_row, &mut player_col);
+                    drag_start = None;
                 }
             }
             GameState::Stuck => {
@@ -263,6 +302,7 @@ async fn main() {
                     state = GameState::Playing;
                     init_level(current_level_idx, &mut grid, &mut player_row, &mut player_col);
                     slide_dir = None;
+                    drag_start = None;
                 }
             }
             GameState::GameComplete => {
@@ -271,6 +311,7 @@ async fn main() {
                     state = GameState::Playing;
                     init_level(current_level_idx, &mut grid, &mut player_row, &mut player_col);
                     slide_dir = None;
+                    drag_start = None;
                 }
             }
         }
@@ -495,7 +536,7 @@ async fn main() {
                 );
             }
             GameState::Playing => {
-                let info = "Use Arrow Keys or WASD to Slide | Press R to Restart";
+                let info = "Arrow/WASD or Drag to Slide | Press R to Restart";
                 let info_center = get_text_center(info, font_ref, 18, 1.0, 0.0);
                 draw_text_ex(
                     info,
