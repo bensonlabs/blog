@@ -79,13 +79,9 @@ fn restart_button_rect(sw: f32, sh: f32, offset_y: f32, grid_size: f32) -> (f32,
     let w = 164.0;
     let h = 36.0;
     let x = sw / 2.0 - w / 2.0;
-    let top_space = offset_y;
     let bottom_space = sh - (offset_y + grid_size);
-    let y = if bottom_space >= top_space {
-        offset_y + grid_size + ((bottom_space - h) / 2.0).max(8.0)
-    } else {
-        ((top_space - h) / 2.0).max(8.0)
-    };
+    let info_y = offset_y + grid_size + bottom_space / 2.0;
+    let y = (info_y + 12.0).min(sh - h - 8.0);
     (x, y, w, h)
 }
 
