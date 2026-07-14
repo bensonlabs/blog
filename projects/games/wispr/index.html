@@ -1,0 +1,791 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>WISPR · Inertia Parkour</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#08060f;color:#e6e0ff;
+    font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Inter,sans-serif;}
+  #hud{position:fixed;inset:0;pointer-events:none;font-size:13px;letter-spacing:.5px;text-transform:uppercase;}
+  #titlebar{position:absolute;top:14px;left:18px;font-weight:700;font-size:14px;opacity:.85;}
+  #objective{position:absolute;top:40px;left:18px;opacity:.55;font-size:11px;}
+  #stats{position:absolute;top:14px;right:18px;text-align:right;font-size:11px;line-height:1.55;opacity:.8;}
+  #hint{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);text-align:center;line-height:1.7;
+    padding:8px 18px;border:1px solid rgba(230,224,255,.12);border-radius:999px;background:rgba(8,6,15,.55);
+    font-size:11px;max-width:80vw;}
+  #hint b{color:#a4dcff;}
+  #hint .ak{color:#ffd479;}
+  #center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;
+    pointer-events:none;transition:opacity .5s;}
+  #center h1{font-size:42px;margin:0 0 4px;letter-spacing:8px;font-weight:300;}
+  #center h1 span{color:#7fe5ff;}
+  #center p{opacity:.7;margin:0 0 26px;font-size:12px;letter-spacing:2.5px;}
+  #center .controls{font-size:12px;line-height:1.9;color:#c8c0ee;background:rgba(20,16,38,.55);
+    border:1px solid rgba(160,140,255,.18);padding:14px 22px;border-radius:10px;display:inline-block;}
+  #center .controls b.k{display:inline-block;min-width:84px;color:#a4dcff;font-weight:500;}
+  #center .ak{color:#ffd479;}
+  #startBtn{pointer-events:auto;margin-top:24px;background:linear-gradient(180deg,#33286a,#1d1640);
+    color:#e6e0ff;border:1px solid rgba(180,160,255,.35);padding:11px 30px;border-radius:999px;
+    font-size:13px;letter-spacing:3px;cursor:pointer;transition:transform .15s;}
+  #startBtn:hover{transform:scale(1.04);border-color:rgba(220,200,255,.6);}
+  #result{font-size:18px;letter-spacing:3px;margin-top:14px;opacity:0;transition:opacity .5s;}
+  #cpBanner{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    font-size:26px;letter-spacing:6px;color:#7fe5ff;opacity:0;transition:opacity .25s;pointer-events:none;}
+  #akIndicator{position:absolute;top:42px;left:50%;transform:translateX(-50%);font-size:11px;
+    letter-spacing:3px;opacity:0;transition:opacity .2s;color:#ffd479;}
+  #staminaWrap{position:absolute;bottom:60px;left:50%;transform:translateX(-50%);width:240px;
+    height:6px;border:1px solid rgba(180,160,255,.25);border-radius:999px;background:rgba(8,6,15,.6);
+    overflow:hidden;opacity:0;transition:opacity .25s;}
+  #staminaBar{height:100%;width:100%;background:linear-gradient(90deg,#ffd479,#7fe5ff);
+    transform-origin:left center;transition:transform .05s linear;}
+  #staminaLabel{position:absolute;bottom:70px;left:50%;transform:translateX(-50%);font-size:10px;
+    letter-spacing:3px;color:#ffd479;opacity:0;transition:opacity .25s;}
+  canvas{display:block;touch-action:none}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="akIndicator">◆ INERTIA ANCHORED ◆</div>
+<div id="staminaLabel">INERTIA</div>
+<div id="staminaWrap"><div id="staminaBar"></div></div>
+<div id="hud">
+  <div id="titlebar">WISPR · INERTIA PARKOUR</div>
+  <div id="objective">anchor midair · slingshot across the void</div>
+  <div id="stats">time 0.0<br>checkpoints 0 / 8<br>speed 0.0<br>falls 0</div>
+  <div id="hint"><b>WASD / Arrows</b>: move &nbsp;·&nbsp; <b>Space</b>: jump &nbsp;·&nbsp; <span class="ak"><b>SHIFT</b>: ANCHOR & slingshot</span> &nbsp;·&nbsp; <b>Drag</b>: look &nbsp;·&nbsp; <b>V</b>: POV &nbsp;·&nbsp; <b>M</b>: mute</div>
+  <div id="cpBanner">CHECKPOINT</div>
+</div>
+<div id="center">
+  <h1>WIS<span>P</span>R</h1>
+  <p>INERTIA PARKOUR</p>
+  <div class="controls">
+    <span class="k"><b style="color:#a4dcff">WASD / Arrows</b></span>move<br>
+    <span class="k"><b style="color:#a4dcff">Space</b></span>jump<br>
+    <span class="k"><b style="color:#ffd479">Shift</b></span><span class="ak">anchor</span> — freeze your momentum midair<br>
+    <span class="k"><b style="color:#a4dcff">Drag</b></span>rotate camera &nbsp;·&nbsp; <b style="color:#a4dcff">V</b> cycle POV &nbsp;·&nbsp; <b style="color:#a4dcff">M</b> mute<br>
+    <span class="k">&nbsp;</span><span style="opacity:.55">release Shift to slingshot in any direction</span>
+  </div>
+  <br><button id="startBtn">BEGIN</button>
+  <div id="result"></div>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+</script>
+<script type="module">
+import * as THREE from 'three';
+
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, powerPreference:'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.setClearColor(0x0a0818, 1);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x140f2a, 0.0014);
+
+const camera = new THREE.PerspectiveCamera(72, innerWidth/innerHeight, 0.05, 800);
+const CAM_START_YAW = -Math.PI / 2;
+const cameraModes = [
+  { name: 'Wide Chase', dist: 11.0, pitch: 0.32, firstPerson: false },
+  { name: 'Tight Chase', dist: 6.5, pitch: 0.38, firstPerson: false },
+  { name: 'First Person', dist: 0.12, pitch: 0.12, firstPerson: true }
+];
+const camCtl = {
+  yaw: CAM_START_YAW, pitch: 0.32, dist: cameraModes[0].dist,
+  targetYaw: CAM_START_YAW, targetPitch: cameraModes[0].pitch, targetDist: cameraModes[0].dist,
+  mode: 0, drag: false, lastX: 0, lastY: 0
+};
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+function setCameraMode(nextMode){
+  camCtl.mode = (nextMode + cameraModes.length) % cameraModes.length;
+  const m = cameraModes[camCtl.mode];
+  camCtl.targetDist = m.dist;
+  camCtl.targetPitch = m.pitch;
+}
+
+// ─── Lighting: sunset-crystal mood ───
+const hemi = new THREE.HemisphereLight(0x33286a, 0x05030c, 0.7); scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xfff0d0, 1.7);
+sun.position.set(40, 80, -20); sun.castShadow = true;
+sun.shadow.mapSize.set(2048,2048); sun.shadow.camera.near=2; sun.shadow.camera.far=400;
+const sc = sun.shadow.camera; sc.left=-90; sc.right=90; sc.top=90; sc.bottom=-90; sun.shadow.bias=-0.0008;
+scene.add(sun);
+const moon = new THREE.PointLight(0x66bbff, 0.6, 220); moon.position.set(-30,40,60); scene.add(moon);
+
+// ─── Photon-particle starfield ───
+{
+  const g = new THREE.BufferGeometry();
+  const n = 1400, pos = new Float32Array(n*3), col = new Float32Array(n*3);
+  for(let i=0;i<n;i++){
+    const r = 80 + Math.random()*250;
+    const t = Math.random()*Math.PI*2, p = Math.acos(2*Math.random()-1);
+    pos[i*3]   = r*Math.sin(p)*Math.cos(t);
+    pos[i*3+1] = Math.random()*180 - 40;
+    pos[i*3+2] = r*Math.cos(p);
+    const mix = Math.random();
+    col[i*3]   = 0.5 + 0.5*mix;
+    col[i*3+1] = 0.5 + 0.4*Math.random();
+    col[i*3+2] = 1.0;
+  }
+  g.setAttribute('position', new THREE.BufferAttribute(pos,3));
+  g.setAttribute('color',    new THREE.BufferAttribute(col,3));
+  const m = new THREE.PointsMaterial({size:0.7, vertexColors:true, transparent:true, opacity:0.85, depthWrite:false});
+  scene.add(new THREE.Points(g,m));
+}
+
+// ─── Atmosphere particle field that follows the player ───
+const motes = (function(){
+  const g = new THREE.BufferGeometry();
+  const n = 500, pos = new Float32Array(n*3);
+  for(let i=0;i<n;i++){
+    pos[i*3]   = (Math.random()-0.5)*120;
+    pos[i*3+1] = Math.random()*60 - 30;
+    pos[i*3+2] = (Math.random()-0.5)*120;
+  }
+  g.setAttribute('position', new THREE.BufferAttribute(pos,3));
+  const m = new THREE.PointsMaterial({color:0x7fe5ff, size:0.35, transparent:true, opacity:0.5, depthWrite:false});
+  const mesh = new THREE.Points(g,m);
+  scene.add(mesh);
+  return mesh;
+})();
+
+// ─── Player vessel: glowing wisp/mote (neon orb with halo) ───
+const player = new THREE.Group(); scene.add(player);
+{
+  const core = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(0.55, 1),
+    new THREE.MeshStandardMaterial({ color:0x7fe5ff, emissive:0x3aa9ff, emissiveIntensity:3.0, roughness:0.15, metalness:0.0 })
+  );
+  player.add(core);
+  const halo = new THREE.Mesh(
+    new THREE.SphereGeometry(0.82, 24, 24),
+    new THREE.MeshBasicMaterial({ color:0x66ddff, transparent:true, opacity:0.16, depthWrite:false, side:THREE.BackSide })
+  );
+  player.add(halo);
+}
+const playerLight = new THREE.PointLight(0x66ccff, 1.8, 14); player.add(playerLight);
+
+// anchored visual panel + vectors
+const anchorViz = (function(){
+  const grp = new THREE.Group(); scene.add(grp);
+  const marker = new THREE.Mesh(
+    new THREE.TorusGeometry(0.7, 0.06, 8, 32),
+    new THREE.MeshBasicMaterial({color:0xffd479, transparent:true, opacity:0.85})
+  );
+  marker.rotation.x = Math.PI/2;
+  grp.add(marker);
+  const core = new THREE.Mesh(
+    new THREE.SphereGeometry(0.18, 12, 12),
+    new THREE.MeshBasicMaterial({color:0xffe9a8})
+  );
+  grp.add(core);
+  const vgeo = new THREE.BufferGeometry();
+  vgeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(6),3));
+  vgeo.setDrawRange(0,0);
+  const vline = new THREE.Line(vgeo, new THREE.LineBasicMaterial({color:0xffaaff, transparent:true, opacity:0.6}));
+  grp.add(vline);
+  return grp;
+})();
+
+// ─── Block mesh factory (crystalline slabs, each unique tinted) ───
+function makeBlock(w,h,d,tintHex=0x9090b0){
+  const tints = [tintHex, tintHex, tintHex];
+  const geo = new THREE.BoxGeometry(w,h,d,1,1,1);
+  const mat = new THREE.MeshStandardMaterial({ color:tintHex, emissive:0x0, emissiveIntensity:0.0,
+                                              roughness:0.55, metalness:0.18 });
+  const m = new THREE.Mesh(geo, mat);
+  m.castShadow = true; m.receiveShadow = true;
+  // Neon edge accents
+  const edges = new THREE.EdgesGeometry(geo);
+  const emat = new THREE.LineBasicMaterial({ color:0x88c4ff, transparent:true, opacity:0.55 });
+  const el = new THREE.LineSegments(edges, emat);
+  m.add(el);
+  return m;
+}
+
+// ─── Level layout ───
+/* boards: crystalline floating slabs laid out in a curving climb toward a finale pad.
+   Block record has x,y,z,w,h,d plus optional g (gravity target with extra wall),
+   type (start/checkpoint/goal/snake), uid (debug). */
+const blocks = [];
+function add(b){
+  if(!('h' in b)) b.h = 0.5;
+  const mesh = makeBlock(b.w, b.h, b.d, b.tint || 0x6a6a86);
+  mesh.position.set(b.x, b.y - b.h/2, b.z);
+  scene.add(mesh);
+  b.mesh = mesh;
+  blocks.push(b);
+  return b;
+}
+// Start pad
+add({uid:'start', x:0,y:0,z:0, w:5,h:0.5,d:5, type:'start', tint:0xaa99d8});
+// Stepping stones upward
+add({uid:'c1', x:5.5,y:0.3,z:1.2, w:2.4,h:0.4,d:2.4, type:'cp', tint:0x7fb0ff});
+add({uid:'b1', x:9.2,y:0.9,z:3.2, w:1.8,h:0.4,d:4.0, tint:0x88aaee});
+add({uid:'b2', x:13.2,y:1.6,z:1.2, w:1.6,h:0.4,d:1.8, tint:0x9ad4ff});
+// Snake jump
+add({uid:'b3', x:17.0,y:2.4,z:-1.0, w:1.4,h:0.4,d:1.6, type:'snake', tint:0xb2a8ff});
+add({uid:'b4', x:20.4,y:3.4,z:-3.0, w:1.4,h:0.4,d:1.6, tint:0xc4b4ff});
+add({uid:'b5', x:23.4,y:4.6,z:-1.0, w:1.4,h:0.4,d:1.6, type:'cp', tint:0x9ad4ff});
+// Tricky diagonal — encourages anchoring
+add({uid:'b6', x:28.0,y:5.4,z:2.0, w:1.2,h:0.3,d:1.2, tint:0xbfe5ff});
+// Gap too big to jump from b6 — anchor needed (or combo of jumps)
+add({uid:'b7', x:33.4,y:6.4,z:2.0, w:1.2,h:0.3,d:1.2, tint:0x9fcbff});
+add({uid:'b8', x:38.0,y:7.0,z:-0.3, w:1.4,h:0.3,d:1.4, type:'cp', tint:0x9ad4ff});
+add({uid:'b9', x:42.0,y:7.6,z:-2.3, w:1.2,h:0.3,d:1.2, tint:0x88b4ff});
+// Yoink — anchor strongly helps here, consecutive narrow
+add({uid:'b10', x:46.2,y:8.6,z:-3.3, w:1.0,h:0.3,d:1.0, tint:0xb2efff});
+add({uid:'b11', x:49.8,y:9.0,z:-3.5, w:1.0,h:0.3,d:1.0, tint:0xc4d8ff});
+// Vertical boost — anchor to convert to drop
+add({uid:'b12', x:52.0,y:11.5,z:-2.4, w:1.0,h:0.3,d:2.5, type:'cp', tint:0x9ad4ff});
+add({uid:'b13', x:55.6,y:10.6,z:-1.4, w:1.0,h:0.3,d:1.0, tint:0xbfe5ff});
+// Long jump: a slingshot helps
+add({uid:'b14', x:60.4,y:11.5,z:+0.6, w:1.0,h:0.3,d:1.0, tint:0x9fcbff});
+// Final goal guard rail-ish ledge
+add({uid:'b15', x:64.0,y:12.5,z:+2.0, w:1.2,h:0.3,d:1.6, tint:0xc4b4ff});
+// Goal pad
+add({uid:'goal', x:69.5,y:12.5,z:+2.0, w:4.6,h:0.6,d:4.6, type:'goal', tint:0xffff7a});
+
+// Decorative pillars / distant structures for depth
+{
+  function pillar(x,z,h,r,tint){
+    const m = new THREE.Mesh(
+      new THREE.CylinderGeometry(r,r,h,8),
+      new THREE.MeshStandardMaterial({ color:tint, emissive:0x110820, roughness:0.8, metalness:0.2 })
+    );
+    m.position.set(x,h/2-2,z); m.castShadow=true; m.receiveShadow=true;
+    scene.add(m);
+  }
+  pillar(-12,-10,40,2.2,0x28204a);
+  pillar( 18, 22,55,2.6,0x1c1538);
+  pillar( 40, 25,70,3.0,0x352466);
+  pillar( 70, 30,90,3.3,0x43307a);
+  // Far neon gate
+  const gate = new THREE.Mesh(
+    new THREE.TorusGeometry(8,0.6,10,40),
+    new THREE.MeshBasicMaterial({color:0xff7ad9})
+  );
+  gate.position.set(80, 30, 25); gate.rotation.y = Math.PI/3; scene.add(gate);
+
+  // distant neon plane
+  const planeGeo = new THREE.PlaneGeometry(800,800,1,1);
+  const planeMat = new THREE.MeshBasicMaterial({color:0x160e2a});
+  const plane = new THREE.Mesh(planeGeo, planeMat);
+  plane.rotation.x = -Math.PI/2; plane.position.y = -30; scene.add(plane);
+}
+
+// ─── HUD bindings ───
+const hudTime   = document.querySelector('#stats');
+const cpBanner  = document.getElementById('cpBanner');
+const center    = document.getElementById('center');
+const startBtn  = document.getElementById('startBtn');
+const resultEl  = document.getElementById('result');
+const akInd     = document.getElementById('akIndicator');
+const stBar     = document.getElementById('staminaBar');
+const stWrap    = document.getElementById('staminaWrap');
+const stLabel   = document.getElementById('staminaLabel');
+
+// ─── Input ───
+const keys = Object.create(null);
+addEventListener('keydown', e=>{
+  if(['Space','ShiftLeft','ShiftRight','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) e.preventDefault();
+  keys[e.code] = true;
+  if(state.running && (e.code==='KeyR' || e.code==='Enter')) respawn();
+  if(e.code==='KeyV'){
+    setCameraMode(camCtl.mode + 1);
+    flashCpBanner(cameraModes[camCtl.mode].name);
+  }
+  if(e.code==='KeyM'){
+    toggleMusicMute();
+  }
+});
+addEventListener('keyup', e=>{ keys[e.code] = false; });
+canvas.addEventListener('pointerdown', e=>{
+  camCtl.drag = true;
+  camCtl.lastX = e.clientX;
+  camCtl.lastY = e.clientY;
+  canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener('pointermove', e=>{
+  if(!camCtl.drag) return;
+  const dx = e.clientX - camCtl.lastX;
+  const dy = e.clientY - camCtl.lastY;
+  camCtl.lastX = e.clientX;
+  camCtl.lastY = e.clientY;
+  camCtl.targetYaw -= dx * 0.006;
+  camCtl.targetPitch = clamp(camCtl.targetPitch - dy * 0.0045, -0.25, 1.25);
+});
+canvas.addEventListener('pointerup', e=>{
+  camCtl.drag = false;
+  if(canvas.hasPointerCapture(e.pointerId)) canvas.releasePointerCapture(e.pointerId);
+});
+canvas.addEventListener('pointercancel', e=>{
+  camCtl.drag = false;
+  if(canvas.hasPointerCapture(e.pointerId)) canvas.releasePointerCapture(e.pointerId);
+});
+canvas.addEventListener('wheel', e=>{
+  e.preventDefault();
+  if(cameraModes[camCtl.mode].firstPerson) return;
+  camCtl.targetDist = clamp(camCtl.targetDist + e.deltaY * 0.012, 3.5, 16.0);
+}, { passive: false });
+
+// ─── Helper for block AABB top check ───
+const v0 = new THREE.Vector3();
+
+function topCollision(px,pz,py,b){
+  // returns {y landed on, block} if px,pz falls within block footprint, py > top
+  if(px > b.x - b.w/2 - P_RADIUS && px < b.x + b.w/2 + P_RADIUS &&
+     pz > b.z - b.d/2 - P_RADIUS && pz < b.z + b.d/2 + P_RADIUS){
+    const top = b.y;
+    if(py <= top + 0.01 && py >= top - b.h - 0.01) return {y:top, block:b};
+  }
+  return null;
+}
+
+// ─── Physics constants ───
+const GRAVITY = 22.0;
+const AIR_DRAG = 0.55;          // per-second drag in air
+const GROUND_FRICTION = 9.0;
+const ACCEL_GROUND = 60.0;
+const ACCEL_AIR = 22.0;
+const MAX_RUN_SPEED = 8.5;
+const JUMP_SPEED = 9.2;
+const JUMP_GRACE = 0.14;        // coyote time
+const JUMP_BUFFER = 0.14;
+const P_RADIUS = 0.38;
+const ANCHOR_END_BOOST = 1.45; // slingshot velocity multiplier
+const ANCHOR_THRUST = 7.0;     // accel while anchored
+const ANCHOR_MAX_THRUST_SPEED = 9.5;
+const ANCHOR_ENERGY_MAX = 100;
+const ANCHOR_START_COST = 28;
+const ANCHOR_DRAIN_PER_SEC = 50;
+const ANCHOR_REGEN_GROUND = 38;
+const ANCHOR_REGEN_AIR = 16;
+const ANCHOR_REUSE_COOLDOWN = 0.4;
+const RESPAWN_Y = -18;
+
+// ─── Game state ───
+const state = {
+  pos: new THREE.Vector3(0,2,0),
+  vel: new THREE.Vector3(0,0,0),
+  grounded: true, ground:null,
+  coyoteT: 0, jumpBufT: 0,
+  anchorEnergy: ANCHOR_ENERGY_MAX, anchorCooldownT: 0,
+  anchoring:false, anchorPos:new THREE.Vector3(), anchorRot:0,
+  spawn:new THREE.Vector3(0,2,0),
+  cps:new Set(), fallCount:0,
+  tElapsed:0, won:false, running:false
+};
+
+function respawn(){
+  state.pos.copy(state.spawn); state.vel.set(0,0,0);
+  state.grounded=false; state.ground=null;
+  state.coyoteT=0; state.jumpBufT=0;
+  state.anchorEnergy = ANCHOR_ENERGY_MAX;
+  state.anchorCooldownT = 0;
+  state.anchoring=false; state.anchorRot=0;
+}
+function flashCpBanner(text){
+  cpBanner.textContent = text;
+  cpBanner.style.opacity = 1;
+  setTimeout(()=>cpBanner.style.transition='opacity 1s', 50);
+  setTimeout(()=>cpBanner.style.opacity = 0, 600);
+  cpBanner.style.transition = '';
+}
+
+function setSpawn(x,y,z){
+  state.spawn.set(x,y,z); flashCpBanner('CHECKPOINT');
+}
+function resetRun(){
+  state.pos.set(0,2,0); state.vel.set(0,0,0);
+  state.spawn.set(0,2,0); state.cps.clear(); state.fallCount=0;
+  state.anchorEnergy = ANCHOR_ENERGY_MAX;
+  state.anchorCooldownT = 0;
+  state.tElapsed=0; state.won=false; state.anchoring=false; state.grounded=true; state.ground=null;
+}
+
+// ─── Procedural ethereal music (Web Audio, no external assets) ───
+let audioCtx = null;
+let musicMaster = null;
+let musicFilter = null;
+let musicStarted = false;
+let musicMuted = false;
+let musicTimer = null;
+
+function midiToHz(m){ return 440 * Math.pow(2, (m - 69) / 12); }
+
+function spawnTone(freq, t0, dur, type, peakGain){
+  if(!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, t0);
+  gain.gain.setValueAtTime(0.0001, t0);
+  gain.gain.exponentialRampToValueAtTime(peakGain, t0 + Math.min(0.18, dur * 0.35));
+  gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  osc.connect(gain);
+  gain.connect(musicFilter);
+  osc.start(t0);
+  osc.stop(t0 + dur + 0.03);
+}
+
+function startMusic(){
+  if(musicStarted) return;
+  const ACtx = window.AudioContext || window.webkitAudioContext;
+  if(!ACtx) return;
+  audioCtx = new ACtx();
+  musicMaster = audioCtx.createGain();
+  musicFilter = audioCtx.createBiquadFilter();
+  musicFilter.type = 'lowpass';
+  musicFilter.frequency.value = 1900;
+  musicFilter.Q.value = 0.7;
+  musicMaster.gain.value = 0.14;
+  musicFilter.connect(musicMaster);
+  musicMaster.connect(audioCtx.destination);
+
+  // Two drifting drone beds.
+  const droneA = audioCtx.createOscillator();
+  const droneB = audioCtx.createOscillator();
+  const droneGain = audioCtx.createGain();
+  droneA.type = 'sine'; droneB.type = 'triangle';
+  droneA.frequency.value = midiToHz(50);          // D3
+  droneB.frequency.value = midiToHz(57) * 0.5;    // A2
+  droneGain.gain.value = 0.04;
+  droneA.connect(droneGain); droneB.connect(droneGain);
+  droneGain.connect(musicFilter);
+  droneA.start(); droneB.start();
+
+  // Very slow shimmer movement.
+  const lfo = audioCtx.createOscillator();
+  const lfoGain = audioCtx.createGain();
+  lfo.type = 'sine'; lfo.frequency.value = 0.08;
+  lfoGain.gain.value = 7;
+  lfo.connect(lfoGain);
+  lfoGain.connect(droneA.detune);
+  lfoGain.connect(droneB.detune);
+  lfo.start();
+
+  // Bell-like sparkle scheduler (D minor pentatonic-ish).
+  const scale = [62, 65, 67, 69, 72, 74, 77];
+  let step = 0;
+  musicTimer = setInterval(()=>{
+    if(!audioCtx || musicMuted) return;
+    const now = audioCtx.currentTime + 0.02;
+    const root = 50 + (Math.sin(step * 0.11) > 0 ? 0 : 12);
+    const n1 = root + scale[Math.floor(Math.random() * scale.length)] - 62;
+    const n2 = n1 + (Math.random() > 0.5 ? 12 : 7);
+    spawnTone(midiToHz(n1), now, 1.6 + Math.random() * 1.2, 'triangle', 0.03 + Math.random() * 0.02);
+    if(Math.random() > 0.35){
+      spawnTone(midiToHz(n2), now + 0.08, 1.2 + Math.random() * 0.8, 'sine', 0.015 + Math.random() * 0.02);
+    }
+    step++;
+  }, 360);
+
+  musicStarted = true;
+}
+
+function toggleMusicMute(){
+  if(!musicMaster) return;
+  musicMuted = !musicMuted;
+  musicMaster.gain.setTargetAtTime(musicMuted ? 0.0001 : 0.14, audioCtx.currentTime, 0.06);
+  flashCpBanner(musicMuted ? 'MUSIC MUTED' : 'MUSIC ON');
+}
+
+// ─── Anchored visualization ───
+function updateAnchorViz(){
+  if(!state.anchoring){
+    anchorViz.visible = false; akInd.style.opacity = 0; return;
+  }
+  anchorViz.visible = true; akInd.style.opacity = 1;
+  anchorViz.position.copy(state.anchorPos);
+  // Vector line from anchor to player (chord)
+  const ch = anchorViz.children[2].geometry.attributes.position;
+  ch.array[0]=state.anchorPos.x; ch.array[1]=state.anchorPos.y; ch.array[2]=state.anchorPos.z;
+  ch.array[3]=state.pos.x;       ch.array[4]=state.pos.y;       ch.array[5]=state.pos.z;
+  ch.needsUpdate = true;
+  anchorViz.children[2].geometry.setDrawRange(0,2);
+  // spin markers
+  anchorViz.rotation.y += 0.07;
+  anchorViz.children[0].rotation.z = Math.sin(performance.now()*0.005)*0.15;
+}
+
+// ─── Update ───
+let prevT = performance.now();
+function frame(now){
+  requestAnimationFrame(frame);
+  let dt = Math.min((now-prevT)/1000, 0.04);
+  prevT = now;
+
+  if(state.running) update(dt);
+  render(now, dt);
+}
+
+function update(dt){
+  if(!state.won) state.tElapsed += dt;
+  state.anchorCooldownT = Math.max(0, state.anchorCooldownT - dt);
+  // Was jump pressed (buffer)?
+  const wantJump  = keys['Space'];
+  if(wantJump){ state.jumpBufT = JUMP_BUFFER; } else state.jumpBufT = Math.max(0, state.jumpBufT - dt);
+  // Grounded / coyote
+  if(state.grounded) state.coyoteT = JUMP_GRACE;
+  else state.coyoteT = Math.max(0, state.coyoteT - dt);
+
+  // Movement input vector (WASD or arrows)
+  let ix=0, iz=0;
+  if(keys['KeyW']||keys['ArrowUp'])    iz -= 1;
+  if(keys['KeyS']||keys['ArrowDown'])  iz += 1;
+  if(keys['KeyA']||keys['ArrowLeft'])  ix -= 1;
+  if(keys['KeyD']||keys['ArrowRight']) ix += 1;
+  // Camera now starts head-on down the path; invert controls to keep intuitive forward/strafe.
+  ix *= -1;
+  iz *= -1;
+  const ilen = Math.hypot(ix,iz);
+  if(ilen > 0){ ix/=ilen; iz/=ilen; }
+
+  // Movement direction is relative to camera yaw
+  const camYaw = camCtl.yaw;
+  const cs = Math.cos(camYaw), sn = Math.sin(camYaw);
+  const dirX = ix*cs - iz*sn;
+  const dirZ = ix*sn + iz*cs;
+
+  // Anchoring handling
+  const wantAnchor = keys['ShiftLeft']||keys['ShiftRight'];
+  const canStartAnchor = (
+    wantAnchor &&
+    !state.anchoring &&
+    !state.grounded &&
+    state.anchorCooldownT <= 0 &&
+    state.anchorEnergy >= ANCHOR_START_COST
+  );
+  if(canStartAnchor){
+    state.anchoring = true;
+    state.anchorEnergy = Math.max(0, state.anchorEnergy - ANCHOR_START_COST);
+    state.anchorPos.copy(state.pos);          // freeze current position as anchor
+    state.vel.set(0,0,0);
+    state.anchorRot = 0;
+  }
+  if(state.anchoring){
+    state.anchorEnergy = Math.max(0, state.anchorEnergy - ANCHOR_DRAIN_PER_SEC * dt);
+    const forcedDrop = state.anchorEnergy <= 0;
+    if(!wantAnchor || state.grounded || forcedDrop){
+      // Release — apply slingshot impulse based on movement direction (current input) plus Carry over boost
+      if(ilen>0){
+        state.vel.x = dirX * ANCHOR_MAX_THRUST_SPEED * ANCHOR_END_BOOST;
+        state.vel.z = dirZ * ANCHOR_MAX_THRUST_SPEED * ANCHOR_END_BOOST;
+      }
+      // A small upward kick if they looked up by holding W? no — keep simple: small upward lift on release
+      state.vel.y = Math.max(state.vel.y, 4.5);
+      state.anchoring = false;
+      state.anchorCooldownT = ANCHOR_REUSE_COOLDOWN;
+    } else {
+      // While anchored, allow thrust in movement direction (linear), and a small JUMP
+      if(ilen>0){
+        const acc = ANCHOR_THRUST * dt;
+        state.vel.x = Math.max(Math.min(state.vel.x + dirX*acc, ANCHOR_MAX_THRUST_SPEED),
+                              -ANCHOR_MAX_THRUST_SPEED);
+        state.vel.z = Math.max(Math.min(state.vel.z + dirZ*acc, ANCHOR_MAX_THRUST_SPEED),
+                              -ANCHOR_MAX_THRUST_SPEED);
+      } else {
+        state.vel.x *= Math.exp(-GROUND_FRICTION*dt);
+        state.vel.z *= Math.exp(-GROUND_FRICTION*dt);
+      }
+      // hold firm Y position — anchored means gravity off
+      state.vel.y = 0;
+      state.pos.y = state.anchorPos.y;
+    }
+    state.pos.x = state.pos.x; // pass-through (pos unchanged here; integration below may apply? no — while anchored we keep pos)
+  }
+
+  if(!state.anchoring){
+    const regen = state.grounded ? ANCHOR_REGEN_GROUND : ANCHOR_REGEN_AIR;
+    state.anchorEnergy = Math.min(ANCHOR_ENERGY_MAX, state.anchorEnergy + regen * dt);
+    // Integration: horizontal accel + drag
+    const accel = state.grounded ? ACCEL_GROUND : ACCEL_AIR;
+    const drag  = state.grounded ? GROUND_FRICTION : AIR_DRAG;
+    if(ilen>0){
+      state.vel.x += dirX*accel*dt;
+      state.vel.z += dirZ*accel*dt;
+    }
+    // friction
+    state.vel.x *= Math.exp(-drag*dt);
+    state.vel.z *= Math.exp(-drag*dt);
+    // cap horizontal speed (mild cap; slingshot naturally higher)
+    const sp = Math.hypot(state.vel.x, state.vel.z);
+    if(sp > MAX_RUN_SPEED*1.45){
+      state.vel.x *= MAX_RUN_SPEED*1.45/sp; state.vel.z *= MAX_RUN_SPEED*1.45/sp;
+    }
+    // gravity
+    state.vel.y -= GRAVITY*dt;
+    // jump trigger
+    if(state.jumpBufT > 0 && state.coyoteT > 0){
+      state.vel.y = JUMP_SPEED;
+      state.grounded = false; state.coyoteT = 0; state.jumpBufT = 0;
+      state.anchoring = false;
+    }
+  }
+
+  // Integrate
+  if(!state.anchoring){
+    const pre = state.pos.clone();
+    state.pos.x += state.vel.x*dt;
+    state.pos.y += state.vel.y*dt;
+    state.pos.z += state.vel.z*dt;
+
+    // Vertical block collisions: scan forecast — check if rising/descending into block tops
+    let landed=false;
+    for(const b of blocks){
+      // Track landing only if going down (or about to embed)
+      // Check if forward position has px,pz within block bounds
+      if(state.pos.x > b.x-b.w/2-P_RADIUS && state.pos.x < b.x+b.w/2+P_RADIUS &&
+         state.pos.z > b.z-b.d/2-P_RADIUS && state.pos.z < b.z+b.d/2+P_RADIUS){
+        const top = b.y;
+        const bot = b.y - b.h;
+        // Was above block top, now at/below top — land
+        if(pre.y >= top - 0.001 && state.pos.y <= top){
+          state.pos.y = top;
+          state.vel.y = 0; state.grounded = true; state.ground = b;
+          landed = true;
+          break;
+        }
+        // Was below block bottom, now above — head bump (rare in parkour)
+        if(pre.y <= bot + 0.001 && state.pos.y >= bot){
+          state.pos.y = bot; state.vel.y = Math.max(state.vel.y, 0);
+        }
+      }
+    }
+    if(!landed){ state.grounded = false; state.ground = null; }
+
+    // Side walls (prevent snapping through narrow edge gaps — basic slab collision)
+    // Open arena (no walls) by design; skip horizontal blocking for fluid movement.
+
+    // Checkpoint/fire state for being on a special block
+    if(state.grounded){
+      const b = state.ground;
+      if(b && b.type==='cp' && !state.cps.has(b.uid)){
+        state.cps.add(b.uid);
+        setSpawn(b.x, b.y + 1.2, b.z);
+      }
+      if(b && b.type==='goal' && !state.won){
+        state.won = true;
+        flashCpBanner('WISPR ASCENDED');
+        resultEl.textContent = 'YOU ASCEND · ' + state.tElapsed.toFixed(2) + 's · ' + state.fallCount + ' falls';
+        resultEl.style.color = '#7fe5ff';
+        resultEl.style.opacity = 1;
+      }
+    }
+  }
+
+  // Off-world fall
+  if(state.pos.y < RESPAWN_Y){
+    state.fallCount++;
+    respawn();
+  }
+
+  // Player mesh integrator + camera spring
+  player.position.lerp(state.pos, 1 - Math.exp(-15*dt));
+  player.position.copy(state.pos);          // hard sync for accuracy
+  if(!state.anchoring){
+    // small eye transform / rotation toward velocity
+    const sp = Math.hypot(state.vel.x, state.vel.z);
+    if(sp > 0.1){
+      const targetRot = Math.atan2(state.vel.x, state.vel.z);
+      player.rotation.y += Math.atan2(Math.sin(targetRot-player.rotation.y), Math.cos(targetRot-player.rotation.y)) * Math.min(1, 12*dt);
+    }
+  }
+
+  // Camera spring (orbit / pov)
+  camCtl.yaw += Math.atan2(Math.sin(camCtl.targetYaw - camCtl.yaw), Math.cos(camCtl.targetYaw - camCtl.yaw)) * Math.min(1, 10 * dt);
+  camCtl.pitch += (camCtl.targetPitch - camCtl.pitch) * Math.min(1, 10 * dt);
+  camCtl.dist += (camCtl.targetDist - camCtl.dist) * Math.min(1, 9 * dt);
+  const mode = cameraModes[camCtl.mode];
+  const pivot = new THREE.Vector3().copy(state.pos);
+  pivot.y += mode.firstPerson ? 0.95 : 1.35;
+  const cosPitch = Math.cos(camCtl.pitch);
+  const desired = new THREE.Vector3(
+    pivot.x + Math.sin(camCtl.yaw) * cosPitch * camCtl.dist,
+    pivot.y + Math.sin(camCtl.pitch) * camCtl.dist,
+    pivot.z + Math.cos(camCtl.yaw) * cosPitch * camCtl.dist
+  );
+  camera.position.lerp(desired, 1 - Math.exp(-6 * dt));
+  if(mode.firstPerson){
+    const forward = new THREE.Vector3(
+      -Math.sin(camCtl.yaw) * cosPitch,
+      -Math.sin(camCtl.pitch),
+      -Math.cos(camCtl.yaw) * cosPitch
+    );
+    camera.lookAt(new THREE.Vector3().copy(camera.position).addScaledVector(forward, 8));
+  } else {
+    camera.lookAt(pivot);
+  }
+  player.visible = !mode.firstPerson;
+
+  // motes follow player
+  motes.position.set(state.pos.x, 0, state.pos.z);
+  motes.rotation.y += dt*0.03;
+
+  // Update HUD
+  const fmt = state.tElapsed.toFixed(1);
+  hudTime.innerHTML =
+    'time ' + fmt + '<br>' +
+    'checkpoints ' + state.cps.size + ' / ' + blocks.filter(b=>b.type==='cp').length + '<br>' +
+    'speed ' + (Math.hypot(state.vel.x,state.vel.y,state.vel.z)).toFixed(1) +
+    (state.anchoring ? ' <span style="color:#ffd479">· ANCHORED</span>' : '') +
+    '<br>falls ' + state.fallCount;
+
+  const staminaPct = Math.max(0, Math.min(1, state.anchorEnergy / ANCHOR_ENERGY_MAX));
+  stBar.style.transform = 'scaleX(' + staminaPct.toFixed(3) + ')';
+  stWrap.style.opacity = state.running ? 0.95 : 0;
+  stLabel.style.opacity = state.running ? 0.9 : 0;
+}
+
+function render(now, dt){
+  // pulse halo subtly
+  player.children[1].material.opacity = 0.12 + 0.06*Math.sin(now*0.003);
+  player.rotation.x += dt*0.4;
+  updateAnchorViz();
+  renderer.render(scene, camera);
+}
+
+// ─── Resize ───
+addEventListener('resize', ()=>{
+  camera.aspect = innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+// ─── Start / Restart gate ───
+function startRun(){
+  resetRun();
+  camCtl.yaw = CAM_START_YAW;
+  camCtl.targetYaw = CAM_START_YAW;
+  center.style.opacity = 0;
+  setTimeout(()=>center.style.display='none', 500);
+  state.running = true;
+  prevT = performance.now();
+}
+
+startBtn.addEventListener('click', ()=>{
+  startMusic();
+  if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  startBtn.style.opacity = 0.5;
+  startBtn.textContent = 'GO!';
+  startRun();
+});
+
+// initial camera framing of start pad
+setCameraMode(0);
+camera.position.set(-16, 6, 0);
+camera.lookAt(0,0,0);
+
+// begin loop
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
