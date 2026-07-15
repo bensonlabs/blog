@@ -16,10 +16,10 @@ struct Level {
 
 fn get_levels() -> Vec<Level> {
     vec![
-        // Level 1: Winding intro (7 moves) — irregular corridors, not a simple shape
+        // Level 1: Winding intro with splitter stops
         Level {
             grid: [
-                [0, 0, 0, 0, 0, 0, 0, 1],
+                [0, 0, 0, 0, 0, 0, 3, 1],
                 [1, 1, 1, 1, 1, 1, 0, 1],
                 [1, 1, 0, 0, 1, 1, 0, 1],
                 [1, 1, 1, 0, 1, 1, 0, 1],
@@ -30,7 +30,7 @@ fn get_levels() -> Vec<Level> {
             ],
             start_pos: (0, 0),
         },
-        // Level 2: Staircase (8 moves) — descending web with dead ends
+        // Level 2: Staircase with center stopper
         Level {
             grid: [
                 [0, 0, 1, 1, 1, 1, 1, 1],
@@ -40,16 +40,16 @@ fn get_levels() -> Vec<Level> {
                 [1, 1, 0, 1, 1, 1, 1, 1],
                 [1, 1, 0, 1, 1, 1, 1, 1],
                 [1, 1, 0, 1, 0, 0, 0, 1],
-                [1, 0, 0, 0, 0, 0, 0, 1],
+                [1, 0, 0, 3, 0, 0, 0, 1],
             ],
             start_pos: (0, 0),
         },
-        // Level 3: Branch hunt (8 moves) — three-way junction forces correct order
+        // Level 3: Branch hunt with forced split
         Level {
             grid: [
                 [0, 1, 1, 1, 1, 1, 1, 1],
                 [0, 1, 1, 1, 1, 1, 1, 1],
-                [0, 0, 0, 0, 0, 0, 0, 1],
+                [0, 0, 0, 3, 0, 0, 0, 1],
                 [0, 0, 1, 1, 1, 1, 0, 1],
                 [0, 0, 1, 1, 1, 1, 0, 0],
                 [0, 0, 1, 1, 1, 1, 1, 0],
@@ -58,26 +58,26 @@ fn get_levels() -> Vec<Level> {
             ],
             start_pos: (0, 0),
         },
-        // Level 4: Rail maze (10 moves) — intersecting corridors, 9 decision points
+        // Level 4: Rail maze with branch node
         Level {
             grid: [
                 [0, 0, 0, 0, 1, 1, 1, 1],
                 [1, 1, 1, 0, 1, 1, 1, 1],
                 [1, 0, 1, 0, 0, 0, 1, 1],
                 [1, 0, 1, 1, 1, 0, 1, 1],
-                [1, 0, 0, 0, 1, 0, 0, 1],
+                [1, 0, 0, 3, 1, 0, 0, 1],
                 [1, 1, 1, 0, 1, 1, 0, 1],
                 [1, 1, 1, 0, 0, 0, 0, 1],
                 [1, 1, 1, 1, 1, 1, 1, 1],
             ],
             start_pos: (0, 0),
         },
-        // Level 5: Compact maze (10 moves) — dense with wrong-turn dead ends
+        // Level 5: Compact maze with splitter stop
         Level {
             grid: [
                 [0, 1, 1, 1, 1, 1, 1, 1],
                 [0, 0, 0, 1, 1, 1, 1, 1],
-                [0, 0, 0, 0, 0, 1, 1, 1],
+                [0, 0, 3, 0, 0, 1, 1, 1],
                 [0, 0, 1, 1, 0, 1, 1, 1],
                 [0, 0, 1, 1, 0, 0, 0, 1],
                 [1, 1, 1, 1, 1, 0, 1, 1],
@@ -86,11 +86,11 @@ fn get_levels() -> Vec<Level> {
             ],
             start_pos: (0, 0),
         },
-        // Level 6: Web maze (11 moves) — branching arms, 10 decision states
+        // Level 6: Web maze with central stopper
         Level {
             grid: [
                 [0, 0, 1, 0, 0, 1, 1, 1],
-                [1, 0, 1, 0, 0, 0, 0, 0],
+                [1, 0, 1, 3, 0, 0, 0, 0],
                 [1, 0, 1, 0, 1, 1, 1, 1],
                 [1, 0, 0, 0, 1, 1, 1, 1],
                 [1, 0, 0, 0, 1, 1, 1, 1],
@@ -100,13 +100,13 @@ fn get_levels() -> Vec<Level> {
             ],
             start_pos: (0, 0),
         },
-        // Level 7: Junction web (12 moves, 34 decision states!) — most paths dead-end
+        // Level 7: Junction web with explicit split point
         Level {
             grid: [
                 [0, 0, 1, 0, 0, 0, 1, 1],
                 [0, 0, 1, 0, 1, 0, 1, 1],
                 [1, 0, 1, 0, 1, 0, 0, 1],
-                [1, 0, 0, 0, 1, 1, 0, 1],
+                [1, 0, 0, 3, 1, 1, 0, 1],
                 [1, 1, 1, 0, 1, 1, 0, 1],
                 [1, 1, 1, 0, 0, 0, 0, 1],
                 [1, 1, 1, 1, 1, 1, 1, 1],
@@ -114,35 +114,35 @@ fn get_levels() -> Vec<Level> {
             ],
             start_pos: (0, 0),
         },
-        // Level 8: Grid puzzle (12 moves) — irregular web fills the grid
+        // Level 8: Grid puzzle with stopper hub
         Level {
             grid: [
                 [0, 0, 0, 1, 0, 0, 0, 1],
                 [1, 1, 0, 1, 0, 1, 0, 1],
                 [0, 1, 0, 0, 0, 1, 0, 1],
                 [0, 1, 1, 1, 1, 1, 0, 1],
-                [0, 0, 0, 0, 1, 1, 0, 1],
+                [0, 0, 0, 3, 1, 1, 0, 1],
                 [1, 1, 1, 0, 1, 0, 0, 1],
                 [1, 1, 1, 0, 0, 0, 1, 1],
                 [1, 1, 1, 1, 1, 1, 1, 1],
             ],
             start_pos: (0, 0),
         },
-        // Level 9: Deep maze (12 moves) — two branching corridors with shared junction
+        // Level 9: Deep maze with forced branch stop
         Level {
             grid: [
                 [0, 1, 1, 0, 0, 0, 1, 1],
                 [0, 1, 1, 0, 0, 0, 1, 1],
                 [0, 1, 1, 0, 1, 0, 1, 1],
                 [0, 1, 1, 0, 1, 0, 1, 1],
-                [0, 1, 0, 0, 0, 0, 1, 1],
+                [0, 1, 0, 3, 0, 0, 1, 1],
                 [0, 0, 0, 1, 1, 1, 1, 1],
                 [0, 0, 1, 1, 1, 1, 1, 1],
                 [0, 0, 1, 1, 1, 1, 1, 1],
             ],
             start_pos: (0, 0),
         },
-        // Level 10: Expert (15 moves) — staircase web, hardest dead-end traps
+        // Level 10: Expert with late-game stopper
         Level {
             grid: [
                 [0, 0, 1, 1, 1, 1, 1, 1],
@@ -150,7 +150,7 @@ fn get_levels() -> Vec<Level> {
                 [1, 1, 0, 0, 0, 1, 1, 1],
                 [1, 1, 1, 1, 0, 0, 1, 1],
                 [1, 1, 1, 1, 1, 0, 0, 1],
-                [1, 0, 0, 0, 1, 1, 0, 1],
+                [1, 0, 0, 3, 1, 1, 0, 1],
                 [1, 0, 1, 0, 0, 0, 0, 1],
                 [1, 0, 0, 1, 1, 1, 1, 1],
             ],
@@ -171,6 +171,10 @@ struct Particle {
 
 fn point_in_rect(px: f32, py: f32, x: f32, y: f32, w: f32, h: f32) -> bool {
     px >= x && px <= x + w && py >= y && py <= y + h
+}
+
+fn is_uncharged_node(cell: u8) -> bool {
+    cell == 0 || cell == 3
 }
 
 fn restart_button_rect(sw: f32, sh: f32, offset_y: f32, grid_size: f32) -> (f32, f32, f32, f32) {
@@ -208,7 +212,7 @@ fn has_available_move(
         let nc = player_col as i32 + dx;
         if nr >= 0 && nr < 8 && nc >= 0 && nc < 8 {
             let cell = grid[nr as usize][nc as usize];
-            if cell == 0 || (cross_charge_available && cell == 2) {
+            if is_uncharged_node(cell) || (cross_charge_available && cell == 2) {
                 return true;
             }
         }
@@ -347,10 +351,11 @@ async fn main() {
                         if next_row >= 0 && next_row < 8 && next_col >= 0 && next_col < 8 {
                             let nr = next_row as usize;
                             let nc = next_col as usize;
-                            if grid[nr][nc] == 0 {
+                            if is_uncharged_node(grid[nr][nc]) {
                                 // Charge!
                                 player_row = nr;
                                 player_col = nc;
+                                let hit_splitter = grid[player_row][player_col] == 3;
                                 grid[player_row][player_col] = 2;
                                 
                                 // Spawn movement particles
@@ -373,6 +378,10 @@ async fn main() {
                                         lifetime: rand::gen_range(0.2, 0.5),
                                         max_lifetime: 0.5,
                                     });
+                                }
+                                if hit_splitter {
+                                    slide_dir = None;
+                                    crossing_active = false;
                                 }
                             } else if grid[nr][nc] == 2 && (crossing_active || cross_charge_available) {
                                 // Consume one cross ability the first time we step onto charged trail.
@@ -399,7 +408,7 @@ async fn main() {
                             let mut empty_count = 0;
                             for r in 0..8 {
                                 for c in 0..8 {
-                                    if grid[r][c] == 0 {
+                                    if is_uncharged_node(grid[r][c]) {
                                         empty_count += 1;
                                     }
                                 }
@@ -474,7 +483,7 @@ async fn main() {
                         let next_row = player_row as i32 + dy;
                         let next_col = player_col as i32 + dx;
                         if next_row >= 0 && next_row < 8 && next_col >= 0 && next_col < 8 {
-                            if grid[next_row as usize][next_col as usize] == 0 {
+                            if is_uncharged_node(grid[next_row as usize][next_col as usize]) {
                                 slide_dir = Some((dx, dy));
                                 crossing_active = false;
                                 step_timer = step_duration; // Trigger first step immediately
@@ -602,6 +611,42 @@ async fn main() {
                             cell_size * 0.3,
                             cell_size * 0.3,
                             Color::from_rgba(0, 255, 255, 255),
+                        );
+                    }
+                    3 => {
+                        // Splitter/Stopper node: entering this tile immediately ends the current slide.
+                        draw_rectangle(
+                            cell_x + 2.0,
+                            cell_y + 2.0,
+                            cell_size - 4.0,
+                            cell_size - 4.0,
+                            Color::from_rgba(42, 34, 20, 255),
+                        );
+                        draw_rectangle_lines(
+                            cell_x + 3.0,
+                            cell_y + 3.0,
+                            cell_size - 6.0,
+                            cell_size - 6.0,
+                            2.0,
+                            Color::from_rgba(255, 200, 70, 220),
+                        );
+                        let cx = cell_x + cell_size / 2.0;
+                        let cy = cell_y + cell_size / 2.0;
+                        draw_line(
+                            cx - cell_size * 0.2,
+                            cy,
+                            cx + cell_size * 0.2,
+                            cy,
+                            2.0,
+                            Color::from_rgba(255, 220, 130, 255),
+                        );
+                        draw_line(
+                            cx,
+                            cy - cell_size * 0.2,
+                            cx,
+                            cy + cell_size * 0.2,
+                            2.0,
+                            Color::from_rgba(255, 220, 130, 255),
                         );
                     }
                     _ => {
@@ -744,7 +789,7 @@ async fn main() {
                     },
                 );
                 
-                let rules_2 = "You cannot cross walls or charged paths.";
+                let rules_2 = "Splitter nodes stop your slide and create branch points.";
                 let r2_center = get_text_center(rules_2, font_ref, 18, 1.0, 0.0);
                 draw_text_ex(
                     rules_2,
@@ -773,7 +818,7 @@ async fn main() {
                 );
             }
             GameState::Playing => {
-                let info = "Arrow/WASD or Drag to Slide | R or Restart... button";
+                let info = "Arrow/WASD or Drag to Slide | Gold + tiles are splitter stops";
                 let info_center = get_text_center(info, font_ref, 18, 1.0, 0.0);
                 draw_text_ex(
                     info,
