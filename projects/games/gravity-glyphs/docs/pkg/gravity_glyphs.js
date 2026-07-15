@@ -1,6 +1,9 @@
 const COLS = 6;
 const ROWS = 4;
 const CELL = 96;
+const GRID_CENTER_X = (COLS - 1) / 2;
+const GRID_CENTER_Y = (ROWS - 1) / 2;
+const GRAVITY_INTERVAL_MS = 180;
 
 const LEVELS = [
   {
@@ -38,7 +41,7 @@ function activeGravity(glyphs) {
   }
   const cx = sx / active.length;
   const cy = sy / active.length;
-  return { x: Math.sign(cx - 2.5), y: Math.sign(cy - 1.5) };
+  return { x: Math.sign(cx - GRID_CENTER_X), y: Math.sign(cy - GRID_CENTER_Y) };
 }
 
 class GravityGlyphs {
@@ -46,6 +49,8 @@ class GravityGlyphs {
     this.level = 0;
     this.keysDown = new Set();
     this.lastGravityStep = 0;
+    this.rafId = null;
+    this.running = false;
     this.resetLevel();
   }
 
@@ -69,6 +74,7 @@ class GravityGlyphs {
     window.addEventListener("resize", () => this.resize());
     window.addEventListener("keydown", (e) => this.onKeyDown(e));
     window.addEventListener("keyup", (e) => this.keysDown.delete(e.code));
+    window.addEventListener("beforeunload", () => this.stop());
   }
 
   resize() {
@@ -92,6 +98,7 @@ class GravityGlyphs {
   }
 
   step(now) {
+    if (!this.running) return;
     if (!this.won) {
       if (this.keysDown.has("ArrowLeft")) this.ball.x -= 1;
       if (this.keysDown.has("ArrowRight")) this.ball.x += 1;
@@ -101,7 +108,7 @@ class GravityGlyphs {
       this.ball.x = clamp(this.ball.x, 0, COLS - 1);
       this.ball.y = clamp(this.ball.y, 0, ROWS - 1);
 
-      if (now - this.lastGravityStep > 180) {
+      if (now - this.lastGravityStep > GRAVITY_INTERVAL_MS) {
         const g = activeGravity(this.glyphs);
         this.ball.x = clamp(this.ball.x + g.x, 0, COLS - 1);
         this.ball.y = clamp(this.ball.y + g.y, 0, ROWS - 1);
@@ -111,7 +118,7 @@ class GravityGlyphs {
       this.won = this.ball.x === this.goal.x && this.ball.y === this.goal.y;
     }
     this.draw();
-    requestAnimationFrame((t) => this.step(t));
+    this.rafId = requestAnimationFrame((t) => this.step(t));
   }
 
   draw() {
@@ -166,7 +173,16 @@ class GravityGlyphs {
   }
 
   start() {
+    this.running = true;
     this.step(0);
+  }
+
+  stop() {
+    this.running = false;
+    if (this.rafId !== null) {
+      cancelAnimationFrame(this.rafId);
+      this.rafId = null;
+    }
   }
 }
 
