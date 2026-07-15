@@ -1,0 +1,6 @@
+/docs/
+/Cargo.lock
+/docs/pkg/
+/pkg/
+/target/
+**/.DS_Store
