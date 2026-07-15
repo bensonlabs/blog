@@ -16,7 +16,7 @@ struct Level {
 
 fn get_levels() -> Vec<Level> {
     vec![
-        // Level 1: Dense original-board glyph route (13 moves, 1,313 decision states)
+        // Level 1: dense glyph board (moves: 13, decisions: 1313, fails: 406)
         Level {
             grid: [
                 [0, 0, 0, 4, 1, 0, 0, 0],
@@ -30,7 +30,7 @@ fn get_levels() -> Vec<Level> {
             ],
             start_pos: (0, 0),
         },
-        // Level 2: Dense original-board glyph route (13 moves, 1,202 decision states)
+        // Level 2: dense glyph board (moves: 13, decisions: 1202, fails: 473)
         Level {
             grid: [
                 [0, 0, 0, 0, 1, 0, 4, 0],
@@ -44,7 +44,7 @@ fn get_levels() -> Vec<Level> {
             ],
             start_pos: (0, 0),
         },
-        // Level 3: Dense original-board glyph route (14 moves, 1,255 decision states)
+        // Level 3: dense glyph board (moves: 14, decisions: 1255, fails: 473)
         Level {
             grid: [
                 [0, 0, 0, 0, 1, 0, 0, 0],
@@ -58,7 +58,7 @@ fn get_levels() -> Vec<Level> {
             ],
             start_pos: (0, 0),
         },
-        // Level 4: Dense original-board glyph route (14 moves, 1,451 decision states)
+        // Level 4: dense glyph board (moves: 14, decisions: 1451, fails: 547)
         Level {
             grid: [
                 [0, 0, 0, 0, 1, 0, 0, 3],
@@ -72,7 +72,7 @@ fn get_levels() -> Vec<Level> {
             ],
             start_pos: (0, 0),
         },
-        // Level 5: Original maze-board glyph route (12 moves)
+        // Level 5: dense glyph board (moves: 12, decisions: 100, fails: 78)
         Level {
             grid: [
                 [0, 4, 0, 1, 0, 0, 0, 0],
@@ -86,7 +86,7 @@ fn get_levels() -> Vec<Level> {
             ],
             start_pos: (0, 0),
         },
-        // Level 6: Original maze-board glyph route (15 moves)
+        // Level 6: dense glyph board (moves: 15, decisions: 123, fails: 117)
         Level {
             grid: [
                 [0, 0, 0, 1, 0, 4, 0, 4],
@@ -100,7 +100,7 @@ fn get_levels() -> Vec<Level> {
             ],
             start_pos: (0, 0),
         },
-        // Level 7: Original maze-board expert route (18 moves)
+        // Level 7: dense glyph board (moves: 18, decisions: 84, fails: 94)
         Level {
             grid: [
                 [0, 4, 0, 1, 0, 0, 0, 0],
@@ -114,7 +114,7 @@ fn get_levels() -> Vec<Level> {
             ],
             start_pos: (0, 0),
         },
-        // Level 8: Original maze-board glyph route (13 moves)
+        // Level 8: dense glyph board (moves: 13, decisions: 102, fails: 95)
         Level {
             grid: [
                 [0, 0, 0, 1, 0, 0, 0, 4],
@@ -124,6 +124,594 @@ fn get_levels() -> Vec<Level> {
                 [1, 0, 1, 0, 0, 0, 0, 0],
                 [0, 3, 3, 0, 1, 0, 1, 4],
                 [0, 1, 1, 0, 4, 0, 1, 0],
+                [0, 0, 0, 0, 0, 3, 0, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 9: dense glyph board (moves: 14, decisions: 1089, fails: 413)
+        Level {
+            grid: [
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [3, 1, 0, 0, 0, 0, 1, 0],
+                [0, 3, 0, 1, 0, 0, 0, 0],
+                [1, 4, 0, 0, 4, 1, 0, 3],
+                [0, 0, 1, 0, 0, 0, 0, 1],
+                [0, 0, 0, 0, 1, 4, 0, 0],
+                [0, 1, 4, 0, 0, 0, 1, 0],
+                [0, 0, 0, 4, 0, 0, 0, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 10: dense glyph board (moves: 14, decisions: 1508, fails: 478)
+        Level {
+            grid: [
+                [0, 3, 0, 0, 1, 0, 0, 4],
+                [0, 1, 0, 0, 0, 0, 1, 0],
+                [0, 0, 0, 1, 4, 0, 0, 0],
+                [1, 0, 0, 0, 0, 1, 4, 0],
+                [0, 0, 1, 0, 0, 0, 0, 1],
+                [0, 0, 0, 4, 1, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 1, 0],
+                [0, 0, 4, 0, 3, 0, 0, 3],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 11: dense glyph board (moves: 14, decisions: 1357, fails: 428)
+        Level {
+            grid: [
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 1, 0],
+                [0, 0, 0, 1, 0, 4, 0, 0],
+                [1, 0, 4, 0, 0, 1, 0, 0],
+                [0, 0, 1, 4, 4, 0, 0, 1],
+                [3, 0, 0, 0, 1, 0, 0, 0],
+                [3, 1, 0, 0, 0, 0, 1, 0],
+                [0, 0, 0, 0, 3, 0, 0, 4],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 12: dense glyph board (moves: 18, decisions: 77, fails: 80)
+        Level {
+            grid: [
+                [0, 0, 0, 1, 0, 0, 3, 4],
+                [0, 1, 0, 0, 0, 1, 1, 0],
+                [0, 1, 1, 0, 0, 3, 0, 0],
+                [0, 0, 0, 0, 1, 1, 0, 1],
+                [1, 3, 1, 0, 4, 0, 4, 0],
+                [4, 0, 0, 0, 1, 0, 1, 0],
+                [0, 1, 1, 0, 0, 0, 1, 0],
+                [0, 0, 0, 0, 0, 0, 0, 4],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 13: dense glyph board (moves: 12, decisions: 1001, fails: 249)
+        Level {
+            grid: [
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 1, 0, 4, 0, 0, 1, 0],
+                [0, 0, 0, 1, 4, 0, 0, 0],
+                [1, 0, 4, 4, 0, 1, 3, 0],
+                [0, 0, 1, 0, 0, 0, 0, 1],
+                [0, 0, 0, 0, 1, 0, 0, 4],
+                [0, 1, 0, 3, 3, 0, 1, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 14: dense glyph board (moves: 14, decisions: 1134, fails: 409)
+        Level {
+            grid: [
+                [0, 0, 0, 0, 1, 0, 0, 3],
+                [0, 1, 0, 0, 0, 0, 1, 0],
+                [4, 0, 0, 1, 0, 4, 0, 0],
+                [1, 4, 0, 0, 0, 1, 3, 0],
+                [0, 0, 1, 0, 0, 0, 0, 1],
+                [0, 3, 0, 0, 1, 4, 0, 0],
+                [4, 1, 0, 0, 0, 0, 1, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 15: dense glyph board (moves: 14, decisions: 111, fails: 109)
+        Level {
+            grid: [
+                [0, 0, 0, 1, 0, 0, 0, 0],
+                [0, 1, 0, 0, 0, 1, 1, 0],
+                [3, 1, 1, 0, 4, 0, 0, 0],
+                [3, 0, 0, 0, 1, 1, 0, 1],
+                [1, 0, 1, 0, 0, 0, 0, 4],
+                [4, 0, 0, 0, 1, 0, 1, 0],
+                [0, 1, 1, 4, 0, 0, 1, 0],
+                [0, 0, 0, 0, 3, 0, 0, 4],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 16: dense glyph board (moves: 18, decisions: 2835, fails: 1451)
+        Level {
+            grid: [
+                [0, 3, 0, 0, 1, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 1, 0],
+                [0, 3, 0, 1, 0, 0, 4, 3],
+                [1, 0, 0, 0, 0, 1, 0, 0],
+                [0, 0, 1, 0, 4, 0, 0, 1],
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 1, 4, 0, 4, 0, 1, 0],
+                [0, 0, 0, 0, 0, 0, 0, 4],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 17: dense glyph board (moves: 12, decisions: 65, fails: 59)
+        Level {
+            grid: [
+                [0, 3, 0, 1, 0, 0, 4, 0],
+                [0, 1, 4, 0, 0, 1, 1, 0],
+                [0, 1, 1, 0, 0, 0, 0, 4],
+                [3, 0, 0, 0, 1, 1, 0, 1],
+                [1, 0, 1, 0, 0, 0, 0, 0],
+                [0, 4, 0, 4, 1, 0, 1, 0],
+                [0, 1, 1, 0, 0, 0, 1, 0],
+                [3, 0, 0, 0, 0, 0, 0, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 18: dense glyph board (moves: 16, decisions: 1994, fails: 906)
+        Level {
+            grid: [
+                [0, 0, 0, 0, 1, 4, 0, 0],
+                [0, 1, 0, 0, 3, 0, 1, 4],
+                [0, 0, 4, 1, 0, 0, 0, 0],
+                [1, 0, 0, 0, 0, 1, 0, 0],
+                [4, 0, 1, 0, 0, 0, 0, 1],
+                [3, 0, 0, 0, 1, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 1, 0],
+                [0, 0, 0, 0, 4, 0, 3, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 19: dense glyph board (moves: 13, decisions: 797, fails: 269)
+        Level {
+            grid: [
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 1, 3],
+                [0, 0, 0, 1, 0, 0, 0, 0],
+                [1, 0, 3, 0, 0, 1, 0, 0],
+                [4, 0, 1, 0, 0, 0, 0, 1],
+                [0, 0, 3, 0, 1, 0, 4, 0],
+                [0, 1, 0, 4, 0, 0, 1, 0],
+                [0, 0, 0, 4, 4, 0, 0, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 20: dense glyph board (moves: 13, decisions: 926, fails: 327)
+        Level {
+            grid: [
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 1, 0],
+                [4, 0, 0, 1, 0, 0, 0, 0],
+                [1, 0, 3, 0, 0, 1, 0, 0],
+                [0, 0, 1, 0, 0, 0, 4, 1],
+                [0, 3, 0, 3, 1, 0, 0, 0],
+                [0, 1, 4, 4, 0, 0, 1, 0],
+                [4, 0, 0, 0, 0, 0, 0, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 21: dense glyph board (moves: 16, decisions: 1940, fails: 917)
+        Level {
+            grid: [
+                [0, 0, 0, 0, 1, 0, 0, 4],
+                [0, 1, 0, 0, 0, 4, 1, 0],
+                [0, 0, 0, 1, 3, 0, 0, 0],
+                [1, 0, 0, 0, 0, 1, 0, 0],
+                [0, 0, 1, 0, 0, 0, 0, 1],
+                [0, 4, 0, 0, 1, 0, 0, 0],
+                [3, 1, 0, 0, 0, 0, 1, 3],
+                [0, 0, 4, 0, 0, 0, 4, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 22: dense glyph board (moves: 16, decisions: 2396, fails: 780)
+        Level {
+            grid: [
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 1, 4, 0, 0, 0, 1, 0],
+                [0, 4, 0, 1, 0, 0, 0, 0],
+                [1, 0, 0, 0, 0, 1, 0, 0],
+                [0, 0, 1, 0, 0, 0, 4, 1],
+                [0, 0, 0, 0, 1, 4, 0, 0],
+                [0, 1, 0, 0, 0, 3, 1, 0],
+                [4, 3, 0, 3, 0, 0, 0, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 23: dense glyph board (moves: 17, decisions: 2678, fails: 1326)
+        Level {
+            grid: [
+                [0, 0, 0, 0, 1, 0, 3, 0],
+                [0, 1, 4, 0, 0, 0, 1, 0],
+                [0, 0, 0, 1, 0, 0, 0, 4],
+                [1, 0, 0, 0, 0, 1, 0, 0],
+                [0, 4, 1, 0, 0, 0, 3, 1],
+                [0, 0, 0, 0, 1, 0, 3, 0],
+                [0, 1, 0, 0, 4, 0, 1, 4],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 24: dense glyph board (moves: 14, decisions: 1415, fails: 470)
+        Level {
+            grid: [
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 1, 4, 3, 0, 0, 1, 0],
+                [4, 0, 0, 1, 0, 0, 0, 0],
+                [1, 4, 0, 0, 0, 1, 0, 0],
+                [0, 3, 1, 0, 0, 0, 0, 1],
+                [0, 0, 0, 0, 1, 4, 0, 0],
+                [4, 1, 0, 0, 0, 0, 1, 0],
+                [0, 0, 0, 0, 0, 3, 0, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 25: dense glyph board (moves: 13, decisions: 936, fails: 346)
+        Level {
+            grid: [
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 1, 0],
+                [0, 3, 0, 1, 0, 0, 4, 0],
+                [1, 0, 4, 0, 0, 1, 0, 0],
+                [0, 0, 1, 0, 0, 0, 0, 1],
+                [3, 0, 0, 0, 1, 0, 0, 0],
+                [4, 1, 0, 0, 0, 0, 1, 0],
+                [4, 0, 0, 4, 0, 0, 0, 3],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 26: dense glyph board (moves: 16, decisions: 181, fails: 190)
+        Level {
+            grid: [
+                [0, 0, 0, 1, 3, 4, 0, 0],
+                [0, 1, 0, 0, 0, 1, 1, 0],
+                [0, 1, 1, 0, 4, 0, 3, 0],
+                [0, 0, 3, 0, 1, 1, 0, 1],
+                [1, 0, 1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 0, 1, 0],
+                [0, 1, 1, 0, 0, 4, 1, 0],
+                [4, 0, 0, 4, 0, 0, 0, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 27: dense glyph board (moves: 13, decisions: 1232, fails: 451)
+        Level {
+            grid: [
+                [0, 0, 3, 0, 1, 0, 0, 0],
+                [0, 1, 4, 0, 0, 0, 1, 4],
+                [0, 0, 0, 1, 0, 0, 0, 0],
+                [1, 0, 0, 0, 0, 1, 0, 0],
+                [0, 0, 1, 4, 0, 0, 0, 1],
+                [3, 0, 3, 0, 1, 4, 0, 4],
+                [0, 1, 0, 0, 0, 0, 1, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 28: dense glyph board (moves: 15, decisions: 178, fails: 169)
+        Level {
+            grid: [
+                [0, 0, 0, 1, 4, 0, 4, 0],
+                [0, 1, 0, 0, 0, 1, 1, 0],
+                [0, 1, 1, 0, 0, 4, 0, 0],
+                [4, 3, 0, 0, 1, 1, 0, 1],
+                [1, 0, 1, 3, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 0, 1, 0],
+                [0, 1, 1, 0, 0, 4, 1, 0],
+                [0, 3, 0, 0, 0, 0, 0, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 29: dense glyph board (moves: 15, decisions: 1530, fails: 677)
+        Level {
+            grid: [
+                [0, 0, 0, 0, 1, 0, 3, 0],
+                [0, 1, 0, 0, 4, 3, 1, 0],
+                [0, 0, 0, 1, 4, 0, 0, 0],
+                [1, 0, 0, 0, 0, 1, 0, 0],
+                [3, 0, 1, 0, 0, 0, 4, 1],
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 1, 0, 0, 4, 0, 1, 4],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 30: dense glyph board (moves: 15, decisions: 1557, fails: 669)
+        Level {
+            grid: [
+                [0, 0, 0, 0, 1, 4, 0, 3],
+                [0, 1, 0, 0, 0, 0, 1, 0],
+                [0, 0, 0, 1, 0, 0, 0, 0],
+                [1, 0, 0, 0, 0, 1, 0, 0],
+                [0, 0, 1, 4, 3, 0, 0, 1],
+                [0, 0, 4, 0, 1, 0, 0, 0],
+                [0, 1, 0, 0, 0, 4, 1, 0],
+                [0, 0, 0, 4, 0, 0, 3, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 31: dense glyph board (moves: 14, decisions: 1362, fails: 492)
+        Level {
+            grid: [
+                [0, 0, 0, 0, 1, 4, 0, 3],
+                [0, 1, 0, 0, 0, 0, 1, 0],
+                [0, 0, 4, 1, 0, 0, 0, 0],
+                [1, 0, 0, 0, 0, 1, 0, 4],
+                [0, 0, 1, 0, 3, 0, 0, 1],
+                [0, 4, 0, 0, 1, 0, 4, 0],
+                [0, 1, 3, 0, 0, 0, 1, 0],
+                [0, 0, 0, 3, 0, 0, 0, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 32: dense glyph board (moves: 20, decisions: 4505, fails: 3137)
+        Level {
+            grid: [
+                [0, 0, 3, 0, 1, 0, 4, 0],
+                [3, 1, 0, 0, 3, 0, 1, 0],
+                [0, 0, 0, 1, 0, 4, 0, 0],
+                [1, 0, 0, 0, 0, 1, 0, 0],
+                [0, 0, 1, 0, 0, 0, 0, 1],
+                [0, 0, 0, 0, 1, 3, 0, 0],
+                [0, 1, 0, 0, 0, 4, 1, 0],
+                [4, 0, 0, 0, 0, 0, 4, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 33: dense glyph board (moves: 14, decisions: 2453, fails: 768)
+        Level {
+            grid: [
+                [0, 0, 0, 0, 1, 0, 0, 3],
+                [0, 1, 3, 0, 0, 0, 1, 0],
+                [0, 0, 0, 1, 4, 0, 0, 0],
+                [1, 0, 0, 0, 4, 1, 0, 0],
+                [4, 0, 1, 0, 0, 0, 0, 1],
+                [0, 4, 0, 0, 1, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 1, 0],
+                [0, 0, 3, 0, 0, 3, 4, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 34: dense glyph board (moves: 14, decisions: 1082, fails: 422)
+        Level {
+            grid: [
+                [0, 0, 0, 3, 1, 0, 0, 0],
+                [4, 1, 0, 0, 0, 3, 1, 0],
+                [0, 0, 4, 1, 0, 0, 4, 0],
+                [1, 3, 0, 0, 0, 1, 0, 0],
+                [0, 0, 1, 0, 0, 0, 0, 1],
+                [0, 0, 0, 0, 1, 0, 4, 0],
+                [3, 1, 4, 0, 0, 0, 1, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 35: dense glyph board (moves: 15, decisions: 1904, fails: 841)
+        Level {
+            grid: [
+                [0, 0, 3, 0, 1, 0, 0, 0],
+                [4, 1, 4, 0, 3, 0, 1, 0],
+                [0, 0, 0, 1, 0, 0, 0, 0],
+                [1, 0, 0, 0, 0, 1, 0, 0],
+                [0, 0, 1, 0, 0, 0, 0, 1],
+                [0, 0, 4, 0, 1, 0, 3, 4],
+                [0, 1, 0, 0, 0, 0, 1, 0],
+                [3, 4, 0, 0, 0, 0, 0, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 36: dense glyph board (moves: 15, decisions: 1877, fails: 808)
+        Level {
+            grid: [
+                [0, 0, 0, 4, 1, 0, 0, 0],
+                [0, 1, 0, 0, 0, 4, 1, 0],
+                [0, 3, 0, 1, 0, 0, 0, 0],
+                [1, 3, 0, 4, 0, 1, 0, 0],
+                [0, 3, 1, 0, 0, 0, 0, 1],
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 1, 4, 0, 4, 0, 1, 3],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 37: dense glyph board (moves: 15, decisions: 1839, fails: 684)
+        Level {
+            grid: [
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 1, 0],
+                [0, 0, 0, 1, 3, 0, 0, 0],
+                [1, 0, 4, 0, 3, 1, 4, 4],
+                [0, 0, 1, 0, 0, 3, 0, 1],
+                [0, 0, 4, 0, 1, 0, 0, 0],
+                [4, 1, 0, 0, 3, 0, 1, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 38: dense glyph board (moves: 14, decisions: 1198, fails: 420)
+        Level {
+            grid: [
+                [0, 0, 0, 4, 1, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 1, 0],
+                [4, 0, 0, 1, 4, 3, 0, 0],
+                [1, 0, 0, 0, 0, 1, 0, 3],
+                [0, 0, 1, 0, 0, 0, 4, 1],
+                [0, 0, 0, 4, 1, 0, 0, 0],
+                [3, 1, 0, 0, 0, 0, 1, 0],
+                [0, 0, 0, 3, 0, 0, 0, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 39: dense glyph board (moves: 16, decisions: 1857, fails: 850)
+        Level {
+            grid: [
+                [0, 0, 0, 0, 1, 0, 4, 0],
+                [4, 1, 0, 0, 0, 0, 1, 0],
+                [0, 3, 4, 1, 0, 0, 0, 0],
+                [1, 0, 0, 0, 0, 1, 0, 0],
+                [3, 0, 1, 0, 0, 0, 0, 1],
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 1, 0, 4, 4, 0, 1, 3],
+                [0, 0, 0, 0, 0, 0, 0, 3],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 40: dense glyph board (moves: 16, decisions: 2746, fails: 1225)
+        Level {
+            grid: [
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 1, 0, 0, 4, 3, 1, 4],
+                [0, 0, 0, 1, 0, 0, 0, 0],
+                [1, 0, 0, 0, 0, 1, 0, 0],
+                [0, 3, 1, 0, 0, 0, 0, 1],
+                [4, 0, 0, 0, 1, 0, 0, 3],
+                [0, 1, 0, 0, 4, 0, 1, 0],
+                [0, 0, 0, 4, 0, 3, 0, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 41: dense glyph board (moves: 16, decisions: 3174, fails: 1330)
+        Level {
+            grid: [
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 1, 0, 4, 4, 0, 1, 0],
+                [0, 0, 0, 1, 0, 0, 0, 4],
+                [1, 0, 0, 0, 3, 1, 0, 0],
+                [0, 0, 1, 3, 0, 0, 0, 1],
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 1, 0, 4, 0, 0, 1, 0],
+                [4, 0, 3, 0, 0, 0, 0, 4],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 42: dense glyph board (moves: 15, decisions: 2051, fails: 773)
+        Level {
+            grid: [
+                [0, 0, 0, 3, 1, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 1, 0],
+                [0, 0, 0, 1, 0, 4, 0, 0],
+                [1, 0, 0, 0, 0, 1, 0, 0],
+                [0, 0, 1, 4, 3, 0, 0, 1],
+                [0, 4, 0, 0, 1, 0, 4, 0],
+                [0, 1, 4, 0, 0, 3, 1, 0],
+                [0, 0, 0, 0, 0, 0, 4, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 43: dense glyph board (moves: 15, decisions: 1446, fails: 601)
+        Level {
+            grid: [
+                [0, 0, 0, 0, 1, 4, 0, 0],
+                [4, 1, 0, 0, 0, 0, 1, 4],
+                [0, 0, 0, 1, 0, 4, 0, 0],
+                [1, 0, 0, 4, 3, 1, 0, 0],
+                [0, 0, 1, 0, 0, 0, 0, 1],
+                [0, 0, 0, 0, 1, 0, 0, 3],
+                [3, 1, 0, 0, 0, 0, 1, 0],
+                [0, 4, 0, 0, 0, 0, 0, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 44: dense glyph board (moves: 16, decisions: 3138, fails: 1394)
+        Level {
+            grid: [
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 1, 3, 0, 0, 0, 1, 0],
+                [0, 4, 0, 1, 0, 0, 0, 0],
+                [1, 0, 0, 3, 4, 1, 0, 0],
+                [0, 0, 1, 4, 0, 0, 0, 1],
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [4, 1, 4, 0, 0, 0, 1, 0],
+                [0, 0, 0, 0, 0, 3, 4, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 45: dense glyph board (moves: 18, decisions: 93, fails: 95)
+        Level {
+            grid: [
+                [0, 4, 0, 1, 0, 0, 0, 0],
+                [0, 1, 0, 0, 0, 1, 1, 0],
+                [0, 1, 1, 0, 0, 3, 0, 0],
+                [0, 0, 4, 3, 1, 1, 0, 1],
+                [1, 0, 1, 0, 0, 0, 0, 0],
+                [0, 4, 0, 4, 1, 4, 1, 3],
+                [0, 1, 1, 0, 0, 4, 1, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 46: dense glyph board (moves: 17, decisions: 87, fails: 97)
+        Level {
+            grid: [
+                [0, 0, 0, 1, 0, 0, 0, 0],
+                [0, 1, 0, 4, 0, 1, 1, 0],
+                [0, 1, 1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 1, 0, 1],
+                [1, 3, 1, 0, 0, 4, 0, 0],
+                [4, 3, 3, 0, 1, 4, 1, 0],
+                [0, 1, 1, 4, 0, 0, 1, 0],
+                [0, 0, 0, 0, 0, 4, 0, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 47: dense glyph board (moves: 17, decisions: 3098, fails: 1468)
+        Level {
+            grid: [
+                [0, 0, 4, 0, 1, 0, 4, 0],
+                [0, 1, 0, 0, 0, 4, 1, 0],
+                [0, 0, 0, 1, 0, 0, 0, 0],
+                [1, 0, 0, 0, 0, 1, 0, 0],
+                [0, 0, 1, 0, 0, 0, 3, 1],
+                [0, 4, 0, 0, 1, 4, 0, 0],
+                [3, 1, 0, 0, 0, 0, 1, 0],
+                [0, 4, 0, 3, 0, 0, 0, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 48: dense glyph board (moves: 15, decisions: 2102, fails: 985)
+        Level {
+            grid: [
+                [0, 0, 0, 0, 1, 0, 0, 4],
+                [0, 1, 0, 0, 3, 0, 1, 0],
+                [0, 0, 0, 1, 4, 0, 0, 4],
+                [1, 0, 0, 0, 3, 1, 0, 0],
+                [0, 0, 1, 3, 0, 0, 0, 1],
+                [4, 0, 0, 0, 1, 4, 0, 0],
+                [0, 1, 0, 0, 0, 0, 1, 4],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 49: dense glyph board (moves: 16, decisions: 1600, fails: 700)
+        Level {
+            grid: [
+                [0, 0, 0, 0, 1, 3, 0, 0],
+                [0, 1, 4, 0, 0, 4, 1, 0],
+                [4, 0, 0, 1, 0, 4, 0, 0],
+                [1, 0, 0, 0, 0, 1, 0, 0],
+                [0, 0, 1, 0, 0, 0, 0, 1],
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 1, 0, 0, 4, 0, 1, 3],
+                [0, 0, 4, 0, 0, 0, 3, 3],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 50: dense glyph board (moves: 17, decisions: 3217, fails: 1619)
+        Level {
+            grid: [
+                [0, 4, 0, 0, 1, 0, 0, 0],
+                [4, 1, 0, 0, 3, 0, 1, 0],
+                [0, 4, 0, 1, 0, 4, 0, 0],
+                [1, 0, 0, 0, 0, 1, 0, 0],
+                [0, 0, 1, 0, 0, 0, 0, 1],
+                [0, 3, 0, 4, 1, 0, 4, 0],
+                [0, 1, 3, 0, 0, 0, 1, 0],
                 [0, 0, 0, 0, 0, 3, 0, 0],
             ],
             start_pos: (0, 0),
@@ -210,16 +798,16 @@ fn window_conf() -> Conf {
 async fn main() {
     let levels = get_levels();
     let mut current_level_idx = 0;
-    
+
     // Load custom modern font
     let font = load_ttf_font("Outfit-Medium.ttf").await.ok();
-    
+
     // Game state variables
     let mut state = GameState::StartScreen;
     let mut grid = [[0u8; 8]; 8];
     let mut player_row = 0;
     let mut player_col = 0;
-    
+
     // Animation/Movement variables
     let mut slide_dir: Option<(i32, i32)> = None;
     let mut crossing_active = false;
@@ -229,10 +817,10 @@ async fn main() {
     let mut drag_start: Option<Vec2> = None;
     let drag_threshold = 10.0;
     let mut show_restart_confirm = false;
-    
+
     // Particles
     let mut particles: Vec<Particle> = Vec::new();
-    
+
     // Initialize the level
     let init_level = |idx: usize, grid_ref: &mut [[u8; 8]; 8], pr: &mut usize, pc: &mut usize| {
         let lvl = &levels[idx];
@@ -241,9 +829,14 @@ async fn main() {
         *pc = lvl.start_pos.1;
         grid_ref[*pr][*pc] = 2; // Starting position is charged
     };
-    
-    init_level(current_level_idx, &mut grid, &mut player_row, &mut player_col);
-    
+
+    init_level(
+        current_level_idx,
+        &mut grid,
+        &mut player_row,
+        &mut player_col,
+    );
+
     loop {
         let dt = get_frame_time();
         let sw = screen_width();
@@ -254,7 +847,7 @@ async fn main() {
         let offset_y = (sh - grid_size) / 2.0;
         let (restart_btn_x, restart_btn_y, restart_btn_w, restart_btn_h) =
             restart_button_rect(sw, sh, offset_y, grid_size);
-        
+
         // Update particles
         particles.retain_mut(|p| {
             p.x += p.vx * dt;
@@ -262,13 +855,21 @@ async fn main() {
             p.lifetime -= dt;
             p.lifetime > 0.0
         });
-        
+
         // Handle input and state updates
         match state {
             GameState::StartScreen => {
-                if is_key_pressed(KeyCode::Space) || is_key_pressed(KeyCode::Enter) || is_mouse_button_pressed(MouseButton::Left) {
+                if is_key_pressed(KeyCode::Space)
+                    || is_key_pressed(KeyCode::Enter)
+                    || is_mouse_button_pressed(MouseButton::Left)
+                {
                     state = GameState::Playing;
-                    init_level(current_level_idx, &mut grid, &mut player_row, &mut player_col);
+                    init_level(
+                        current_level_idx,
+                        &mut grid,
+                        &mut player_row,
+                        &mut player_col,
+                    );
                     crossing_active = false;
                     cross_charge_available = true;
                     show_restart_confirm = false;
@@ -277,7 +878,12 @@ async fn main() {
             GameState::Playing => {
                 // Restart level
                 if is_key_pressed(KeyCode::R) {
-                    init_level(current_level_idx, &mut grid, &mut player_row, &mut player_col);
+                    init_level(
+                        current_level_idx,
+                        &mut grid,
+                        &mut player_row,
+                        &mut player_col,
+                    );
                     slide_dir = None;
                     crossing_active = false;
                     cross_charge_available = true;
@@ -300,7 +906,12 @@ async fn main() {
                             confirm_btn.2,
                             confirm_btn.3,
                         ) {
-                            init_level(current_level_idx, &mut grid, &mut player_row, &mut player_col);
+                            init_level(
+                                current_level_idx,
+                                &mut grid,
+                                &mut player_row,
+                                &mut player_col,
+                            );
                             slide_dir = None;
                             crossing_active = false;
                             cross_charge_available = true;
@@ -323,7 +934,7 @@ async fn main() {
                         step_timer = 0.0;
                         let next_row = player_row as i32 + dy;
                         let next_col = player_col as i32 + dx;
-                        
+
                         if next_row >= 0 && next_row < 8 && next_col >= 0 && next_col < 8 {
                             let nr = next_row as usize;
                             let nc = next_col as usize;
@@ -333,7 +944,7 @@ async fn main() {
                                 player_col = nc;
                                 let hit_splitter = grid[player_row][player_col] == 3;
                                 grid[player_row][player_col] = 2;
-                                
+
                                 // Spawn movement particles
                                 let sw = screen_width();
                                 let sh = screen_height();
@@ -343,7 +954,7 @@ async fn main() {
                                 let offset_y = (sh - grid_size) / 2.0;
                                 let px = offset_x + player_col as f32 * cell_size + cell_size / 2.0;
                                 let py = offset_y + player_row as f32 * cell_size + cell_size / 2.0;
-                                
+
                                 for _ in 0..5 {
                                     particles.push(Particle {
                                         x: px,
@@ -359,7 +970,9 @@ async fn main() {
                                     slide_dir = None;
                                     crossing_active = false;
                                 }
-                            } else if grid[nr][nc] == 2 && (crossing_active || cross_charge_available) {
+                            } else if grid[nr][nc] == 2
+                                && (crossing_active || cross_charge_available)
+                            {
                                 // Consume one cross ability the first time we step onto charged trail.
                                 if !crossing_active {
                                     crossing_active = true;
@@ -377,7 +990,7 @@ async fn main() {
                             slide_dir = None;
                             crossing_active = false;
                         }
-                        
+
                         // Check states after step finishes
                         if slide_dir.is_none() {
                             // Check win
@@ -389,7 +1002,7 @@ async fn main() {
                                     }
                                 }
                             }
-                            
+
                             if goal_count == 0 {
                                 if current_level_idx + 1 < levels.len() {
                                     state = GameState::LevelClear;
@@ -421,8 +1034,14 @@ async fn main() {
 
                     if is_mouse_button_pressed(MouseButton::Left) {
                         let (mx, my) = mouse_position();
-                        if point_in_rect(mx, my, restart_btn_x, restart_btn_y, restart_btn_w, restart_btn_h)
-                        {
+                        if point_in_rect(
+                            mx,
+                            my,
+                            restart_btn_x,
+                            restart_btn_y,
+                            restart_btn_w,
+                            restart_btn_h,
+                        ) {
                             show_restart_confirm = true;
                             drag_start = None;
                         } else {
@@ -454,7 +1073,7 @@ async fn main() {
                             drag_start = None;
                         }
                     }
-                    
+
                     if let Some((dx, dy)) = intended_dir {
                         let next_row = player_row as i32 + dy;
                         let next_col = player_col as i32 + dx;
@@ -489,10 +1108,18 @@ async fn main() {
                 }
             }
             GameState::LevelClear => {
-                if is_key_pressed(KeyCode::Space) || is_key_pressed(KeyCode::Enter) || is_mouse_button_pressed(MouseButton::Left) {
+                if is_key_pressed(KeyCode::Space)
+                    || is_key_pressed(KeyCode::Enter)
+                    || is_mouse_button_pressed(MouseButton::Left)
+                {
                     current_level_idx += 1;
                     state = GameState::Playing;
-                    init_level(current_level_idx, &mut grid, &mut player_row, &mut player_col);
+                    init_level(
+                        current_level_idx,
+                        &mut grid,
+                        &mut player_row,
+                        &mut player_col,
+                    );
                     crossing_active = false;
                     cross_charge_available = true;
                     drag_start = None;
@@ -502,7 +1129,12 @@ async fn main() {
             GameState::Stuck => {
                 if is_key_pressed(KeyCode::R) {
                     state = GameState::Playing;
-                    init_level(current_level_idx, &mut grid, &mut player_row, &mut player_col);
+                    init_level(
+                        current_level_idx,
+                        &mut grid,
+                        &mut player_row,
+                        &mut player_col,
+                    );
                     slide_dir = None;
                     crossing_active = false;
                     cross_charge_available = true;
@@ -511,10 +1143,18 @@ async fn main() {
                 }
             }
             GameState::GameComplete => {
-                if is_key_pressed(KeyCode::R) || is_key_pressed(KeyCode::Space) || is_mouse_button_pressed(MouseButton::Left) {
+                if is_key_pressed(KeyCode::R)
+                    || is_key_pressed(KeyCode::Space)
+                    || is_mouse_button_pressed(MouseButton::Left)
+                {
                     current_level_idx = 0;
                     state = GameState::Playing;
-                    init_level(current_level_idx, &mut grid, &mut player_row, &mut player_col);
+                    init_level(
+                        current_level_idx,
+                        &mut grid,
+                        &mut player_row,
+                        &mut player_col,
+                    );
                     slide_dir = None;
                     crossing_active = false;
                     cross_charge_available = true;
@@ -523,10 +1163,10 @@ async fn main() {
                 }
             }
         }
-        
+
         // --- DRAWING ---
         clear_background(Color::from_rgba(10, 11, 16, 255));
-        
+
         // Get layout dimensions dynamically
         let sw = screen_width();
         let sh = screen_height();
@@ -534,7 +1174,7 @@ async fn main() {
         let cell_size = grid_size / 8.0;
         let offset_x = (sw - grid_size) / 2.0;
         let offset_y = (sh - grid_size) / 2.0;
-        
+
         // Draw decorative background grid/neon lines
         draw_rectangle_lines(
             offset_x - 5.0,
@@ -544,17 +1184,23 @@ async fn main() {
             2.0,
             Color::from_rgba(128, 0, 255, 100),
         );
-        
+
         // Draw the 8x8 Grid
         for r in 0..8 {
             for c in 0..8 {
                 let cell_x = offset_x + c as f32 * cell_size;
                 let cell_y = offset_y + r as f32 * cell_size;
-                
+
                 match grid[r][c] {
                     1 => {
                         // Wall: Dark magenta base with glowing border
-                        draw_rectangle(cell_x, cell_y, cell_size, cell_size, Color::from_rgba(35, 10, 30, 255));
+                        draw_rectangle(
+                            cell_x,
+                            cell_y,
+                            cell_size,
+                            cell_size,
+                            Color::from_rgba(35, 10, 30, 255),
+                        );
                         draw_rectangle_lines(
                             cell_x + 2.0,
                             cell_y + 2.0,
@@ -637,9 +1283,25 @@ async fn main() {
                         );
                         let cx = cell_x + cell_size / 2.0;
                         let cy = cell_y + cell_size / 2.0;
-                        draw_circle(cx, cy, cell_size * 0.22, Color::from_rgba(170, 90, 255, 120));
-                        draw_circle_lines(cx, cy, cell_size * 0.24, 2.0, Color::from_rgba(210, 150, 255, 255));
-                        draw_circle(cx, cy, cell_size * 0.08, Color::from_rgba(245, 220, 255, 255));
+                        draw_circle(
+                            cx,
+                            cy,
+                            cell_size * 0.22,
+                            Color::from_rgba(170, 90, 255, 120),
+                        );
+                        draw_circle_lines(
+                            cx,
+                            cy,
+                            cell_size * 0.24,
+                            2.0,
+                            Color::from_rgba(210, 150, 255, 255),
+                        );
+                        draw_circle(
+                            cx,
+                            cy,
+                            cell_size * 0.08,
+                            Color::from_rgba(245, 220, 255, 255),
+                        );
                     }
                     _ => {
                         // Empty: Subtle grid lines
@@ -655,7 +1317,7 @@ async fn main() {
                 }
             }
         }
-        
+
         // Draw particles
         for p in &particles {
             let size = 4.0 * (p.lifetime / p.max_lifetime);
@@ -663,7 +1325,7 @@ async fn main() {
             col.a = p.lifetime / p.max_lifetime;
             draw_rectangle(p.x - size / 2.0, p.y - size / 2.0, size, size, col);
         }
-        
+
         // Draw Player with Neon Glow
         if state == GameState::Playing || state == GameState::Stuck {
             let px = offset_x + player_col as f32 * cell_size;
@@ -671,7 +1333,7 @@ async fn main() {
             let p_size = cell_size - 10.0;
             let center_x = px + cell_size / 2.0;
             let center_y = py + cell_size / 2.0;
-            
+
             // Layered translucent glow
             for i in (1..=4).rev() {
                 let glow_size = p_size + (i as f32 * 5.0);
@@ -701,7 +1363,7 @@ async fn main() {
                 Color::new(0.0, 1.0, 1.0, 1.0),
             );
         }
-        
+
         // Render HUD/Texts
         let font_ref = font.as_ref();
         let title = "LUMEN TRACE";
@@ -718,7 +1380,7 @@ async fn main() {
                 ..Default::default()
             },
         );
-        
+
         let level_str = format!("LEVEL {} / {}", current_level_idx + 1, levels.len());
         let level_size = 20;
         let level_center = get_text_center(&level_str, font_ref, level_size, 1.0, 0.0);
@@ -733,12 +1395,12 @@ async fn main() {
                 ..Default::default()
             },
         );
-        
+
         // Draw instructions/status overlay
         match state {
             GameState::StartScreen => {
                 draw_rectangle(0.0, 0.0, sw, sh, Color::from_rgba(10, 10, 20, 220));
-                
+
                 let big_title = "LUMEN TRACE";
                 let bt_center = get_text_center(big_title, font_ref, 60, 1.0, 0.0);
                 draw_text_ex(
@@ -752,7 +1414,7 @@ async fn main() {
                         ..Default::default()
                     },
                 );
-                
+
                 let prompt = "Press SPACE, ENTER or CLICK to Begin";
                 let pr_center = get_text_center(prompt, font_ref, 24, 1.0, 0.0);
                 draw_text_ex(
@@ -766,7 +1428,7 @@ async fn main() {
                         ..Default::default()
                     },
                 );
-                
+
                 let rules_1 = "Collect every purple glyph without trapping yourself.";
                 let r1_center = get_text_center(rules_1, font_ref, 18, 1.0, 0.0);
                 draw_text_ex(
@@ -780,7 +1442,7 @@ async fn main() {
                         ..Default::default()
                     },
                 );
-                
+
                 let rules_2 = "Open boards have many tempting routes and dead ends.";
                 let r2_center = get_text_center(rules_2, font_ref, 18, 1.0, 0.0);
                 draw_text_ex(
@@ -880,7 +1542,13 @@ async fn main() {
                     let panel_h = 190.0;
                     let panel_x = sw / 2.0 - panel_w / 2.0;
                     let panel_y = sh / 2.0 - panel_h / 2.0;
-                    draw_rectangle(panel_x, panel_y, panel_w, panel_h, Color::from_rgba(30, 30, 45, 245));
+                    draw_rectangle(
+                        panel_x,
+                        panel_y,
+                        panel_w,
+                        panel_h,
+                        Color::from_rgba(30, 30, 45, 245),
+                    );
                     draw_rectangle_lines(
                         panel_x,
                         panel_y,
@@ -980,7 +1648,7 @@ async fn main() {
             }
             GameState::LevelClear => {
                 draw_rectangle(0.0, 0.0, sw, sh, Color::from_rgba(10, 20, 15, 200));
-                
+
                 let msg = "LEVEL CLEARED!";
                 let msg_center = get_text_center(msg, font_ref, 48, 1.0, 0.0);
                 draw_text_ex(
@@ -994,7 +1662,7 @@ async fn main() {
                         ..Default::default()
                     },
                 );
-                
+
                 let prompt = "Press SPACE, ENTER or CLICK for Next Level";
                 let pr_center = get_text_center(prompt, font_ref, 20, 1.0, 0.0);
                 draw_text_ex(
@@ -1018,7 +1686,7 @@ async fn main() {
                     grid_size,
                     Color::from_rgba(255, 0, 0, 30),
                 );
-                
+
                 let msg = "NO MORE MOVES!";
                 let msg_center = get_text_center(msg, font_ref, 36, 1.0, 0.0);
                 draw_text_ex(
@@ -1032,7 +1700,7 @@ async fn main() {
                         ..Default::default()
                     },
                 );
-                
+
                 let prompt = "Press R to Restart Level";
                 let pr_center = get_text_center(prompt, font_ref, 20, 1.0, 0.0);
                 draw_text_ex(
@@ -1049,7 +1717,7 @@ async fn main() {
             }
             GameState::GameComplete => {
                 draw_rectangle(0.0, 0.0, sw, sh, Color::from_rgba(15, 10, 25, 230));
-                
+
                 let msg = "GRID COMPLETELY CHARGED!";
                 let msg_center = get_text_center(msg, font_ref, 44, 1.0, 0.0);
                 draw_text_ex(
@@ -1063,7 +1731,7 @@ async fn main() {
                         ..Default::default()
                     },
                 );
-                
+
                 let sub = "Congratulations! You have completed LumenTrace.";
                 let sub_center = get_text_center(sub, font_ref, 20, 1.0, 0.0);
                 draw_text_ex(
@@ -1077,7 +1745,7 @@ async fn main() {
                         ..Default::default()
                     },
                 );
-                
+
                 let prompt = "Press R, SPACE or CLICK to play again";
                 let pr_center = get_text_center(prompt, font_ref, 18, 1.0, 0.0);
                 draw_text_ex(
@@ -1093,7 +1761,7 @@ async fn main() {
                 );
             }
         }
-        
+
         next_frame().await
     }
 }
