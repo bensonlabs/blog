@@ -107,14 +107,19 @@ class GravityGlyphs {
   step(now) {
     if (!this.running) return;
     if (!this.won) {
-      if (this.keysDown.has("ArrowLeft")) this.ball.x -= MOVE_DELTA;
-      if (this.keysDown.has("ArrowRight")) this.ball.x += MOVE_DELTA;
-      if (this.keysDown.has("ArrowUp")) this.ball.y -= MOVE_DELTA;
-      if (this.keysDown.has("ArrowDown")) this.ball.y += MOVE_DELTA;
-      this.keysDown.delete("ArrowLeft");
-      this.keysDown.delete("ArrowRight");
-      this.keysDown.delete("ArrowUp");
-      this.keysDown.delete("ArrowDown");
+      if (this.keysDown.has("ArrowLeft")) {
+        this.ball.x -= MOVE_DELTA;
+        this.keysDown.delete("ArrowLeft");
+      } else if (this.keysDown.has("ArrowRight")) {
+        this.ball.x += MOVE_DELTA;
+        this.keysDown.delete("ArrowRight");
+      } else if (this.keysDown.has("ArrowUp")) {
+        this.ball.y -= MOVE_DELTA;
+        this.keysDown.delete("ArrowUp");
+      } else if (this.keysDown.has("ArrowDown")) {
+        this.ball.y += MOVE_DELTA;
+        this.keysDown.delete("ArrowDown");
+      }
       this.ball.x = clamp(this.ball.x, 0, COLS - 1);
       this.ball.y = clamp(this.ball.y, 0, ROWS - 1);
 
@@ -137,39 +142,39 @@ class GravityGlyphs {
     this.ctx.fillStyle = "#000";
     this.ctx.fillRect(0, 0, w, h);
 
-    const size = Math.min(w / COLS, h / ROWS, CELL);
-    const ox = (w - COLS * size) / 2;
-    const oy = (h - ROWS * size) / 2;
+    const cellSize = Math.min(w / COLS, h / ROWS, CELL);
+    const ox = (w - COLS * cellSize) / 2;
+    const oy = (h - ROWS * cellSize) / 2;
 
     for (let y = 0; y < ROWS; y += 1) {
       for (let x = 0; x < COLS; x += 1) {
         this.ctx.fillStyle = "#0a0a0a";
-        this.ctx.fillRect(ox + x * size, oy + y * size, size - 2, size - 2);
+        this.ctx.fillRect(ox + x * cellSize, oy + y * cellSize, cellSize - 2, cellSize - 2);
       }
     }
 
     this.ctx.fillStyle = "#26d07c";
-    this.ctx.fillRect(ox + this.goal.x * size, oy + this.goal.y * size, size - 2, size - 2);
+    this.ctx.fillRect(ox + this.goal.x * cellSize, oy + this.goal.y * cellSize, cellSize - 2, cellSize - 2);
 
     for (const g of this.glyphs) {
-      const cx = ox + g.x * size + size / 2;
-      const cy = oy + g.y * size + size / 2;
+      const cx = ox + g.x * cellSize + cellSize / 2;
+      const cy = oy + g.y * cellSize + cellSize / 2;
       this.ctx.fillStyle = g.active ? "#64c8ff" : "#dcdcff";
       this.ctx.beginPath();
-      this.ctx.arc(cx, cy, size * 0.28, 0, Math.PI * 2);
+      this.ctx.arc(cx, cy, cellSize * 0.28, 0, Math.PI * 2);
       this.ctx.fill();
       if (g.active) {
         this.ctx.strokeStyle = "#3490ff";
         this.ctx.lineWidth = 2;
         this.ctx.beginPath();
-        this.ctx.arc(cx, cy, size * 0.34, 0, Math.PI * 2);
+        this.ctx.arc(cx, cy, cellSize * 0.34, 0, Math.PI * 2);
         this.ctx.stroke();
       }
     }
 
     this.ctx.fillStyle = "#f5d74f";
     this.ctx.beginPath();
-    this.ctx.arc(ox + this.ball.x * size + size / 2, oy + this.ball.y * size + size / 2, size * 0.2, 0, Math.PI * 2);
+    this.ctx.arc(ox + this.ball.x * cellSize + cellSize / 2, oy + this.ball.y * cellSize + cellSize / 2, cellSize * 0.2, 0, Math.PI * 2);
     this.ctx.fill();
 
     this.ctx.fillStyle = "#dcddde";
@@ -184,7 +189,7 @@ class GravityGlyphs {
 
   start() {
     this.running = true;
-    this.step(0);
+    this.step(performance.now());
   }
 
   stop() {
