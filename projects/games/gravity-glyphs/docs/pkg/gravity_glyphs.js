@@ -4,6 +4,7 @@ const CELL = 96;
 const GRID_CENTER_X = (COLS - 1) / 2;
 const GRID_CENTER_Y = (ROWS - 1) / 2;
 const GRAVITY_INTERVAL_MS = 180;
+const MOVE_DELTA = 1;
 
 const LEVELS = [
   {
@@ -51,6 +52,10 @@ class GravityGlyphs {
     this.lastGravityStep = 0;
     this.rafId = null;
     this.running = false;
+    this.onResize = () => this.resize();
+    this.onKeyDownEvent = (e) => this.onKeyDown(e);
+    this.onKeyUpEvent = (e) => this.keysDown.delete(e.code);
+    this.onBeforeUnload = () => this.stop();
     this.resetLevel();
   }
 
@@ -71,10 +76,10 @@ class GravityGlyphs {
     container.textContent = "";
     container.appendChild(this.canvas);
     this.resize();
-    window.addEventListener("resize", () => this.resize());
-    window.addEventListener("keydown", (e) => this.onKeyDown(e));
-    window.addEventListener("keyup", (e) => this.keysDown.delete(e.code));
-    window.addEventListener("beforeunload", () => this.stop());
+    window.addEventListener("resize", this.onResize);
+    window.addEventListener("keydown", this.onKeyDownEvent);
+    window.addEventListener("keyup", this.onKeyUpEvent);
+    window.addEventListener("beforeunload", this.onBeforeUnload);
   }
 
   resize() {
@@ -85,7 +90,9 @@ class GravityGlyphs {
   }
 
   onKeyDown(e) {
-    this.keysDown.add(e.code);
+    if (e.code.startsWith("Arrow")) {
+      this.keysDown.add(e.code);
+    }
     if (e.code === "Space") {
       this.glyphs.forEach((g) => (g.active = !g.active));
       e.preventDefault();
@@ -100,11 +107,14 @@ class GravityGlyphs {
   step(now) {
     if (!this.running) return;
     if (!this.won) {
-      if (this.keysDown.has("ArrowLeft")) this.ball.x -= 1;
-      if (this.keysDown.has("ArrowRight")) this.ball.x += 1;
-      if (this.keysDown.has("ArrowUp")) this.ball.y -= 1;
-      if (this.keysDown.has("ArrowDown")) this.ball.y += 1;
-      this.keysDown.clear();
+      if (this.keysDown.has("ArrowLeft")) this.ball.x -= MOVE_DELTA;
+      if (this.keysDown.has("ArrowRight")) this.ball.x += MOVE_DELTA;
+      if (this.keysDown.has("ArrowUp")) this.ball.y -= MOVE_DELTA;
+      if (this.keysDown.has("ArrowDown")) this.ball.y += MOVE_DELTA;
+      this.keysDown.delete("ArrowLeft");
+      this.keysDown.delete("ArrowRight");
+      this.keysDown.delete("ArrowUp");
+      this.keysDown.delete("ArrowDown");
       this.ball.x = clamp(this.ball.x, 0, COLS - 1);
       this.ball.y = clamp(this.ball.y, 0, ROWS - 1);
 
@@ -183,6 +193,10 @@ class GravityGlyphs {
       cancelAnimationFrame(this.rafId);
       this.rafId = null;
     }
+    window.removeEventListener("resize", this.onResize);
+    window.removeEventListener("keydown", this.onKeyDownEvent);
+    window.removeEventListener("keyup", this.onKeyUpEvent);
+    window.removeEventListener("beforeunload", this.onBeforeUnload);
   }
 }
 
