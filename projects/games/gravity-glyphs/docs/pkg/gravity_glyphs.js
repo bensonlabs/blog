@@ -107,16 +107,23 @@ class GravityGlyphs {
   step(now) {
     if (!this.running) return;
     if (!this.won) {
+      let movedX = false;
+      let movedY = false;
       if (this.keysDown.has("ArrowLeft")) {
         this.ball.x -= MOVE_DELTA;
         this.keysDown.delete("ArrowLeft");
-      } else if (this.keysDown.has("ArrowRight")) {
+        movedX = true;
+      }
+      if (this.keysDown.has("ArrowRight") && !movedX) {
         this.ball.x += MOVE_DELTA;
         this.keysDown.delete("ArrowRight");
-      } else if (this.keysDown.has("ArrowUp")) {
+      }
+      if (this.keysDown.has("ArrowUp")) {
         this.ball.y -= MOVE_DELTA;
         this.keysDown.delete("ArrowUp");
-      } else if (this.keysDown.has("ArrowDown")) {
+        movedY = true;
+      }
+      if (this.keysDown.has("ArrowDown") && !movedY) {
         this.ball.y += MOVE_DELTA;
         this.keysDown.delete("ArrowDown");
       }
@@ -179,7 +186,7 @@ class GravityGlyphs {
 
     this.ctx.fillStyle = "#dcddde";
     this.ctx.font = "16px system-ui, sans-serif";
-    this.ctx.fillText("Arrows: move  Space: toggle glyphs  Enter: next level", 16, Math.max(24, oy - 16));
+    this.ctx.fillText("Arrows: move • Space: toggle glyphs • Enter: next level", 16, Math.max(24, oy - 16));
     if (this.won) {
       this.ctx.fillStyle = "#a78bfa";
       this.ctx.font = "700 22px system-ui, sans-serif";
