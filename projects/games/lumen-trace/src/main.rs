@@ -16,143 +16,115 @@ struct Level {
 
 fn get_levels() -> Vec<Level> {
     vec![
-        // Level 1: Winding intro with splitter stops
+        // Level 1: Dense original-board glyph route (13 moves, 1,313 decision states)
         Level {
             grid: [
-                [0, 0, 0, 0, 0, 0, 3, 1],
-                [1, 1, 1, 1, 1, 1, 0, 1],
-                [1, 1, 0, 0, 1, 1, 0, 1],
-                [1, 1, 1, 0, 1, 1, 0, 1],
-                [1, 1, 1, 0, 0, 0, 0, 1],
-                [1, 1, 1, 1, 1, 0, 0, 1],
-                [1, 1, 1, 1, 1, 0, 0, 1],
-                [1, 1, 1, 1, 1, 1, 1, 1],
+                [0, 0, 0, 4, 1, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 1, 0],
+                [0, 0, 0, 1, 0, 4, 0, 0],
+                [1, 0, 0, 0, 0, 1, 0, 4],
+                [0, 4, 1, 0, 0, 3, 0, 1],
+                [0, 0, 0, 0, 1, 3, 3, 0],
+                [0, 1, 0, 0, 0, 0, 1, 0],
+                [0, 0, 0, 0, 4, 0, 0, 0],
             ],
             start_pos: (0, 0),
         },
-        // Level 2: Staircase with center stopper
+        // Level 2: Dense original-board glyph route (13 moves, 1,202 decision states)
         Level {
             grid: [
-                [0, 0, 1, 1, 1, 1, 1, 1],
-                [1, 0, 0, 1, 1, 1, 1, 1],
-                [1, 1, 0, 1, 1, 1, 1, 1],
-                [1, 1, 0, 1, 1, 1, 1, 1],
-                [1, 1, 0, 1, 1, 1, 1, 1],
-                [1, 1, 0, 1, 1, 1, 1, 1],
-                [1, 1, 0, 1, 0, 0, 0, 1],
-                [1, 0, 0, 3, 0, 0, 0, 1],
+                [0, 0, 0, 0, 1, 0, 4, 0],
+                [0, 1, 0, 4, 3, 0, 1, 0],
+                [0, 0, 0, 1, 0, 0, 0, 3],
+                [1, 0, 0, 0, 0, 1, 0, 0],
+                [0, 0, 1, 0, 0, 0, 0, 1],
+                [0, 0, 3, 0, 1, 0, 4, 0],
+                [0, 1, 0, 0, 0, 0, 1, 0],
+                [0, 0, 0, 0, 4, 0, 0, 4],
             ],
             start_pos: (0, 0),
         },
-        // Level 3: Branch hunt with forced split
+        // Level 3: Dense original-board glyph route (14 moves, 1,255 decision states)
         Level {
             grid: [
-                [0, 1, 1, 1, 1, 1, 1, 1],
-                [0, 1, 1, 1, 1, 1, 1, 1],
-                [0, 0, 0, 3, 0, 0, 0, 1],
-                [0, 0, 1, 1, 1, 1, 0, 1],
-                [0, 0, 1, 1, 1, 1, 0, 0],
-                [0, 0, 1, 1, 1, 1, 1, 0],
-                [1, 1, 1, 1, 0, 0, 0, 0],
-                [1, 1, 1, 1, 1, 1, 1, 1],
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 1, 0, 4, 0, 0, 1, 0],
+                [0, 0, 0, 1, 4, 0, 0, 0],
+                [1, 0, 0, 0, 0, 1, 4, 0],
+                [0, 0, 1, 0, 0, 0, 0, 1],
+                [0, 0, 3, 4, 1, 0, 0, 4],
+                [0, 1, 0, 0, 0, 0, 1, 3],
+                [0, 3, 0, 0, 0, 0, 0, 0],
             ],
             start_pos: (0, 0),
         },
-        // Level 4: Rail maze with branch node
+        // Level 4: Dense original-board glyph route (14 moves, 1,451 decision states)
         Level {
             grid: [
-                [0, 0, 0, 0, 1, 1, 1, 1],
-                [1, 1, 1, 0, 1, 1, 1, 1],
-                [1, 0, 1, 0, 0, 0, 1, 1],
-                [1, 0, 1, 1, 1, 0, 1, 1],
-                [1, 0, 0, 3, 1, 0, 0, 1],
-                [1, 1, 1, 0, 1, 1, 0, 1],
-                [1, 1, 1, 0, 0, 0, 0, 1],
-                [1, 1, 1, 1, 1, 1, 1, 1],
+                [0, 0, 0, 0, 1, 0, 0, 3],
+                [4, 1, 0, 0, 0, 3, 1, 0],
+                [0, 0, 0, 1, 4, 0, 0, 0],
+                [1, 4, 0, 0, 0, 1, 0, 0],
+                [4, 0, 1, 0, 0, 0, 0, 1],
+                [0, 0, 0, 3, 1, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 1, 0],
+                [0, 0, 4, 0, 0, 0, 0, 0],
             ],
             start_pos: (0, 0),
         },
-        // Level 5: Compact maze with splitter stop
+        // Level 5: Original maze-board glyph route (12 moves)
         Level {
             grid: [
-                [0, 1, 1, 1, 1, 1, 1, 1],
-                [0, 0, 0, 1, 1, 1, 1, 1],
-                [0, 0, 3, 0, 0, 1, 1, 1],
-                [0, 0, 1, 1, 0, 1, 1, 1],
-                [0, 0, 1, 1, 0, 0, 0, 1],
-                [1, 1, 1, 1, 1, 0, 1, 1],
-                [1, 1, 1, 1, 1, 1, 1, 1],
-                [1, 1, 1, 1, 1, 1, 1, 1],
-            ],
-            start_pos: (0, 0),
-        },
-        // Level 6: Web maze with central stopper
-        Level {
-            grid: [
-                [0, 0, 1, 0, 0, 1, 1, 1],
-                [1, 0, 1, 3, 0, 0, 0, 0],
-                [1, 0, 1, 0, 1, 1, 1, 1],
-                [1, 0, 0, 0, 1, 1, 1, 1],
-                [1, 0, 0, 0, 1, 1, 1, 1],
-                [1, 1, 0, 0, 1, 1, 1, 1],
-                [1, 1, 1, 1, 1, 1, 1, 1],
-                [1, 1, 1, 1, 1, 1, 1, 1],
-            ],
-            start_pos: (0, 0),
-        },
-        // Level 7: Junction web with explicit split point
-        Level {
-            grid: [
-                [0, 0, 1, 0, 0, 0, 1, 1],
-                [0, 0, 1, 0, 1, 0, 1, 1],
-                [1, 0, 1, 0, 1, 0, 0, 1],
-                [1, 0, 0, 3, 1, 1, 0, 1],
-                [1, 1, 1, 0, 1, 1, 0, 1],
-                [1, 1, 1, 0, 0, 0, 0, 1],
-                [1, 1, 1, 1, 1, 1, 1, 1],
-                [1, 1, 1, 1, 1, 1, 1, 1],
-            ],
-            start_pos: (0, 0),
-        },
-        // Level 8: Grid puzzle with stopper hub
-        Level {
-            grid: [
-                [0, 0, 0, 1, 0, 0, 0, 1],
-                [1, 1, 0, 1, 0, 1, 0, 1],
-                [0, 1, 0, 0, 0, 1, 0, 1],
-                [0, 1, 1, 1, 1, 1, 0, 1],
+                [0, 4, 0, 1, 0, 0, 0, 0],
+                [0, 1, 0, 0, 4, 1, 1, 4],
+                [0, 1, 1, 0, 4, 0, 0, 0],
                 [0, 0, 0, 3, 1, 1, 0, 1],
-                [1, 1, 1, 0, 1, 0, 0, 1],
-                [1, 1, 1, 0, 0, 0, 1, 1],
-                [1, 1, 1, 1, 1, 1, 1, 1],
+                [1, 4, 1, 0, 0, 0, 3, 0],
+                [0, 0, 0, 4, 1, 0, 1, 0],
+                [0, 1, 1, 0, 0, 3, 1, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0],
             ],
             start_pos: (0, 0),
         },
-        // Level 9: Deep maze with forced branch stop
+        // Level 6: Original maze-board glyph route (15 moves)
         Level {
             grid: [
-                [0, 1, 1, 0, 0, 0, 1, 1],
-                [0, 1, 1, 0, 0, 0, 1, 1],
-                [0, 1, 1, 0, 1, 0, 1, 1],
-                [0, 1, 1, 0, 1, 0, 1, 1],
-                [0, 1, 0, 3, 0, 0, 1, 1],
-                [0, 0, 0, 1, 1, 1, 1, 1],
-                [0, 0, 1, 1, 1, 1, 1, 1],
-                [0, 0, 1, 1, 1, 1, 1, 1],
+                [0, 0, 0, 1, 0, 4, 0, 4],
+                [0, 1, 3, 0, 0, 1, 1, 0],
+                [0, 1, 1, 0, 0, 0, 0, 0],
+                [4, 0, 0, 3, 1, 1, 0, 1],
+                [1, 0, 1, 0, 0, 0, 3, 0],
+                [0, 4, 0, 0, 1, 0, 1, 0],
+                [0, 1, 1, 4, 0, 0, 1, 4],
+                [0, 0, 0, 0, 0, 0, 0, 0],
             ],
             start_pos: (0, 0),
         },
-        // Level 10: Expert with late-game stopper
+        // Level 7: Original maze-board expert route (18 moves)
         Level {
             grid: [
-                [0, 0, 1, 1, 1, 1, 1, 1],
-                [1, 0, 0, 1, 1, 1, 1, 1],
-                [1, 1, 0, 0, 0, 1, 1, 1],
-                [1, 1, 1, 1, 0, 0, 1, 1],
-                [1, 1, 1, 1, 1, 0, 0, 1],
-                [1, 0, 0, 3, 1, 1, 0, 1],
-                [1, 0, 1, 0, 0, 0, 0, 1],
-                [1, 0, 0, 1, 1, 1, 1, 1],
+                [0, 4, 0, 1, 0, 0, 0, 0],
+                [0, 1, 0, 0, 0, 1, 1, 0],
+                [0, 1, 1, 0, 0, 4, 0, 0],
+                [0, 0, 0, 0, 1, 1, 4, 1],
+                [1, 0, 1, 4, 0, 0, 4, 0],
+                [0, 3, 0, 0, 1, 0, 1, 0],
+                [0, 1, 1, 0, 4, 0, 1, 3],
+                [0, 0, 0, 3, 0, 0, 0, 0],
+            ],
+            start_pos: (0, 0),
+        },
+        // Level 8: Original maze-board glyph route (13 moves)
+        Level {
+            grid: [
+                [0, 0, 0, 1, 0, 0, 0, 4],
+                [0, 1, 0, 4, 0, 1, 1, 0],
+                [0, 1, 1, 4, 0, 0, 4, 0],
+                [0, 0, 0, 0, 1, 1, 0, 1],
+                [1, 0, 1, 0, 0, 0, 0, 0],
+                [0, 3, 3, 0, 1, 0, 1, 4],
+                [0, 1, 1, 0, 4, 0, 1, 0],
+                [0, 0, 0, 0, 0, 3, 0, 0],
             ],
             start_pos: (0, 0),
         },
@@ -174,7 +146,11 @@ fn point_in_rect(px: f32, py: f32, x: f32, y: f32, w: f32, h: f32) -> bool {
 }
 
 fn is_uncharged_node(cell: u8) -> bool {
-    cell == 0 || cell == 3
+    cell == 0 || cell == 3 || cell == 4
+}
+
+fn is_goal_node(cell: u8) -> bool {
+    cell == 4
 }
 
 fn restart_button_rect(sw: f32, sh: f32, offset_y: f32, grid_size: f32) -> (f32, f32, f32, f32) {
@@ -405,16 +381,16 @@ async fn main() {
                         // Check states after step finishes
                         if slide_dir.is_none() {
                             // Check win
-                            let mut empty_count = 0;
+                            let mut goal_count = 0;
                             for r in 0..8 {
                                 for c in 0..8 {
-                                    if is_uncharged_node(grid[r][c]) {
-                                        empty_count += 1;
+                                    if is_goal_node(grid[r][c]) {
+                                        goal_count += 1;
                                     }
                                 }
                             }
                             
-                            if empty_count == 0 {
+                            if goal_count == 0 {
                                 if current_level_idx + 1 < levels.len() {
                                     state = GameState::LevelClear;
                                 } else {
@@ -649,6 +625,22 @@ async fn main() {
                             Color::from_rgba(255, 220, 130, 255),
                         );
                     }
+                    4 => {
+                        // Glyph target: collect all of these to clear the level.
+                        draw_rectangle_lines(
+                            cell_x,
+                            cell_y,
+                            cell_size,
+                            cell_size,
+                            1.0,
+                            Color::from_rgba(30, 35, 45, 255),
+                        );
+                        let cx = cell_x + cell_size / 2.0;
+                        let cy = cell_y + cell_size / 2.0;
+                        draw_circle(cx, cy, cell_size * 0.22, Color::from_rgba(170, 90, 255, 120));
+                        draw_circle_lines(cx, cy, cell_size * 0.24, 2.0, Color::from_rgba(210, 150, 255, 255));
+                        draw_circle(cx, cy, cell_size * 0.08, Color::from_rgba(245, 220, 255, 255));
+                    }
                     _ => {
                         // Empty: Subtle grid lines
                         draw_rectangle_lines(
@@ -775,7 +767,7 @@ async fn main() {
                     },
                 );
                 
-                let rules_1 = "Slide and charge all empty nodes.";
+                let rules_1 = "Collect every purple glyph without trapping yourself.";
                 let r1_center = get_text_center(rules_1, font_ref, 18, 1.0, 0.0);
                 draw_text_ex(
                     rules_1,
@@ -789,7 +781,7 @@ async fn main() {
                     },
                 );
                 
-                let rules_2 = "Splitter nodes stop your slide and create branch points.";
+                let rules_2 = "Open boards have many tempting routes and dead ends.";
                 let r2_center = get_text_center(rules_2, font_ref, 18, 1.0, 0.0);
                 draw_text_ex(
                     rules_2,
@@ -818,7 +810,7 @@ async fn main() {
                 );
             }
             GameState::Playing => {
-                let info = "Arrow/WASD or Drag to Slide | Gold + tiles are splitter stops";
+                let info = "Arrow/WASD or Drag to Slide | Collect all purple glyphs";
                 let info_center = get_text_center(info, font_ref, 18, 1.0, 0.0);
                 draw_text_ex(
                     info,
