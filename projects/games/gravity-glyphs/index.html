@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gravity Glyphs</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: #000; }
+    #game { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="game">Loading...</div>
+  <script type="module">
+    import init from './docs/pkg/gravity_glyphs.js';
+    const game = await init();
+    game.start();
+  </script>
+</body>
+</html>
