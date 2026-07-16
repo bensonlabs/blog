@@ -387,6 +387,10 @@ canvas {
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
+.stat-status {
+  grid-column: 1 / -1;
+}
+
 .stat-card span {
   display: block;
   color: var(--muted-2);
@@ -398,7 +402,7 @@ canvas {
 .stat-card strong {
   display: block;
   margin-top: 8px;
-  font-size: clamp(0.98rem, 1.4vw, 1.3rem);
+  font-size: clamp(0.92rem, 1.15vw, 1.15rem);
   line-height: 1.1;
   overflow-wrap: anywhere;
 }
