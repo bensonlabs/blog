@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Sparky's Run is a browser puzzle game built for GitHub Pages."
+    />
+    <title>Sparky's Run</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Logic puzzle · GitHub Pages</p>
+          <h1>Sparky's Run</h1>
+          <p class="lede">
+            Guide the pieces through narrowing routes. Clear a board, get a
+            prominent completion callout, and roll straight into the next
+            challenge.
+          </p>
+          <div class="hero-pills" aria-label="Game summary">
+            <span class="pill">20 handcrafted levels</span>
+            <span class="pill">Auto-advances on clear</span>
+            <span class="pill">Keyboard first</span>
+          </div>
+        </div>
+        <div
+          class="controls-row"
+          id="levelButtons"
+          aria-label="Level selection"
+        ></div>
+      </header>
+
+      <section class="game-card" aria-label="Puzzle board">
+        <div class="board-shell">
+          <div class="board-frame">
+            <div
+              class="completion-banner"
+              id="completionBanner"
+              aria-live="polite"
+              hidden
+            ></div>
+            <canvas
+              id="gameCanvas"
+              width="1280"
+              height="820"
+              aria-label="Sparky's Run game canvas"
+            ></canvas>
+          </div>
+
+          <aside class="side-rail" aria-label="Board details">
+            <div class="panel-card panel-primary">
+              <div class="panel-label">Current board</div>
+              <h2 id="levelTitle">Level 1</h2>
+              <p id="levelSubtitle">Loading...</p>
+              <div class="progress-meta">
+                <span id="levelProgressText">Level 1 of 20</span>
+                <span id="goalProgressText">0 of 0 goals cleared</span>
+              </div>
+              <div class="progress-track" aria-hidden="true">
+                <div class="progress-fill" id="progressFill"></div>
+              </div>
+            </div>
+
+            <div class="stat-grid" aria-label="Current stats">
+              <div class="stat-card">
+                <span>Moves</span>
+                <strong id="moveCount">0</strong>
+              </div>
+              <div class="stat-card">
+                <span>Status</span>
+                <strong id="statusText">Playing</strong>
+              </div>
+              <div class="stat-card">
+                <span>Goals</span>
+                <strong id="goalCount">0/0</strong>
+              </div>
+              <div class="stat-card">
+                <span>Done</span>
+                <strong id="completedCount">0</strong>
+              </div>
+            </div>
+
+            <div class="panel-card">
+              <div class="panel-label">How to play</div>
+              <ul class="tips">
+                <li>Use WASD or the arrow keys to move the route pieces.</li>
+                <li>Press <kbd>R</kbd> to reset the current board.</li>
+                <li>Reach every green goal tile to clear the level.</li>
+              </ul>
+            </div>
+
+            <button class="secondary-action" id="resetBtn" type="button">
+              Reset level
+            </button>
+          </aside>
+        </div>
+      </section>
+    </main>
+
+    <script src="js/game.js" defer></script>
+  </body>
+</html>
