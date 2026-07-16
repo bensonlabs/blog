@@ -571,148 +571,34 @@ function drawGlow(x, y, radius, color, alpha = 1) {
   ctx.fill();
 }
 
-function drawCloud(x, y, scale, alpha = 0.28) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.scale(scale, scale);
-  ctx.globalAlpha = alpha;
-  ctx.fillStyle = "#d9e6ff";
-  ctx.beginPath();
-  ctx.arc(-36, 4, 22, 0, Math.PI * 2);
-  ctx.arc(-10, -8, 28, 0, Math.PI * 2);
-  ctx.arc(20, 2, 24, 0, Math.PI * 2);
-  ctx.arc(44, 10, 16, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-}
-
-function drawTree(x, y, scale) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.shadowColor = "rgba(5, 12, 18, 0.28)";
-  ctx.shadowBlur = 16;
-  ctx.shadowOffsetY = 8;
-
-  ctx.fillStyle = "#3e3a2b";
-  ctx.beginPath();
-  ctx.moveTo(0, -22 * scale);
-  ctx.lineTo(10 * scale, 18 * scale);
-  ctx.lineTo(-10 * scale, 18 * scale);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.fillStyle = "#5d6942";
-  ctx.beginPath();
-  ctx.moveTo(0, -56 * scale);
-  ctx.lineTo(26 * scale, -8 * scale);
-  ctx.lineTo(12 * scale, 4 * scale);
-  ctx.lineTo(30 * scale, 18 * scale);
-  ctx.lineTo(0, 12 * scale);
-  ctx.lineTo(-30 * scale, 18 * scale);
-  ctx.lineTo(-12 * scale, 4 * scale);
-  ctx.lineTo(-26 * scale, -8 * scale);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.fillStyle = "#769155";
-  ctx.beginPath();
-  ctx.moveTo(0, -72 * scale);
-  ctx.lineTo(18 * scale, -28 * scale);
-  ctx.lineTo(8 * scale, -20 * scale);
-  ctx.lineTo(24 * scale, 2 * scale);
-  ctx.lineTo(0, -6 * scale);
-  ctx.lineTo(-24 * scale, 2 * scale);
-  ctx.lineTo(-8 * scale, -20 * scale);
-  ctx.lineTo(-18 * scale, -28 * scale);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.fillStyle = "#4a3f2b";
-  ctx.fillRect(-4 * scale, 18 * scale, 8 * scale, 20 * scale);
-  ctx.restore();
-}
-
-function drawRock(x, y, scale) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.shadowColor = "rgba(5, 12, 18, 0.22)";
-  ctx.shadowBlur = 10;
-  ctx.shadowOffsetY = 4;
-  const grad = ctx.createLinearGradient(
-    -10 * scale,
-    -8 * scale,
-    10 * scale,
-    10 * scale,
-  );
-  grad.addColorStop(0, "#d7dee7");
-  grad.addColorStop(1, "#8f9aab");
-  ctx.fillStyle = grad;
-  ctx.beginPath();
-  ctx.moveTo(-12 * scale, 8 * scale);
-  ctx.quadraticCurveTo(-14 * scale, -8 * scale, -2 * scale, -10 * scale);
-  ctx.quadraticCurveTo(10 * scale, -12 * scale, 16 * scale, -2 * scale);
-  ctx.quadraticCurveTo(18 * scale, 8 * scale, 6 * scale, 12 * scale);
-  ctx.quadraticCurveTo(-4 * scale, 15 * scale, -12 * scale, 8 * scale);
-  ctx.fill();
-  ctx.fillStyle = "rgba(255,255,255,0.25)";
-  ctx.beginPath();
-  ctx.arc(-2 * scale, -4 * scale, 4 * scale, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-}
-
 function drawBackground() {
   const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  sky.addColorStop(0, "#1e2945");
-  sky.addColorStop(0.42, "#23374f");
-  sky.addColorStop(0.72, "#31495a");
-  sky.addColorStop(1, "#42565f");
+  sky.addColorStop(0, "#172331");
+  sky.addColorStop(0.52, "#0f1822");
+  sky.addColorStop(1, "#081018");
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  drawGlow(720, 96, 180, "rgba(255, 222, 149, ALPHA)", 0.9);
-  drawGlow(720, 96, 92, "rgba(255, 250, 220, ALPHA)", 0.55);
-
-  drawCloud(170, 96, 1.35, 0.12);
-  drawCloud(410, 62, 0.95, 0.1);
-  drawCloud(760, 132, 1.05, 0.09);
+  drawGlow(960, 92, 190, "rgba(255, 214, 120, ALPHA)", 0.52);
+  drawGlow(220, 128, 150, "rgba(130, 224, 255, ALPHA)", 0.16);
 
   ctx.save();
-  ctx.globalAlpha = 0.5;
-  ctx.fillStyle = "#162636";
-  ctx.beginPath();
-  ctx.moveTo(0, 256);
-  ctx.quadraticCurveTo(170, 205, 320, 234);
-  ctx.quadraticCurveTo(480, 262, 640, 224);
-  ctx.quadraticCurveTo(780, 194, canvas.width, 236);
-  ctx.lineTo(canvas.width, 0);
-  ctx.lineTo(0, 0);
-  ctx.closePath();
-  ctx.fill();
+  ctx.globalAlpha = 0.13;
+  ctx.fillStyle = "#10202c";
+  ctx.fillRect(0, canvas.height * 0.72, canvas.width, canvas.height * 0.28);
   ctx.restore();
 
   ctx.save();
-  ctx.globalAlpha = 0.32;
-  ctx.fillStyle = "#0f1825";
-  ctx.beginPath();
-  ctx.moveTo(0, 365);
-  ctx.quadraticCurveTo(160, 308, 280, 340);
-  ctx.quadraticCurveTo(430, 376, 590, 330);
-  ctx.quadraticCurveTo(760, 286, canvas.width, 344);
-  ctx.lineTo(canvas.width, 0);
-  ctx.lineTo(0, 0);
-  ctx.closePath();
-  ctx.fill();
-  ctx.restore();
-
-  for (let i = 0; i < 84; i += 1) {
-    const x = (i * 103) % canvas.width;
-    const y = (i * 61) % 230;
-    ctx.fillStyle = `rgba(255, 240, 210, ${0.06 + (i % 5) * 0.02})`;
+  ctx.globalAlpha = 0.12;
+  ctx.fillStyle = "#ffffff";
+  for (let i = 0; i < 60; i += 1) {
+    const x = (i * 191) % canvas.width;
+    const y = (i * 97) % Math.max(200, canvas.height * 0.42);
     ctx.beginPath();
-    ctx.arc(x, y, 0.9 + (i % 3) * 0.3, 0, Math.PI * 2);
+    ctx.arc(x, y, 0.8 + (i % 4) * 0.15, 0, Math.PI * 2);
     ctx.fill();
   }
+  ctx.restore();
 }
 
 function drawTile(x, y, opts = {}) {
@@ -984,36 +870,10 @@ function drawPiece(piece, done, now) {
   drawDogPortrait(piece, done, variantIndex, now);
 }
 
-function drawDecorations() {
-  const trees = [
-    [98, 146, 1.1],
-    [196, 196, 1.4],
-    [326, 104, 1.26],
-    [482, 158, 1.0],
-    [654, 132, 1.18],
-    [815, 108, 1.44],
-    [864, 304, 1.2],
-    [676, 372, 1.12],
-    [404, 420, 1.58],
-    [86, 372, 0.98],
-    [532, 326, 0.92],
-    [736, 212, 0.9],
-  ];
-  const rocks = [
-    [156, 166, 1],
-    [444, 292, 1.05],
-    [740, 348, 0.92],
-    [560, 210, 1.14],
-    [300, 438, 0.92],
-  ];
-  trees.forEach((args) => drawTree(...args));
-  rocks.forEach((args) => drawRock(...args));
-}
 function render() {
   const now = nowMs();
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawBackground();
-  drawDecorations();
 
   ctx.save();
   const platePadding = 10;
