@@ -207,7 +207,7 @@ h1 {
   );
   border: 1px solid var(--border);
   border-radius: 30px;
-  padding: 12px;
+  padding: 10px;
   box-shadow:
     var(--shadow),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
@@ -216,8 +216,8 @@ h1 {
 
 .board-shell {
   display: grid;
-  grid-template-columns: minmax(0, 2.35fr) minmax(260px, 320px);
-  gap: 14px;
+  grid-template-columns: minmax(0, 3fr) minmax(300px, 340px);
+  gap: 12px;
   align-items: stretch;
 }
 
@@ -292,11 +292,28 @@ canvas {
 
 .side-rail {
   display: grid;
-  gap: 14px;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+  gap: 12px;
   position: sticky;
   top: 14px;
   align-content: start;
   justify-self: stretch;
+}
+
+.side-rail > .panel-card.panel-primary {
+  grid-column: 1;
+}
+
+.side-rail > .stat-grid {
+  grid-column: 2;
+}
+
+.side-rail > .panel-card:not(.panel-primary) {
+  grid-column: 1 / -1;
+}
+
+.side-rail > .secondary-action {
+  grid-column: 1 / -1;
 }
 
 .panel-card {
@@ -451,6 +468,17 @@ kbd {
 @media (max-width: 1040px) {
   .board-shell {
     grid-template-columns: 1fr;
+  }
+
+  .side-rail {
+    grid-template-columns: 1fr;
+  }
+
+  .side-rail > .panel-card.panel-primary,
+  .side-rail > .stat-grid,
+  .side-rail > .panel-card:not(.panel-primary),
+  .side-rail > .secondary-action {
+    grid-column: auto;
   }
 
   .controls-row {
