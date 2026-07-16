@@ -376,6 +376,7 @@ canvas {
 }
 
 .stat-card {
+  min-width: 0;
   padding: 14px;
   border-radius: 20px;
   background: linear-gradient(
@@ -397,8 +398,9 @@ canvas {
 .stat-card strong {
   display: block;
   margin-top: 8px;
-  font-size: 1.4rem;
-  line-height: 1;
+  font-size: clamp(0.98rem, 1.4vw, 1.3rem);
+  line-height: 1.1;
+  overflow-wrap: anywhere;
 }
 
 .tips {
