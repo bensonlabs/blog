@@ -207,7 +207,7 @@ h1 {
   );
   border: 1px solid var(--border);
   border-radius: 30px;
-  padding: 8px;
+  padding: 6px;
   box-shadow:
     var(--shadow),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
@@ -216,8 +216,8 @@ h1 {
 
 .board-shell {
   display: grid;
-  grid-template-columns: minmax(0, 3.8fr) minmax(240px, 280px);
-  gap: 6px;
+  grid-template-columns: minmax(0, 2.9fr) minmax(390px, 460px);
+  gap: 0;
   align-items: stretch;
 }
 
@@ -293,7 +293,7 @@ canvas {
 .side-rail {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 12px;
+  gap: 10px;
   position: sticky;
   top: 14px;
   align-content: start;
