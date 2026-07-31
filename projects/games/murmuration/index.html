@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080d1f">
+<!-- bl-game-meta
+ title: Murmuration
+ emoji: 🕊️
+ order: 80
+ description: Guide a living flock through moonlit weather and bring every bird home to its matching roost. A gentle physics game about attention, wind, and letting go. Made by GPT-5.6-Luna in Hermes Agent on mini-M4.
+-->
+<title>Murmuration — Bring the Sky Home</title>
+<style>
+  :root{--ink:#eaf1ff;--muted:#93a5c9;--line:rgba(193,213,255,.18);--panel:rgba(10,18,43,.72);--cyan:#8de7ed;--gold:#ffd58a;--rose:#ff9db8;--violet:#b8a6ff}
+  *{box-sizing:border-box} html,body{margin:0;min-height:100%;background:#080d1f;color:var(--ink);font-family:Georgia,'Times New Roman',serif}
+  body{overflow-x:hidden;background:radial-gradient(ellipse at 50% -10%,#263d70 0,#101b3a 36%,#080d1f 76%)}
+  .wrap{min-height:100vh;max-width:1160px;margin:auto;padding:30px 24px 34px;position:relative}
+  .top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:22px}
+  .eyebrow{font:600 11px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);margin:0 0 9px}
+  h1{font-size:clamp(34px,6vw,62px);font-weight:400;letter-spacing:-.055em;line-height:.92;margin:0;text-shadow:0 0 32px rgba(141,231,237,.12)}
+  .dek{color:var(--muted);font-size:16px;line-height:1.45;max-width:440px;margin:14px 0 0}
+  .stats{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+  .stat{min-width:94px;padding:11px 13px;border:1px solid var(--line);border-radius:13px;background:rgba(9,17,40,.55);backdrop-filter:blur(12px)}
+  .stat label{display:block;font:10px ui-monospace,monospace;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}.stat b{font:700 21px ui-monospace,monospace;color:var(--ink)}
+  .stage-shell{position:relative;border:1px solid var(--line);border-radius:24px;background:rgba(7,14,34,.62);box-shadow:0 26px 90px rgba(0,0,0,.34),inset 0 1px rgba(255,255,255,.08);overflow:hidden}
+  canvas{display:block;width:100%;height:min(68vh,650px);min-height:430px;cursor:none;touch-action:none}
+  .overlay{position:absolute;inset:0;display:grid;place-items:center;padding:24px;background:linear-gradient(180deg,rgba(5,10,26,.27),rgba(5,10,26,.7));transition:opacity .35s;z-index:2}.overlay.off{opacity:0;pointer-events:none}
+  .card{max-width:480px;text-align:center;padding:30px 30px 26px;border:1px solid rgba(193,213,255,.22);border-radius:21px;background:rgba(8,17,40,.8);box-shadow:0 15px 50px rgba(0,0,0,.3);backdrop-filter:blur(18px)}
+  .card h2{font-size:clamp(26px,4vw,42px);font-weight:400;letter-spacing:-.04em;margin:0 0 10px}.card p{color:#b2c0dd;line-height:1.55;margin:0 auto 18px;max-width:390px}.card strong{color:var(--cyan);font-weight:400}
+  button{font:600 12px ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;color:#091326;background:var(--cyan);border:0;border-radius:999px;padding:13px 19px;cursor:pointer;box-shadow:0 5px 20px rgba(141,231,237,.22);transition:transform .15s,filter .15s}button:hover{transform:translateY(-2px);filter:brightness(1.07)}button:active{transform:translateY(0)}
+  .hint{font:11px ui-monospace,monospace;color:#7286ac;margin-top:14px;line-height:1.5}.hint kbd{border:1px solid #415073;border-radius:4px;padding:2px 5px;color:#a9b8d8}
+  .below{display:flex;justify-content:space-between;gap:22px;align-items:flex-start;margin-top:18px;color:var(--muted)}.below p{font-size:14px;line-height:1.5;margin:0;max-width:590px}.controls{font:11px ui-monospace,monospace;letter-spacing:.04em;text-align:right;white-space:nowrap}.controls span{color:var(--cyan)}
+  @media(max-width:700px){.wrap{padding:22px 13px 25px}.top{display:block}.stats{justify-content:flex-start;margin-top:18px}.stat{min-width:82px}.stat b{font-size:17px}.stage-shell{border-radius:18px}canvas{height:66vh;min-height:410px}.below{display:block}.controls{text-align:left;margin-top:10px;white-space:normal}.card{padding:25px 20px}.dek{font-size:14px}}
+</style>
+</head>
+<body class="nav-autohide">
+<nav class="bl-nav" id="bl-nav" aria-label="Site navigation">
+  <a href="/" class="bl-nav__brand">bensonlabs</a>
+  <button class="bl-nav__toggle" id="bl-nav-toggle" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+  <div class="bl-nav__links" id="bl-nav-links">
+    <a href="/" class="bl-nav__link">Blog</a><a href="/projects/" class="bl-nav__link">Projects</a><a href="/projects/games/" class="bl-nav__link">Games</a><a href="/projects/workouts/" class="bl-nav__link">Workouts</a><a href="/bootstraps/" class="bl-nav__link">Bootstraps</a><a href="/about/" class="bl-nav__link">About</a>
+  </div>
+</nav>
+<style>
+  #bl-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.4rem 1rem;min-height:44px;background:#252525;border-bottom:1px solid #3a3a3a;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;position:fixed;top:0;left:0;right:0;z-index:99999;box-sizing:border-box;transform:translateY(-100%);transition:transform .2s ease}
+  #bl-nav *{box-sizing:border-box}#bl-nav.is-visible,#bl-nav.is-open{transform:translateY(0)}#bl-nav .bl-nav__brand{color:#a78bfa;text-decoration:none;font-weight:700;font-size:1.05rem;line-height:1}#bl-nav .bl-nav__links{display:flex;align-items:center;gap:1.4rem}#bl-nav .bl-nav__link{color:#c9c9c9;text-decoration:none;font-size:.9rem;white-space:nowrap}#bl-nav .bl-nav__link:hover{color:#a78bfa}#bl-nav .bl-nav__toggle{display:none;background:none;border:0;padding:6px;cursor:pointer}#bl-nav .bl-nav__toggle span{display:block;width:22px;height:2px;background:#dcddde;margin:4px 0}
+  .bl-nav__trigger{position:fixed;top:0;left:0;right:0;height:14px;z-index:99998}.bl-nav__menu-fab{position:fixed;top:8px;right:8px;z-index:99998;width:40px;height:40px;border:0;border-radius:8px;background:rgba(37,37,37,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:0;cursor:pointer}.bl-nav__menu-fab span{display:block;width:18px;height:2px;background:#dcddde;border-radius:2px}
+  @media(max-width:820px){#bl-nav .bl-nav__toggle{display:flex;flex-direction:column}#bl-nav .bl-nav__links{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;align-items:stretch;gap:0;background:#252525;border-bottom:1px solid #3a3a3a;padding:.25rem 0}#bl-nav.is-open .bl-nav__links{display:flex}#bl-nav .bl-nav__link{width:100%;padding:.7rem 1rem;font-size:1rem}}
+</style>
+<div class="bl-nav__trigger"></div><button class="bl-nav__menu-fab" id="bl-nav-fab" aria-label="Open menu"><span></span><span></span><span></span></button>
+<script>
+(()=>{const nav=document.getElementById('bl-nav'),toggle=document.getElementById('bl-nav-toggle'),trigger=document.querySelector('.bl-nav__trigger'),fab=document.getElementById('bl-nav-fab');const reveal=()=>{nav.classList.add('is-visible');document.body.classList.add('is-revealed')};const hide=()=>{if(!nav.classList.contains('is-open')){nav.classList.remove('is-visible');document.body.classList.remove('is-revealed')}};toggle.addEventListener('click',()=>{const open=nav.classList.toggle('is-open');toggle.setAttribute('aria-expanded',open?'true':'false')});trigger.addEventListener('mouseenter',reveal);fab.addEventListener('click',()=>{reveal();nav.classList.add('is-open')});nav.addEventListener('mouseleave',hide)})();
+</script>
+<main class="wrap">
+  <header class="top">
+    <div><p class="eyebrow">A small game about attention</p><h1>Murmuration</h1><p class="dek">The sky is turning. Guide each living speck of the flock toward its own moonlit roost — gently, together, before the weather closes in.</p></div>
+    <div class="stats" aria-label="Game stats"><div class="stat"><label>Flock</label><b id="flock">—</b></div><div class="stat"><label>Score</label><b id="score">0000</b></div><div class="stat"><label>Best</label><b id="best">0000</b></div></div>
+  </header>
+  <section class="stage-shell" aria-label="Murmuration game">
+    <canvas id="game" aria-label="Game canvas. Move your pointer to guide the flock."></canvas>
+    <div class="overlay" id="overlay"><div class="card"><p class="eyebrow">Night flight / 01</p><h2 id="overlayTitle">Bring the sky home.</h2><p id="overlayText">Move your pointer to become the flock's <strong>wind</strong>. Birds near their matching roost will settle. Avoid the violet weather cells. Your only tool is attention.</p><button id="start">Begin the flight</button><div class="hint">Move <kbd>mouse</kbd> / <kbd>touch</kbd> · nudge <kbd>arrows</kbd> · gust <kbd>space</kbd></div></div></div>
+  </section>
+  <div class="below"><p><strong style="color:var(--gold);font-weight:400">A note from the night:</strong> keep moving slowly. A flock is not a cursor; it is a conversation. The more birds you bring home, the more beautifully they listen to one another.</p><div class="controls"><span>POINTER</span> guide &nbsp; <span>SPACE</span> gust &nbsp; <span>R</span> restart</div></div>
+</main>
+<script>
+(() => {
+  const canvas=document.getElementById('game'), ctx=canvas.getContext('2d'), overlay=document.getElementById('overlay'), title=document.getElementById('overlayTitle'), text=document.getElementById('overlayText'), start=document.getElementById('start');
+  const flockEl=document.getElementById('flock'), scoreEl=document.getElementById('score'), bestEl=document.getElementById('best');
+  const TAU=Math.PI*2, colors=['#8de7ed','#ffd58a','#ff9db8'];
+  let W=0,H=0,dpr=1, birds=[], roosts=[], storms=[], particles=[], running=false, won=false, score=0, level=1, last=0, time=0, gust=0, shake=0;
+  let pointer={x:0,y:0,active:false}; let keys={};
+  let best=Number(localStorage.getItem('murmuration-best')||0); bestEl.textContent=String(best).padStart(4,'0');
+  function resize(){const r=canvas.getBoundingClientRect();dpr=Math.min(2,devicePixelRatio||1);W=r.width;H=r.height;canvas.width=W*dpr;canvas.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);if(!pointer.active){pointer.x=W/2;pointer.y=H*.53}}
+  addEventListener('resize',resize); resize();
+  function rand(a,b){return a+Math.random()*(b-a)} function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+  function reset(){
+    resize(); level=1; score=0; time=0; won=false; particles=[]; birds=[]; storms=[]; roosts=[]; gust=0; shake=0;
+    const count=24; for(let i=0;i<count;i++){const a=rand(0,TAU),rad=rand(10,105);birds.push({x:W/2+Math.cos(a)*rad,y:H*.52+Math.sin(a)*rad*.55,vx:rand(-.3,.3),vy:rand(-.3,.3),home:false,kind:i%3,size:rand(2.4,4.2),phase:rand(0,TAU),trail:[]})}
+    const places=[[W*.18,H*.2],[W*.81,H*.25],[W*.53,H*.82]]; places.forEach((p,i)=>roosts.push({x:p[0],y:p[1],kind:i,r:34,pulse:rand(0,TAU)}));
+    for(let i=0;i<3;i++)storms.push({x:rand(W*.2,W*.85),y:rand(H*.28,H*.72),r:rand(28,45),vx:rand(-.16,.16),vy:rand(-.1,.1),phase:rand(0,TAU)});
+    flockEl.textContent=count;scoreEl.textContent='0000'; pointer.x=W/2;pointer.y=H*.54;
+  }
+  function begin(){reset();running=true;overlay.classList.add('off');last=performance.now();requestAnimationFrame(loop)}
+  function finish(win){running=false;won=win; if(score>best){best=score;localStorage.setItem('murmuration-best',best);bestEl.textContent=String(best).padStart(4,'0')} title.textContent=win?'The flock remembers the way.':'The weather folded in.'; text.textContent=win?'Every bird found its own roost. You made a '+score+' point sky.':'A few birds are still out there, but the night has closed. Your best landing was '+best+' points.';start.textContent=win?'Fly another sky':'Try the flight again';overlay.classList.remove('off')}
+  start.addEventListener('click',begin);
+  addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(e.code==='Space'){e.preventDefault();if(running)gust=1}if(e.key.toLowerCase()==='r')begin();if(e.key==='Enter'&&!running)begin()});addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+  function move(e){const r=canvas.getBoundingClientRect();pointer.x=clamp((e.clientX-r.left),0,W);pointer.y=clamp((e.clientY-r.top),0,H);pointer.active=true} canvas.addEventListener('pointermove',move);canvas.addEventListener('pointerdown',e=>{move(e);if(running)gust=1});
+  function spawn(x,y,c,n=5){for(let i=0;i<n;i++)particles.push({x,y,vx:rand(-1.4,1.4),vy:rand(-1.4,1.4),life:1,color:c,size:rand(1,3)})}
+  function update(dt){time+=dt;gust=Math.max(0,gust-dt*2.5);if(keys.arrowleft)pointer.x-=dt*180;if(keys.arrowright)pointer.x+=dt*180;if(keys.arrowup)pointer.y-=dt*180;if(keys.arrowdown)pointer.y+=dt*180;pointer.x=clamp(pointer.x,35,W-35);pointer.y=clamp(pointer.y,35,H-35);
+    storms.forEach(s=>{s.x+=s.vx*dt*60;s.y+=s.vy*dt*60;if(s.x<-80||s.x>W+80)s.vx*=-1;if(s.y<80||s.y>H-60)s.vy*=-1});
+    let left=0;
+    birds.forEach((b,i)=>{if(b.home){b.x+=(roosts[b.kind].x-b.x)*dt*2;b.y+=(roosts[b.kind].y-b.y)*dt*2;return}left++;
+      let ax=(pointer.x-b.x)*.00095,ay=(pointer.y-b.y)*.00095;let cx=0,cy=0,sepX=0,sepY=0,n=0;
+      birds.forEach((o,j)=>{if(i===j||o.home)return;const dx=o.x-b.x,dy=o.y-b.y,d=Math.hypot(dx,dy);if(d<145){cx+=o.vx;cy+=o.vy;n++}if(d<38&&d>0){sepX-=dx/(d*d);sepY-=dy/(d*d)}});if(n){ax+=(cx/n-b.vx)*.014;ay+=(cy/n-b.vy)*.014}ax+=sepX*.018;ay+=sepY*.018;
+      ax+=Math.sin(time*.0013+b.phase)*.0005;ay+=Math.cos(time*.001+b.phase)*.0005;if(gust){ax+=(b.x-pointer.x)*.0017;ay+=(b.y-pointer.y)*.0017}
+      b.vx=(b.vx+ax*dt*60)*.985;b.vy=(b.vy+ay*dt*60)*.985;const sp=Math.hypot(b.vx,b.vy);if(sp>2.3){b.vx=b.vx/sp*2.3;b.vy=b.vy/sp*2.3}b.x+=b.vx*dt*60;b.y+=b.vy*dt*60;
+      if(b.x<18){b.x=18;b.vx=Math.abs(b.vx)}if(b.x>W-18){b.x=W-18;b.vx=-Math.abs(b.vx)}if(b.y<18){b.y=18;b.vy=Math.abs(b.vy)}if(b.y>H-18){b.y=H-18;b.vy=-Math.abs(b.vy)}
+      b.trail.push([b.x,b.y]);if(b.trail.length>10)b.trail.shift();
+      const home=roosts[b.kind],hd=Math.hypot(home.x-b.x,home.y-b.y);if(hd<home.r&&Math.hypot(b.vx,b.vy)<1.5){b.home=true;score+=100+Math.max(0,80-Math.floor(time/1000));scoreEl.textContent=String(score).padStart(4,'0');spawn(home.x,home.y,colors[b.kind],12)}
+      storms.forEach(s=>{if(Math.hypot(s.x-b.x,s.y-b.y)<s.r){b.vx+= (b.x-s.x)*.002;b.vy+=(b.y-s.y)*.002;shake=Math.max(shake,2)}});
+    });
+    particles.forEach(p=>{p.x+=p.vx*dt*60;p.y+=p.vy*dt*60;p.vx*=.98;p.vy*=.98;p.life-=dt*1.7});particles=particles.filter(p=>p.life>0);if(left===0)finish(true);if(time>90000)finish(false);
+  }
+  function draw(){ctx.save();if(shake){ctx.translate(rand(-shake,shake),rand(-shake,shake));shake*=.92}const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#10224a');g.addColorStop(.48,'#0c1734');g.addColorStop(1,'#080d20');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+    // stars and high clouds
+    for(let i=0;i<90;i++){const x=(i*97.13)%W,y=(i*53.71)%H*.82,a=.16+((i*17)%70)/100;ctx.fillStyle=`rgba(210,228,255,${a})`;ctx.fillRect(x,y,(i%3)+.5,(i%3)+.5)}
+    ctx.strokeStyle='rgba(141,231,237,.06)';ctx.lineWidth=1;for(let y=H*.18;y<H;y+=H*.16){ctx.beginPath();ctx.moveTo(0,y);ctx.bezierCurveTo(W*.3,y-20,W*.7,y+20,W,y);ctx.stroke()}
+    storms.forEach(s=>{const r=s.r+Math.sin(time*.002+s.phase)*3;const sg=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,r*1.4);sg.addColorStop(0,'rgba(117,103,220,.18)');sg.addColorStop(.7,'rgba(90,75,178,.08)');sg.addColorStop(1,'rgba(70,60,150,0)');ctx.fillStyle=sg;ctx.beginPath();ctx.arc(s.x,s.y,r*1.4,0,TAU);ctx.fill();ctx.strokeStyle='rgba(184,166,255,.2)';ctx.setLineDash([3,8]);ctx.beginPath();ctx.arc(s.x,s.y,r,0,TAU);ctx.stroke();ctx.setLineDash([])});
+    roosts.forEach(r=>{const p=8+Math.sin(time*.002+r.pulse)*3;ctx.save();ctx.shadowBlur=24;ctx.shadowColor=colors[r.kind];ctx.strokeStyle=colors[r.kind];ctx.globalAlpha=.25;ctx.lineWidth=2;ctx.beginPath();ctx.arc(r.x,r.y,r.r+p,0,TAU);ctx.stroke();ctx.globalAlpha=.8;ctx.lineWidth=1;ctx.beginPath();ctx.arc(r.x,r.y,r.r,0,TAU);ctx.stroke();ctx.fillStyle=colors[r.kind];ctx.globalAlpha=.12;ctx.beginPath();ctx.arc(r.x,r.y,r*.72,0,TAU);ctx.fill();ctx.restore();ctx.font='10px ui-monospace,monospace';ctx.fillStyle='rgba(222,232,255,.45)';ctx.textAlign='center';ctx.fillText(['DAWN','GOLD','ROSE'][r.kind],r.x,r.y+r.r+17)});
+    birds.forEach(b=>{if(b.trail.length>1&&!b.home){ctx.beginPath();b.trail.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.strokeStyle=colors[b.kind];ctx.globalAlpha=.08;ctx.lineWidth=2;ctx.stroke();ctx.globalAlpha=1}ctx.save();ctx.translate(b.x,b.y);const ang=Math.atan2(b.vy,b.vx);ctx.rotate(ang);ctx.fillStyle=colors[b.kind];ctx.shadowBlur=12;ctx.shadowColor=colors[b.kind];ctx.globalAlpha=b.home?.3:1;ctx.beginPath();ctx.moveTo(b.size*1.7,0);ctx.quadraticCurveTo(0,-b.size*.9,-b.size*1.4,-b.size*.45);ctx.quadraticCurveTo(-b.size*.6,0,-b.size*1.4,b.size*.45);ctx.quadraticCurveTo(0,b.size*.9,b.size*1.7,0);ctx.fill();ctx.restore()});
+    particles.forEach(p=>{ctx.globalAlpha=p.life;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,p.size*p.life,0,TAU);ctx.fill()});ctx.globalAlpha=1;
+    if(pointer.active||running){ctx.save();ctx.translate(pointer.x,pointer.y);ctx.strokeStyle=gust?'rgba(255,213,138,.9)':'rgba(141,231,237,.75)';ctx.shadowBlur=18;ctx.shadowColor=gust?'#ffd58a':'#8de7ed';ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(0,0,gust?25:15,0,TAU);ctx.stroke();ctx.beginPath();ctx.moveTo(-4,0);ctx.lineTo(4,0);ctx.moveTo(0,-4);ctx.lineTo(0,4);ctx.stroke();ctx.restore()}
+    ctx.restore();
+  }
+  function loop(now){if(!running)return;const dt=Math.min(.032,(now-last)/1000);last=now;update(dt);draw();if(running)requestAnimationFrame(loop)}
+  reset();draw();
+})();
+</script>
+</body>
+</html>
