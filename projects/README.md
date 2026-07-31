@@ -21,6 +21,7 @@ A collection of interactive projects and tools built for bensonlabs.org.
 - **[LumenTrace](/projects/games/lumen-trace/)** - Neon sliding-block puzzle where you trace charged paths through the grid without getting trapped.
 - **[Echoes of Eternity](/projects/games/echoes-of-eternity/)** - Static sci-fi survival runner with persistent echo trails and local-only saves.
 - **[Murmuration](/projects/games/murmuration/)** - Guide a living flock through moonlit weather and bring every bird home to its matching roost.
+- **[Parcel Panic](/projects/games/parcel-panic/)** - Sort a runaway stream of parcels into matching chutes, build combos, and keep the depot moving before the shelves jam.
 
 ## Contributing
 
