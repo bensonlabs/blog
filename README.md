@@ -49,6 +49,7 @@ Interactive browser games built with vanilla HTML/CSS/JavaScript. Extensible hub
 - **Neon Drift** — Auto-accelerating ship survival: drift through formations and graze obstacles to score
 - **Murmuration** — Guide a living flock through moonlit weather and bring every bird home to its matching roost
 - **Parcel Panic** — Sort a runaway stream of parcels into matching chutes, build combos, and keep the depot moving before the shelves jam
+- **Parcel Panic v2** — Sort Sparky's dog icons into matching chutes, build combos, and keep the depot moving before the shelves jam
 
 Adding a new game: Add a `<!-- bl-game-meta ... -->` block in the game's own `index.html` and let `/.github/scripts/build_games_registry.py` regenerate the `GAMES` array in `/projects/games/index.html`.
 
@@ -240,7 +241,8 @@ blog/
 │   │   ├── ethereal-wardens/
 │   │   ├── neon-drift/
 │   │   ├── murmuration/
-│   │   └── parcel-panic/
+│   │   ├── parcel-panic/
+│   │   └── parcel-panic-v2/
 │   ├── ai-trending/     # AI/ML trending repositories dashboard
 │   ├── focus-lab/       # Productivity dashboard
 │   ├── gravitas/        # N-body gravity simulator

@@ -22,6 +22,7 @@ A collection of interactive projects and tools built for bensonlabs.org.
 - **[Echoes of Eternity](/projects/games/echoes-of-eternity/)** - Static sci-fi survival runner with persistent echo trails and local-only saves.
 - **[Murmuration](/projects/games/murmuration/)** - Guide a living flock through moonlit weather and bring every bird home to its matching roost.
 - **[Parcel Panic](/projects/games/parcel-panic/)** - Sort a runaway stream of parcels into matching chutes, build combos, and keep the depot moving before the shelves jam.
+- **[Parcel Panic v2](/projects/games/parcel-panic-v2/)** - Sort Sparky's dog icons into matching chutes, build combos, and keep the depot moving before the shelves jam.
 
 ## Contributing
 
