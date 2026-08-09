@@ -758,7 +758,12 @@
           player.direction = Math.atan2(player.vy, player.vx || 1);
         }
 
-        if (player.y - player.radius > canvas.height + TILE_SIZE) {
+        if (
+          player.x + player.radius < 0 ||
+          player.x - player.radius > canvas.width ||
+          player.y + player.radius < 0 ||
+          player.y - player.radius > canvas.height + TILE_SIZE
+        ) {
           respawnAfterFall();
           return;
         }
