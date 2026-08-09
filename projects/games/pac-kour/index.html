@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Parkour Pac‑Man</title>
+<style>
+  body{margin:0;background:#000;overflow:hidden}
+  canvas{display:block;margin:auto;background:#111}
+</style>
+</head>
+<body>
+<canvas id="gameCanvas"></canvas>
+
+<script>
+/* eslint-env browser */
+'use strict';
+
+(() => {
+  /* --------------------------------------------------------------
+   *  Level map (20 × 15 tiles, 40 px each → 800 × 600 px)
+   *  # = wall, . = pellet, anything else = empty
+   * -------------------------------------------------------------- */
+  const level = [
+    "####################",
+    "#..................#",
+    "#.####....####.....#",
+    "#..................#",
+    "#....####....####..#",
+    "#..................#",
+    "#..####........####.#",
+    "#..................#",
+    "#........####......#",
+    "#.........####.....#",
+    "#..................#",
+    "#..####......####..#",
+    "#..................#",
+    "#..................#",
+    "####################"
+  ];
+  const tileSize = 40;                // px
+  const rows = level.length;
+  const cols = level[0].length;
+
+  /* --------------------------------------------------------------
+   *  Canvas
+   * -------------------------------------------------------------- */
+  const canvas = document.getElementById('gameCanvas');
+  canvas.width = cols * tileSize;
+  canvas.height = rows * tileSize;
+  const ctx = canvas.getContext('2d');
+
+  /* --------------------------------------------------------------
+   *  Pellets (kept inside a Set of “col,row” strings)
+   * -------------------------------------------------------------- */
+  const pellets = new Set();
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (level[r][c] === '.') pellets.add(`${c},${r}`);
+    }
+  }
+
+  const isWall = (c, r) => {
+    if (c < 0 || c >= cols || r < 0 || r >= rows) return false;
+    return level[r][c] === '#';
+  };
+
+  /* --------------------------------------------------------------
+   *  Player (Pac‑Man)
+   * -------------------------------------------------------------- */
+  const player = {
+    // start in a free cell near the top‑left
+    x: (1.5) * tileSize,
+    y: (1.5) * tileSize,
+    radius: tileSize * 0.4,
+    vx: 0,
+    vy: 0,
+    speed: 260,           // px / s
+    jumpSpeed: 560,       // px / s
+    onGround: false,
+    direction: 0          // radians – used for the mouth animation
+  };
+  let score = 0;
+  let wallJumpCooldown = 0; // seconds
+  const GRAVITY = 1900;    // px / s²
+
+  /* --------------------------------------------------------------
+   *  Input handling
+   * -------------------------------------------------------------- */
+  const keys = { ArrowLeft: false, ArrowRight: false, Space: false };
+  window.addEventListener('keydown', e => {
+    if (e.code in keys) {
+      keys[e.code] = true;
+      e.preventDefault();
+    }
+  });
+  window.addEventListener('keyup', e => {
+    if (e.code in keys) {
+      keys[e.code] = false;
+      e.preventDefault();
+    }
+  });
+
+  /* --------------------------------------------------------------
+   *  Main loop
+   * -------------------------------------------------------------- */
+  let lastTime = performance.now();
+  requestAnimationFrame(function loop(now) {
+    const dt = (now - lastTime) / 1000; // seconds
+    lastTime = now;
+    update(dt);
+    render();
+    requestAnimationFrame(loop);
+  });
+
+  /* --------------------------------------------------------------
+   *  Update – physics, collisions, input, pickups
+   * -------------------------------------------------------------- */
+  function update(dt) {
+    /* ----- Horizontal input ----- */
+    let move = 0;
+    if (keys.ArrowLeft) move = -1;
+    else if (keys.ArrowRight) move = 1;
+    player.vx = move * player.speed;
+
+    /* ----- Apply gravity ----- */
+    player.vy += GRAVITY * dt;
+
+    /* ----- Horizontal movement & wall collision ----- */
+    let touchingLeftWall = false;
+    let touchingRightWall = false;
+    const nx = player.x + player.vx * dt;
+    const left  = nx - player.radius;
+    const right = nx + player.radius;
+    const top   = player.y - player.radius;
+    const bottom = player.y + player.radius;
+
+    const minRow = Math.floor(top / tileSize);
+    const maxRow = Math.floor(bottom / tileSize);
+    const minCol = Math.floor(left / tileSize);
+    const maxCol = Math.floor(right / tileSize);
+
+    let horizBlocked = false;
+    if (player.vx > 0) {                         // moving right
+      for (let r = minRow; r <= maxRow; r++) {
+        if (isWall(maxCol, r)) {
+          const wallLeft = maxCol * tileSize;
+          player.x = wallLeft - player.radius - 0.001;
+          horizBlocked = true;
+          touchingRightWall = true;
+          break;
+        }
+      }
+    } else if (player.vx < 0) {                  // moving left
+      for (let r = minRow; r <= maxRow; r++) {
+        if (isWall(minCol, r)) {
+          const wallRight = (minCol + 1) * tileSize;
+          player.x = wallRight + player.radius + 0.001;
+          horizBlocked = true;
+          touchingLeftWall = true;
+          break;
+        }
+      }
+    }
+    if (!horizBlocked) player.x = nx;
+
+    /* ----- Vertical movement & floor/ceiling collision ----- */
+    const ny = player.y + player.vy * dt;
+    const vTop    = ny - player.radius;
+    const vBottom = ny + player.radius;
+    const vLeft   = player.x - player.radius;
+    const vRight  = player.x + player.radius;
+
+    const vMinCol = Math.floor(vLeft / tileSize);
+    const vMaxCol = Math.floor(vRight / tileSize);
+    const vMinRow = Math.floor(vTop / tileSize);
+    const vMaxRow = Math.floor(vBottom / tileSize);
+
+    let vertBlocked = false;
+    if (player.vy > 0) { // falling – check floor
+      for (let c = vMinCol; c <= vMaxCol; c++) {
+        if (isWall(c, vMaxRow)) {
+          const floorY = vMaxRow * tileSize;
+          player.y = floorY - player.radius - 0.001;
+          player.vy = 0;
+          player.onGround = true;
+          vertBlocked = true;
+          break;
+        }
+      }
+    } else if (player.vy < 0) { // rising – check ceiling
+      for (let c = vMinCol; c <= vMaxCol; c++) {
+        if (isWall(c, vMinRow)) {
+          const ceilY = (vMinRow + 1) * tileSize;
+          player.y = ceilY + player.radius + 0.001;
+          player.vy = 0;
+          vertBlocked = true;
+          break;
+        }
+      }
+    }
+    if (!vertBlocked) {
+      player.y = ny;
+      player.onGround = false;
+    }
+
+    /* ----- Jump handling (Space) ----- */
+    if (wallJumpCooldown > 0) wallJumpCooldown -= dt;
+    if (keys.Space) {
+      if (player.onGround) {
+        player.vy = -player.jumpSpeed;
+        player.onGround = false;
+      } else if (wallJumpCooldown <= 0 && (touchingLeftWall || touchingRightWall)) {
+        // wall‑jump pushes you away from the wall you’re pressing on
+        player.vy = -player.jumpSpeed;
+        player.vx = touchingLeftWall ? player.speed : -player.speed;
+        wallJumpCooldown = 0.18; // seconds before the next wall‑jump
+      }
+    }
+
+    /* ----- Update facing direction (for animated mouth) ----- */
+    const speedMag = Math.hypot(player.vx, player.vy);
+    if (speedMag > 0.1) player.direction = Math.atan2(player.vy, player.vx);
+
+    /* ----- Pellet collection ----- */
+    const pCol = Math.floor(player.x / tileSize);
+    const pRow = Math.floor(player.y / tileSize);
+    const pelletKey = `${pCol},${pRow}`;
+    if (pellets.has(pelletKey)) {
+      pellets.delete(pelletKey);
+      ++score;
+    }
+  }
+
+  /* --------------------------------------------------------------
+   *  Render – draws walls, pellets, player, UI
+   * -------------------------------------------------------------- */
+  function render() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Walls
+    ctx.fillStyle = '#2d2d2d';
+    for (let r = 0; r < rows; r++) {
+      const line = level[r];
+      for (let c = 0; c < cols; c++) {
+        if (line[c] === '#') {
+          ctx.fillRect(c * tileSize, r * tileSize, tileSize, tileSize);
+        }
+      }
+    }
+
+    // Pellets
+    ctx.fillStyle = '#fff';
+    const pelletRadius = tileSize * 0.09;
+    pellets.forEach(key => {
+      const [c, r] = key.split(',').map(Number);
+      const cx = (c + 0.5) * tileSize;
+      const cy = (r + 0.5) * tileSize;
+      ctx.beginPath();
+      ctx.arc(cx, cy, pelletRadius, 0, 2 * Math.PI);
+      ctx.fill();
+    });
+
+    // Player (Pac‑Man)
+    const mouth = Math.PI / 4; // opening angle
+    const start = player.direction - mouth / 2;
+    const end   = player.direction + mouth / 2;
+    ctx.fillStyle = '#ffeb3b';
+    ctx.beginPath();
+    ctx.moveTo(player.x, player.y);
+    ctx.arc(player.x, player.y, player.radius, start, end, false);
+    ctx.closePath();
+    ctx.fill();
+
+    // UI – score
+    ctx.fillStyle = '#fff';
+    ctx.font = '20px Arial';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText(`Score: ${score}`, 10, 10);
+
+    // UI – controls hint
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.font = '16px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('← → to move, Space to jump / wall‑jump',
+                 canvas.width / 2, canvas.height - 30);
+
+    // Victory overlay
+    if (pellets.size === 0) {
+      ctx.fillStyle = 'rgba(0,0,0,0.7)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#4caf50';
+      ctx.font = '48px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('You Win!', canvas.width / 2, canvas.height / 2);
+    }
+  }
+})();
+</script>
+</body>
+</html>
