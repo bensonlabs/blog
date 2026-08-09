@@ -1,0 +1,115 @@
+import { test, expect } from '@playwright.test';
+
+test.describe('Marble Tilt Web Game Verification', () => {
+  test.beforeEach(async ({ page }) => {
+    // Navigate to the local page or relative path whereMarble Tilt is served
+    await page.goto('http://localhost:8080/projects/games/marble-tilt/index.html');
+  });
+
+  test('Page loads correctly with initial start overlay', async ({ page }) => {
+    // Check canvas and overlays are present
+    await expect(page.locator('#gameCanvas')).toBeVisible();
+    await expect(page.locator('#startOverlay')).toBeVisible();
+    await expect(page.locator('#timer')).toHaveText('00:00');
+    await expect(page.locator('#lives')).toHaveText('3');
+  });
+
+  test('Touch fallback button starts game and hides overlay', async ({ page }) => {
+    // Click the Touch / Mouse button to bypass device orientation prompt
+    await page.click('#startGameBtn');
+
+    // Overlay should disappear
+    await expect(page.locator('#startOverlay')).toHaveClass(/hidden/);
+
+    // Timer should begin incrementing
+    await page.waitForTimeout(1100);
+    const timerText = await page.locator('#timer').textContent();
+    expect(timerText).not.toBe('00:00');
+  });
+
+  test('Simulate touch drag to trigger marble movement', async ({ page }) => {
+    await page.click('#startGameBtn');
+
+    const touchPad = page.locator('#touchPad');
+    const box = await touchPad.boundingBox();
+    expect(box).not.toBeNull();
+
+    // Center coordinates of the touch active area
+    const centerX = box.x + box.width / 2;
+    const centerY = box.y + box.height / 2;
+
+    // Simulate drag down and right to apply tiltX > 0 and tiltY > 0
+    await page.mouse.move(centerX, centerY);
+    await page.mouse.down();
+    await page.mouse.move(centerX + 40, centerY + 40, { steps: 5 });
+
+    // Allow time for physics loop to register acceleration
+    await page.waitForTimeout(500);
+    await page.mouse.up();
+
+    // Verify game canvas is actively rendering without throwing errors
+    const isCanvasValid = await page.evaluate(() => {
+      const canvas = document.getElementById('gameCanvas');
+      return canvas instanceof HTMLCanvasElement && canvas.width > 0;
+    });
+    expect(isCanvasValid).toBe(true);
+  });
+
+  test('Winning sequence: Navigating directly to goal triggers win overlay', async ({ page }) => {
+    await page.click('#startGameBtn');
+
+    // Teleport marble directly inside goal radius to verify win state trigger
+    await page.evaluate(() => {
+      // Goal coordinates from index.html: { x: 740, y: 390 }
+      window.marble.x = 740;
+      window.marble.y = 390;
+      window.marble.vx = 0;
+      window.marble.vy = 0;
+    });
+
+    // Wait for the next requestAnimationFrame frame to execute physics collision check
+    await page.waitForTimeout(100);
+
+    // Verify win overlay appears and time summary is populated
+    await expect(page.locator('#winOverlay')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#winStats')).toContainText('Completed in');
+  });
+
+  test('Hazard sequence: Falling into a hole decrements lives and resets marble', async ({ page }) => {
+    await page.click('#startGameBtn');
+
+    // Position marble inside the first hazard hole: { x: 180, y: 100 }
+    await page.evaluate(() => {
+      window.marble.x = 180;
+      window.marble.y = 100;
+      window.marble.vx = 0;
+      window.marble.vy = 0;
+    });
+
+    await page.waitForTimeout(100);
+
+    // Life should decrement from 3 to 2
+    await expect(page.locator('#lives')).toHaveText('2');
+
+    // Marble should reset back to start position (60, 60)
+    const marblePos = await page.evaluate(() => ({ x: window.marble.x, y: window.marble.y }));
+    expect(marblePos.x).toBe(60);
+    expect(marblePos.y).toBe(60);
+  });
+
+  test('Game Over sequence: Depleting 3 lives opens game over screen', async ({ page }) => {
+    await page.click('#startGameBtn');
+
+    // Trigger 3 consecutive pit falls
+    for (let i = 0; i < 3; i++) {
+      await page.evaluate(() => {
+        window.marble.x = 180;
+        window.marble.y = 100;
+      });
+      await page.waitForTimeout(100);
+    }
+
+    await expect(page.locator('#lives')).toHaveText('0');
+    await expect(page.locator('#gameOverOverlay')).not.toHaveClass(/hidden/);
+  });
+});
