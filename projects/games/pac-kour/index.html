@@ -458,7 +458,7 @@
           <span class="stat-value warn" id="deaths-value">0</span>
         </div>
         <div class="stat">
-          <span class="stat-label">Best Run</span>
+          <span class="stat-label">Best Progress</span>
           <span class="stat-value" id="best-value">0</span>
         </div>
       </div>
@@ -497,7 +497,7 @@
         "#..................#",
         "#....####....####..#",
         "#..................#",
-        "#..####........####.",
+        "#..####.......####.#",
         "#..................#",
         "#........####......#",
         "#.........####.....#",
@@ -509,7 +509,7 @@
       ];
       const ROWS = LEVEL.length;
       const COLS = LEVEL[0].length;
-      const STORAGE_KEY = 'pac-kour-best-score';
+      const STORAGE_KEY = 'pac-kour-best-progress';
       const GRAVITY = 1900;
       const MOVE_SPEED = 260;
       const JUMP_SPEED = 560;
@@ -542,7 +542,7 @@
 
       let score = 0;
       let deaths = 0;
-      let bestScore = loadBestScore();
+      let bestScore = loadBestProgress();
       let gameStarted = false;
       let gameWon = false;
       let jumpQueued = false;
@@ -550,13 +550,13 @@
       let wallJumpCooldown = 0;
       let lastTime = performance.now();
 
-      function loadBestScore() {
+      function loadBestProgress() {
         const raw = window.localStorage.getItem(STORAGE_KEY);
         const parsed = Number(raw);
         return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
       }
 
-      function saveBestScore(nextScore) {
+      function saveBestProgress(nextScore) {
         if (nextScore <= bestScore) return;
         bestScore = nextScore;
         window.localStorage.setItem(STORAGE_KEY, String(bestScore));
@@ -637,7 +637,7 @@
         if (!pellets.has(key)) return;
         pellets.delete(key);
         score += 1;
-        saveBestScore(score);
+        saveBestProgress(score);
         syncHud();
         if (pellets.size === 0) {
           gameWon = true;
