@@ -1,15 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- bl-game-meta
-  title: Marble Tilt
-  emoji: ⚪
-  order: 95
-  description: Guide a steel marble through a tilt-controlled wooden maze, avoid pit hazards, and reach the goal before losing all your lives.
-  -->
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Marble Tilt</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Marble Tilt - Deluxe Arcade</title>
   <style>
     :root {
       --wood-bg: #2b1d12;
@@ -18,6 +12,7 @@
       --brass: #e0aa3e;
       --brass-dark: #9e731b;
       --felt-green: #1a3d2f;
+      --bubble-fluid: #a4c639;
       --text-light: #f4ebd9;
       --danger: #b23b3b;
       --success: #2e7d32;
@@ -51,7 +46,7 @@
       flex-direction: column;
       align-items: center;
       width: 100%;
-      max-width: 800px;
+      max-width: 900px;
       gap: 10px;
     }
 
@@ -68,31 +63,87 @@
     }
 
     h1 {
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       color: var(--brass);
       text-transform: uppercase;
       letter-spacing: 2px;
-      font-weight: 700;
       text-shadow: 1px 1px 2px #000;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 15px;
     }
 
     .stats {
       display: flex;
-      gap: 16px;
+      gap: 12px;
       font-family: monospace;
-      font-size: 1rem;
-      color: var(--text-light);
+      font-size: 0.95rem;
     }
 
     .stat-label {
       color: var(--brass);
-      margin-right: 4px;
+    }
+
+    /* Bubble Level Widget */
+    .instrument-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 4px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 50%;
+      border: 1px solid var(--brass-dark);
+    }
+
+    .level-container {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--felt-green);
+      border: 2px solid var(--brass);
+      box-shadow: inset 0 0 6px rgba(0,0,0,0.8);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .level-fluid {
+      position: absolute;
+      width: 100%; height: 100%;
+      background: var(--bubble-fluid);
+      opacity: 0.5;
+      border-radius: 50%;
+    }
+
+    .level-cross-h, .level-cross-v {
+      position: absolute;
+      background: rgba(255, 218, 115, 0.3);
+      z-index: 1;
+    }
+    .level-cross-h { width: 80%; height: 1px; top: 50%; left: 10%; }
+    .level-cross-v { width: 1px; height: 80%; left: 50%; top: 10%; }
+
+    .bubble {
+      width: 12px; height: 12px;
+      background: white;
+      border-radius: 50%;
+      position: absolute;
+      z-index: 2;
+      box-shadow: 0 0 4px rgba(255,255,255,0.8);
+      top: calc(50% - 6px);
+      left: calc(50% - 6px);
+      will-change: transform;
     }
 
     .canvas-wrapper {
       position: relative;
       width: 100%;
-      max-width: 720px;
+      max-width: 800px;
       aspect-ratio: 16 / 9;
       background: #111;
       border: 12px solid var(--wood-bg);
@@ -110,64 +161,41 @@
 
     .overlay {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(20, 12, 8, 0.88);
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(20, 12, 8, 0.92);
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      gap: 12px;
+      gap: 15px;
       padding: 20px;
       text-align: center;
       z-index: 10;
     }
 
-    .overlay.hidden {
-      display: none;
-    }
+    .overlay.hidden { display: none; }
 
-    .overlay h2 {
-      font-size: 1.8rem;
-      color: var(--brass);
-      text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-    }
-
-    .overlay p {
-      font-size: 0.95rem;
-      max-width: 480px;
-      line-height: 1.4;
-      color: var(--text-light);
-    }
-
-    .controls-bar {
+    .level-select-grid {
       display: flex;
       gap: 10px;
-      flex-wrap: wrap;
-      justify-content: center;
-      width: 100%;
+      margin-top: 5px;
     }
 
     .btn {
       background: linear-gradient(to bottom, var(--brass), var(--brass-dark));
       color: #1a100a;
       border: 1px solid #ffda73;
-      padding: 8px 16px;
+      padding: 10px 18px;
       font-size: 0.85rem;
       font-weight: bold;
       text-transform: uppercase;
       border-radius: 4px;
       cursor: pointer;
       box-shadow: 0 3px 6px rgba(0,0,0,0.4);
-      transition: all 0.1s ease;
     }
 
-    .btn:active {
-      transform: translateY(2px);
-      box-shadow: 0 1px 2px rgba(0,0,0,0.4);
-    }
+    .btn:active { transform: translateY(1px); }
 
     .btn-secondary {
       background: linear-gradient(to bottom, #4a382a, #2b1d12);
@@ -180,540 +208,529 @@
       inset: 0;
       z-index: 5;
     }
+
+    .stars {
+      color: var(--brass);
+      font-size: 1.4rem;
+      letter-spacing: 4px;
+    }
   </style>
 </head>
-<body class="nav-autohide">
-<!-- bl-nav:canonical -->
-<!-- SHARED NAV SNIPPET - standalone apps. Paste immediately after <body>. Keep byte-identical. -->
-<nav class="bl-nav" id="bl-nav">
-  <a href="/" class="bl-nav__brand">bensonlabs</a>
-  <button class="bl-nav__toggle" id="bl-nav-toggle" aria-label="Menu" aria-expanded="false">
-    <span></span><span></span><span></span>
-  </button>
-  <div class="bl-nav__links" id="bl-nav-links">
-    <a href="/" class="bl-nav__link">Blog</a>
-      <a href="/projects/" class="bl-nav__link">Projects</a>
-      <a href="/projects/games/" class="bl-nav__link">Games</a>
-      <a href="/projects/workouts/" class="bl-nav__link">Workouts</a>
-      <a href="/bootstraps/" class="bl-nav__link">Bootstraps</a>
-      <a href="/about/" class="bl-nav__link">About</a>
-  </div>
-</nav>
-<style>
-  #bl-nav{
-    display:flex;align-items:center;justify-content:space-between;
-    gap:1rem;padding:.4rem 1rem;min-height:44px;
-    background:#252525 !important;border-bottom:1px solid #3a3a3a;
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-    position:sticky;top:0;z-index:99999;box-sizing:border-box;align-self:stretch;width:100%;
-  }
-  #bl-nav *{box-sizing:border-box;}
-  #bl-nav .bl-nav__brand{
-    color:#a78bfa !important;font-weight:700;font-size:1.05rem;
-    text-decoration:none !important;letter-spacing:-.01em;flex:0 0 auto;line-height:1;
-  }
-  #bl-nav .bl-nav__brand:hover{color:#7c3aed !important;}
-  #bl-nav .bl-nav__links{display:flex;align-items:center;gap:1.4rem;}
-  #bl-nav .bl-nav__link{
-    color:#c9c9c9 !important;text-decoration:none !important;
-    font-size:.9rem;white-space:nowrap;transition:color .15s;line-height:1;
-    background:none !important;border:none;padding:0;
-  }
-  #bl-nav .bl-nav__link:hover{color:#a78bfa !important;}
-  #bl-nav .bl-nav__link.is-active{color:#fff !important;font-weight:600;}
-  #bl-nav .bl-nav__toggle{
-    display:none;flex-direction:column;gap:5px;
-    background:none !important;border:none;cursor:pointer;padding:6px;flex:0 0 auto;
-  }
-  #bl-nav .bl-nav__toggle span{
-    display:block;width:22px;height:2px;background:#dcddde;border-radius:2px;
-    transition:transform .2s,opacity .2s;
-  }
-  #bl-nav.is-open .bl-nav__toggle span:nth-child(1){transform:translateY(7px) rotate(45deg);}
-  #bl-nav.is-open .bl-nav__toggle span:nth-child(2){opacity:0;}
-  #bl-nav.is-open .bl-nav__toggle span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
-
-  @media (max-width:820px){
-    #bl-nav .bl-nav__toggle{display:flex !important;}
-    #bl-nav .bl-nav__links{
-      display:none !important;position:absolute;top:100%;left:0;right:0;
-      flex-direction:column;align-items:stretch;gap:0;
-      background:#252525 !important;border-bottom:1px solid #3a3a3a;
-      padding:.25rem 0;
-    }
-    #bl-nav.is-open .bl-nav__links{display:flex !important;}
-    #bl-nav .bl-nav__link{
-      width:100%;padding:.7rem 1rem !important;font-size:1rem;
-    }
-    #bl-nav .bl-nav__link:hover{background:#2d2d2d !important;}
-  }
-
-  /* Auto-hide (games only): opaque, slides fully out of view */
-  .nav-autohide #bl-nav{position:fixed;top:0;left:0;right:0;transform:translateY(-100%);transition:transform .2s ease;}
-  .nav-autohide #bl-nav.is-visible,
-  .nav-autohide #bl-nav.is-open{transform:translateY(0);}
-  .nav-autohide .bl-nav__trigger{position:fixed;top:0;left:0;right:0;height:14px;z-index:99998;}
-  .nav-autohide .bl-nav__menu-fab{
-    position:fixed;top:8px;right:8px;z-index:99998;
-    width:40px;height:40px;border-radius:8px;border:none;cursor:pointer;
-    background:rgba(37,37,37,.85) !important;display:flex;flex-direction:column;
-    align-items:center;justify-content:center;gap:4px;padding:0;
-  }
-  .nav-autohide .bl-nav__menu-fab span{display:block;width:18px;height:2px;background:#dcddde;border-radius:2px;}
-  .nav-autohide.is-revealed .bl-nav__menu-fab{display:none;}
-</style>
-<div class="bl-nav__trigger"></div>
-<button class="bl-nav__menu-fab" id="bl-nav-fab" aria-label="Open menu"><span></span><span></span><span></span></button>
-<script>
-  (function(){
-    var nav=document.getElementById('bl-nav');
-    var toggle=document.getElementById('bl-nav-toggle');
-    if(nav&&toggle){
-      toggle.addEventListener('click',function(){
-        var open=nav.classList.toggle('is-open');
-        toggle.setAttribute('aria-expanded',open?'true':'false');
-      });
-    }
-    if(document.body.classList.contains('nav-autohide')){
-      var trigger=document.querySelector('.bl-nav__trigger');
-      var fab=document.getElementById('bl-nav-fab');
-      function reveal(){nav.classList.add('is-visible');document.body.classList.add('is-revealed');}
-      function hide(){if(!nav.classList.contains('is-open')){nav.classList.remove('is-visible');document.body.classList.remove('is-revealed');}}
-      if(trigger){
-        trigger.addEventListener('mouseenter',reveal);
-      }
-      if(fab){
-        fab.addEventListener('click',function(){reveal();nav.classList.add('is-open');});
-      }
-      if(nav){ nav.addEventListener('mouseleave',hide); }
-    } else {
-      // non-game pages: remove the game-only FAB if present
-      var fab=document.getElementById('bl-nav-fab'); if(fab) fab.remove();
-    }
-  })();
-</script>
+<body>
 
 <div class="game-container">
   <header>
-    <h1>Marble Tilt</h1>
-    <div class="stats">
-      <div><span class="stat-label">TIME:</span><span id="timer">00:00</span></div>
-      <div><span class="stat-label">LIVES:</span><span id="lives">3</span></div>
+    <h1 id="levelTitleDisplay">Marble Tilt</h1>
+    <div class="header-right">
+      <div class="stats">
+        <div><span class="stat-label">TIME:</span><span id="timer">00:00</span></div>
+        <div><span class="stat-label">LIVES:</span><span id="lives">3</span></div>
+      </div>
+      <div class="instrument-panel">
+        <div class="level-container">
+          <div class="level-fluid"></div>
+          <div class="level-cross-h"></div>
+          <div class="level-cross-v"></div>
+          <div class="bubble" id="levelBubble"></div>
+        </div>
+      </div>
     </div>
   </header>
 
-  <div class="canvas-wrapper" id="canvasContainer">
+  <div class="canvas-wrapper">
     <canvas id="gameCanvas" width="800" height="450"></canvas>
-    
-    <!-- Touch capture layer for virtual joystick fallback -->
     <div class="touch-pad" id="touchPad"></div>
 
-    <!-- UI Overlays -->
+    <!-- Main Menu & Level Selector Overlay -->
     <div id="startOverlay" class="overlay">
-      <h2>Marble Tilt</h2>
-      <p>Guide the marble to the green goal ring while avoiding the dark pit hazards.</p>
-      <p>Use phone tilt or drag/touch on the screen to control board incline.</p>
-      <div class="controls-bar" style="margin-top:10px;">
-        <button id="enableMotionBtn" class="btn">Enable Motion Controls</button>
-        <button id="startGameBtn" class="btn btn-secondary">Play with Touch / Mouse</button>
+      <h2 style="color: var(--brass); font-size: 2rem;">Marble Tilt</h2>
+      <p style="font-size: 0.9rem; max-width: 420px;">Guide the marble to the green goal. Avoid pits, use spring bumpers for boosts, and navigate through ice & felt terrain!</p>
+      <p style="font-size: 0.85rem; color: var(--brass);">Select Level:</p>
+      <div class="level-select-grid">
+        <button class="btn levelBtn" data-level="0">1. Courtyard</button>
+        <button class="btn levelBtn" data-level="1">2. Double Loop</button>
+        <button class="btn levelBtn" data-level="2">3. The Gauntlet</button>
+      </div>
+      <div style="display:flex; gap:10px; margin-top:10px;">
+        <button id="enableMotionBtn" class="btn">Enable Motion</button>
+        <button id="startTouchBtn" class="btn btn-secondary">Play with Touch</button>
       </div>
     </div>
 
+    <!-- Win State Overlay -->
     <div id="winOverlay" class="overlay hidden">
       <h2 style="color: var(--brass);">Level Cleared!</h2>
-      <p id="winStats">Completed in 00:00</p>
-      <button class="btn restartBtn">Play Again</button>
+      <div class="stars" id="winStars">★★★</div>
+      <p id="winStats"></p>
+      <div style="display:flex; gap:10px; margin-top:10px;">
+        <button class="btn" id="nextLevelBtn">Next Level</button>
+        <button class="btn btn-secondary" onclick="showMenu()">Main Menu</button>
+      </div>
     </div>
 
+    <!-- Game Over Overlay -->
     <div id="gameOverOverlay" class="overlay hidden">
       <h2 style="color: var(--danger);">Game Over</h2>
-      <p>You ran out of lives!</p>
-      <button class="btn restartBtn">Try Again</button>
+      <p>Out of lives!</p>
+      <button class="btn" onclick="showMenu()">Main Menu</button>
     </div>
   </div>
 
-  <div class="controls-bar">
+  <div style="display:flex; gap:10px;">
     <button id="calibrateBtn" class="btn btn-secondary">Calibrate Tilt</button>
-    <button class="btn btn-secondary restartBtn">Restart</button>
+    <button class="btn btn-secondary" id="restartBtn">Restart Level</button>
+    <button class="btn btn-secondary" onclick="showMenu()">Level Select</button>
   </div>
 </div>
 
 <script>
-  // Game Setup & Constants
+  // --- Audio Engine (Web Audio API Synthesizer) ---
+  let audioCtx = null;
+  let rollingOsc = null;
+  let rollingGain = null;
+
+  function initAudio() {
+    if (audioCtx) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    // Rolling sound continuous oscillator
+    rollingOsc = audioCtx.createOscillator();
+    rollingOsc.type = 'triangle';
+    rollingOsc.frequency.setValueAtTime(60, audioCtx.currentTime);
+
+    rollingGain = audioCtx.createGain();
+    rollingGain.gain.setValueAtTime(0, audioCtx.currentTime);
+
+    rollingOsc.connect(rollingGain);
+    rollingGain.connect(audioCtx.destination);
+    rollingOsc.start();
+  }
+
+  function updateRollingAudio(speed) {
+    if (!audioCtx || gameState !== 'PLAYING') {
+      if (rollingGain) rollingGain.gain.setValueAtTime(0, audioCtx.currentTime);
+      return;
+    }
+    const vol = Math.min(0.12, (speed / 15) * 0.12);
+    rollingGain.gain.setTargetAtTime(vol, audioCtx.currentTime, 0.05);
+    rollingOsc.frequency.setTargetAtTime(40 + speed * 4, audioCtx.currentTime, 0.05);
+  }
+
+  function playSound(type) {
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+
+    if (type === 'bounce') {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(220, now);
+      osc.frequency.exponentialRampToValueAtTime(80, now + 0.08);
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(now); osc.stop(now + 0.08);
+    } else if (type === 'bumper') {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(440, now);
+      osc.frequency.exponentialRampToValueAtTime(880, now + 0.15);
+      gain.gain.setValueAtTime(0.25, now);
+      gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(now); osc.stop(now + 0.15);
+    } else if (type === 'fall') {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(300, now);
+      osc.frequency.exponentialRampToValueAtTime(50, now + 0.4);
+      gain.gain.setValueAtTime(0.3, now);
+      gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(now); osc.stop(now + 0.4);
+    }
+  }
+
+  // --- Game Engine Setup ---
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
   const timerEl = document.getElementById('timer');
   const livesEl = document.getElementById('lives');
   const touchPad = document.getElementById('touchPad');
+  const bubbleEl = document.getElementById('levelBubble');
 
   const CANVAS_WIDTH = 800;
   const CANVAS_HEIGHT = 450;
 
-  // Game State
-  let gameState = 'MENU'; // MENU, PLAYING, WIN, GAMEOVER
+  let gameState = 'MENU';
+  let currentLevelIdx = 0;
   let lives = 3;
   let startTime = 0;
   let elapsedTime = 0;
   let timerInterval = null;
 
-  // Orientation / Tilt Control State
-  let tiltX = 0; // -1 to 1
-  let tiltY = 0; // -1 to 1
-  let rawGamma = 0;
-  let rawBeta = 0;
-  let calibGamma = 0;
-  let calibBeta = 0;
+  let tiltX = 0, tiltY = 0;
+  let rawGamma = 0, rawBeta = 0;
+  let calibGamma = 0, calibBeta = 0;
   let motionActive = false;
+  let isTouching = false, touchStartX = 0, touchStartY = 0;
 
-  // Touch fallback control state
-  let isTouching = false;
-  let touchStartX = 0;
-  let touchStartY = 0;
+  const marble = { x: 60, y: 60, vx: 0, vy: 0, radius: 12 };
 
-  // Physics Config
-  const GRAVITY = 0.35;
-  const DAMPING = 0.985;
-  const BOUNCE = 0.4;
-
-  // Marble definition
-  const marble = {
-    x: 60,
-    y: 60,
-    vx: 0,
-    vy: 0,
-    radius: 12
-  };
-
-  // Level Setup: Goals, Start, Holes, Walls
-  const startPos = { x: 60, y: 60 };
-  const goal = { x: 740, y: 390, radius: 20 };
-
-  const holes = [
-    { x: 180, y: 100, radius: 16 },
-    { x: 300, y: 300, radius: 16 },
-    { x: 450, y: 150, radius: 16 },
-    { x: 550, y: 380, radius: 16 },
-    { x: 650, y: 220, radius: 16 },
-    { x: 220, y: 390, radius: 16 }
+  // --- Level Definitions (Gizmos: Bumpers, Ice, Felt) ---
+  const LEVELS = [
+    {
+      name: "1. The Courtyard",
+      start: { x: 60, y: 60 },
+      goal: { x: 740, y: 390, radius: 20 },
+      holes: [
+        { x: 200, y: 120, radius: 15 }, { x: 350, y: 320, radius: 15 },
+        { x: 500, y: 150, radius: 15 }, { x: 620, y: 320, radius: 15 }
+      ],
+      walls: [
+        { x: 10, y: 10, w: 780, h: 10 }, { x: 10, y: 430, w: 780, h: 10 },
+        { x: 10, y: 10, w: 10, h: 430 }, { x: 780, y: 10, w: 10, h: 430 },
+        { x: 140, y: 10, w: 10, h: 280 }, { x: 280, y: 150, w: 10, h: 270 },
+        { x: 420, y: 10, w: 10, h: 280 }, { x: 580, y: 140, w: 10, h: 280 }
+      ],
+      bumpers: [{ x: 350, y: 80, radius: 18 }, { x: 500, y: 370, radius: 18 }],
+      icePatches: [{ x: 160, y: 330, w: 90, h: 70 }],
+      feltPatches: [{ x: 440, y: 80, w: 110, h: 60 }]
+    },
+    {
+      name: "2. Double Loop",
+      start: { x: 60, y: 390 },
+      goal: { x: 740, y: 60, radius: 20 },
+      holes: [
+        { x: 180, y: 220, radius: 15 }, { x: 320, y: 100, radius: 15 },
+        { x: 450, y: 350, radius: 15 }, { x: 600, y: 150, radius: 15 },
+        { x: 320, y: 300, radius: 15 }
+      ],
+      walls: [
+        { x: 10, y: 10, w: 780, h: 10 }, { x: 10, y: 430, w: 780, h: 10 },
+        { x: 10, y: 10, w: 10, h: 430 }, { x: 780, y: 10, w: 10, h: 430 },
+        { x: 240, y: 10, w: 10, h: 330 }, { x: 540, y: 110, w: 10, h: 320 },
+        { x: 380, y: 120, w: 10, h: 220 }
+      ],
+      bumpers: [{ x: 130, y: 100, radius: 18 }, { x: 680, y: 350, radius: 18 }],
+      icePatches: [{ x: 410, y: 40, w: 100, h: 60 }],
+      feltPatches: [{ x: 270, y: 360, w: 100, h: 60 }]
+    },
+    {
+      name: "3. The Gauntlet",
+      start: { x: 400, y: 220 },
+      goal: { x: 740, y: 390, radius: 20 },
+      holes: [
+        { x: 200, y: 100, radius: 14 }, { x: 600, y: 100, radius: 14 },
+        { x: 200, y: 350, radius: 14 }, { x: 600, y: 350, radius: 14 },
+        { x: 400, y: 90, radius: 14 },  { x: 400, y: 360, radius: 14 }
+      ],
+      walls: [
+        { x: 10, y: 10, w: 780, h: 10 }, { x: 10, y: 430, w: 780, h: 10 },
+        { x: 10, y: 10, w: 10, h: 430 }, { x: 780, y: 10, w: 10, h: 430 },
+        { x: 120, y: 120, w: 160, h: 10 }, { x: 520, y: 120, w: 160, h: 10 },
+        { x: 120, y: 320, w: 160, h: 10 }, { x: 520, y: 320, w: 160, h: 10 },
+        { x: 320, y: 180, w: 10, h: 100 }, { x: 480, y: 180, w: 10, h: 100 }
+      ],
+      bumpers: [{ x: 400, y: 220, radius: 20 }, { x: 200, y: 220, radius: 16 }, { x: 600, y: 220, radius: 16 }],
+      icePatches: [{ x: 330, y: 30, w: 140, h: 40 }],
+      feltPatches: [{ x: 330, y: 380, w: 140, h: 40 }]
+    }
   ];
 
-  const walls = [
-    // Outer boundaries
-    { x: 10, y: 10, w: 780, h: 10 },
-    { x: 10, y: 430, w: 780, h: 10 },
-    { x: 10, y: 10, w: 10, h: 430 },
-    { x: 780, y: 10, w: 10, h: 430 },
-
-    // Interior maze dividers
-    { x: 120, y: 10, w: 10, h: 280 },
-    { x: 120, y: 350, w: 10, h: 90 },
-    { x: 230, y: 120, w: 180, h: 10 },
-    { x: 230, y: 220, w: 10, h: 150 },
-    { x: 330, y: 220, w: 10, h: 130 },
-    { x: 430, y: 10, w: 10, h: 280 },
-    { x: 430, y: 350, w: 180, h: 10 },
-    { x: 530, y: 120, w: 150, h: 10 },
-    { x: 670, y: 120, w: 10, h: 220 }
-  ];
-
-  // Motion Detection Permission Handling
-  async function requestMotionPermission() {
-    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-      try {
-        const permissionState = await DeviceOrientationEvent.requestPermission();
-        if (permissionState === 'granted') {
-          attachOrientationListener();
-        } else {
-          alert('Motion control permission rejected. Touch controls enabled.');
-        }
-      } catch (error) {
-        console.warn('Orientation permission error:', error);
-      }
-    } else {
-      attachOrientationListener();
-    }
+  function loadLevel(idx) {
+    currentLevelIdx = idx;
+    const lvl = LEVELS[idx];
+    marble.x = lvl.start.x;
+    marble.y = lvl.start.y;
+    marble.vx = 0;
+    marble.vy = 0;
+    document.getElementById('levelTitleDisplay').textContent = lvl.name;
   }
 
-  function attachOrientationListener() {
-    if (window.DeviceOrientationEvent) {
-      window.addEventListener('deviceorientation', handleOrientation, true);
-      motionActive = true;
-    }
-  }
-
+  // --- Controls & Calibration ---
   function handleOrientation(e) {
     if (e.gamma === null || e.beta === null) return;
-    rawGamma = e.gamma; // [-90, 90]
-    rawBeta = e.beta;   // [-180, 180]
-
-    // Normalize with calibration offset
+    rawGamma = e.gamma; rawBeta = e.beta;
     let g = rawGamma - calibGamma;
     let b = rawBeta - calibBeta;
-
-    // Clamp angles to +-30 degrees for max force
-    g = Math.max(-30, Math.min(30, g));
-    b = Math.max(-30, Math.min(30, b));
-
-    tiltX = g / 30;
-    tiltY = b / 30;
+    const maxAngle = 20;
+    g = Math.max(-maxAngle, Math.min(maxAngle, g));
+    b = Math.max(-maxAngle, Math.min(maxAngle, b));
+    tiltX = g / maxAngle;
+    tiltY = b / maxAngle;
+    updateBubbleLevel();
   }
 
   function calibrate() {
     calibGamma = rawGamma;
     calibBeta = rawBeta;
+    updateBubbleLevel();
   }
 
-  // Touch Controls Implementation
-  touchPad.addEventListener('pointerdown', (e) => {
-    isTouching = true;
-    touchStartX = e.clientX;
-    touchStartY = e.clientY;
-  });
+  function updateBubbleLevel() {
+    const maxTravel = 16;
+    bubbleEl.style.transform = `translate3d(${-(tiltX * maxTravel)}px, ${tiltY * maxTravel}px, 0)`;
+  }
 
+  touchPad.addEventListener('pointerdown', (e) => {
+    isTouching = true; touchStartX = e.clientX; touchStartY = e.clientY;
+  });
   touchPad.addEventListener('pointermove', (e) => {
     if (!isTouching) return;
     const dx = e.clientX - touchStartX;
     const dy = e.clientY - touchStartY;
-    const maxDist = 50;
-
+    const maxDist = 40;
     tiltX = Math.max(-1, Math.min(1, dx / maxDist));
     tiltY = Math.max(-1, Math.min(1, dy / maxDist));
+    updateBubbleLevel();
   });
-
   const endTouch = () => {
-    if (!motionActive) {
-      isTouching = false;
-      tiltX = 0;
-      tiltY = 0;
-    }
+    if (!motionActive) { isTouching = false; tiltX = 0; tiltY = 0; updateBubbleLevel(); }
   };
-
   touchPad.addEventListener('pointerup', endTouch);
   touchPad.addEventListener('pointercancel', endTouch);
 
-  // Timer Management
-  function startTimer() {
-    startTime = Date.now() - elapsedTime;
-    timerInterval = setInterval(() => {
-      elapsedTime = Date.now() - startTime;
-      const totalSecs = Math.floor(elapsedTime / 1000);
-      const mins = String(Math.floor(totalSecs / 60)).padStart(2, '0');
-      const secs = String(totalSecs % 60).padStart(2, '0');
-      timerEl.textContent = `${mins}:${secs}`;
-    }, 200);
-  }
-
-  function stopTimer() {
-    clearInterval(timerInterval);
-  }
-
-  function resetGame() {
-    lives = 3;
-    elapsedTime = 0;
-    timerEl.textContent = '00:00';
-    livesEl.textContent = lives;
-    resetMarble();
-  }
-
-  function resetMarble() {
-    marble.x = startPos.x;
-    marble.y = startPos.y;
-    marble.vx = 0;
-    marble.vy = 0;
-  }
-
-  function startGame() {
-    resetGame();
-    gameState = 'PLAYING';
-    document.querySelectorAll('.overlay').forEach(el => el.classList.add('hidden'));
-    startTimer();
-  }
-
-  // Handle visibility changes (Pause timer when tab inactive)
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-      stopTimer();
-    } else if (gameState === 'PLAYING') {
-      startTimer();
-    }
-  });
-
-  // Physics & Collision Logic
+  // --- Physics & Collision ---
   function updatePhysics() {
     if (gameState !== 'PLAYING') return;
+    const lvl = LEVELS[currentLevelIdx];
 
-    // Apply tilt acceleration
-    marble.vx += tiltX * GRAVITY;
-    marble.vy += tiltY * GRAVITY;
+    // Check terrain modifiers (Ice / Felt)
+    let gravityScale = 1.1;
+    let dampingFactor = 0.988;
 
-    // Apply damping
-    marble.vx *= DAMPING;
-    marble.vy *= DAMPING;
-
-    // Move step
-    marble.x += marble.vx;
-    marble.y += marble.vy;
-
-    // Wall Collisions
-    for (const w of walls) {
-      // Find closest point on rectangle wall to circle
-      const closestX = Math.max(w.x, Math.min(marble.x, w.x + w.w));
-      const closestY = Math.max(w.y, Math.min(marble.y, w.y + w.h));
-
-      const distX = marble.x - closestX;
-      const distY = marble.y - closestY;
-      const distanceSquared = (distX * distX) + (distY * distY);
-
-      if (distanceSquared < (marble.radius * marble.radius)) {
-        const distance = Math.sqrt(distanceSquared);
-        const overlap = marble.radius - distance;
-
-        let nx = distance === 0 ? 1 : distX / distance;
-        let ny = distance === 0 ? 0 : distY / distance;
-
-        marble.x += nx * overlap;
-        marble.y += ny * overlap;
-
-        // Bounce reflection
-        const dot = marble.vx * nx + marble.vy * ny;
-        marble.vx = (marble.vx - 2 * dot * nx) * BOUNCE;
-        marble.vy = (marble.vy - 2 * dot * ny) * BOUNCE;
+    for (const ice of lvl.icePatches) {
+      if (marble.x >= ice.x && marble.x <= ice.x + ice.w && marble.y >= ice.y && marble.y <= ice.y + ice.h) {
+        dampingFactor = 0.998; // Very low friction (sliding)
+      }
+    }
+    for (const felt of lvl.feltPatches) {
+      if (marble.x >= felt.x && marble.x <= felt.x + felt.w && marble.y >= felt.y && marble.y <= felt.y + felt.h) {
+        dampingFactor = 0.92; // High drag friction
       }
     }
 
-    // Hole Hazards Detection
-    for (const h of holes) {
-      const dx = marble.x - h.x;
-      const dy = marble.y - h.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
+    marble.vx += tiltX * gravityScale;
+    marble.vy += tiltY * gravityScale;
+    marble.vx *= dampingFactor;
+    marble.vy *= dampingFactor;
+    marble.x += marble.vx;
+    marble.y += marble.vy;
 
-      if (dist < h.radius * 0.75) {
-        // Fall into hole
-        lives--;
-        livesEl.textContent = lives;
-        if (lives <= 0) {
-          gameState = 'GAMEOVER';
-          stopTimer();
-          document.getElementById('gameOverOverlay').classList.remove('hidden');
-        } else {
-          resetMarble();
-        }
+    const currentSpeed = Math.sqrt(marble.vx * marble.vx + marble.vy * marble.vy);
+    updateRollingAudio(currentSpeed);
+
+    // Wall Collisions
+    for (const w of lvl.walls) {
+      const cx = Math.max(w.x, Math.min(marble.x, w.x + w.w));
+      const cy = Math.max(w.y, Math.min(marble.y, w.y + w.h));
+      const dx = marble.x - cx, dy = marble.y - cy;
+      if ((dx * dx + dy * dy) < (marble.radius * marble.radius)) {
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const overlap = marble.radius - dist;
+        let nx = dist === 0 ? 1 : dx / dist, ny = dist === 0 ? 0 : dy / dist;
+        marble.x += nx * overlap;
+        marble.y += ny * overlap;
+        const dot = marble.vx * nx + marble.vy * ny;
+        marble.vx = (marble.vx - 2 * dot * nx) * 0.5;
+        marble.vy = (marble.vy - 2 * dot * ny) * 0.5;
+        playSound('bounce');
+      }
+    }
+
+    // Spring Bumper Collisions
+    for (const b of lvl.bumpers) {
+      const dx = marble.x - b.x, dy = marble.y - b.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < marble.radius + b.radius) {
+        const nx = dist === 0 ? 1 : dx / dist, ny = dist === 0 ? 0 : dy / dist;
+        marble.x = b.x + nx * (marble.radius + b.radius);
+        marble.y = b.y + ny * (marble.radius + b.radius);
+        marble.vx = nx * 8.5; // Spring recoil boost
+        marble.vy = ny * 8.5;
+        playSound('bumper');
+      }
+    }
+
+    // Hole Hazards
+    for (const h of lvl.holes) {
+      const dx = marble.x - h.x, dy = marble.y - h.y;
+      if (Math.sqrt(dx * dx + dy * dy) < h.radius * 0.75) {
+        playSound('fall');
+        loseLife();
         return;
       }
     }
 
-    // Goal Detection
-    const gdx = marble.x - goal.x;
-    const gdy = marble.y - goal.y;
-    if (Math.sqrt(gdx * gdx + gdy * gdy) < goal.radius * 0.8) {
-      gameState = 'WIN';
-      stopTimer();
-      document.getElementById('winStats').textContent = `Completed in ${timerEl.textContent}`;
-      document.getElementById('winOverlay').classList.remove('hidden');
+    // Goal Check
+    const gdx = marble.x - lvl.goal.x, gdy = marble.y - lvl.goal.y;
+    if (Math.sqrt(gdx * gdx + gdy * gdy) < lvl.goal.radius * 0.8) {
+      endLevel(true);
     }
   }
 
-  // Rendering Mechanics
+  // --- Rendering ---
   function draw() {
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    const lvl = LEVELS[currentLevelIdx];
 
-    // Board background (warm wood finish)
+    // Board wood base
     ctx.fillStyle = '#c89b5c';
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    // Subtle wood texture lines
-    ctx.strokeStyle = '#ba8d4f';
-    ctx.lineWidth = 1;
-    for (let i = 0; i < CANVAS_HEIGHT; i += 15) {
-      ctx.beginPath();
-      ctx.moveTo(0, i);
-      ctx.lineTo(CANVAS_WIDTH, i);
-      ctx.stroke();
+    // Terrain Patches (Ice & Felt)
+    for (const ice of lvl.icePatches) {
+      ctx.fillStyle = 'rgba(200, 230, 255, 0.45)';
+      ctx.fillRect(ice.x, ice.y, ice.w, ice.h);
+      ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+      ctx.strokeRect(ice.x, ice.y, ice.w, ice.h);
+    }
+    for (const felt of lvl.feltPatches) {
+      ctx.fillStyle = 'rgba(20, 60, 45, 0.45)';
+      ctx.fillRect(felt.x, felt.y, felt.w, felt.h);
+      ctx.strokeStyle = 'rgba(10, 30, 20, 0.6)';
+      ctx.strokeRect(felt.x, felt.y, felt.w, felt.h);
     }
 
-    // Draw Holes
-    for (const h of holes) {
-      ctx.beginPath();
-      ctx.arc(h.x, h.y, h.radius, 0, Math.PI * 2);
-      ctx.fillStyle = '#110b07';
-      ctx.fill();
-      ctx.strokeStyle = '#5a4128';
-      ctx.lineWidth = 3;
-      ctx.stroke();
+    // Goal
+    ctx.beginPath(); ctx.arc(lvl.goal.x, lvl.goal.y, lvl.goal.radius, 0, Math.PI * 2);
+    ctx.fillStyle = '#2e7d32'; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.stroke();
+
+    // Holes
+    ctx.fillStyle = '#110b07'; ctx.strokeStyle = '#444'; ctx.lineWidth = 2;
+    for (const h of lvl.holes) {
+      ctx.beginPath(); ctx.arc(h.x, h.y, h.radius, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     }
 
-    // Draw Goal Area
-    ctx.beginPath();
-    ctx.arc(goal.x, goal.y, goal.radius, 0, Math.PI * 2);
-    ctx.fillStyle = '#2e7d32';
-    ctx.fill();
-    ctx.strokeStyle = '#81c784';
-    ctx.lineWidth = 4;
-    ctx.stroke();
+    // Spring Bumpers
+    for (const b of lvl.bumpers) {
+      ctx.beginPath(); ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+      ctx.fillStyle = '#e0aa3e'; ctx.fill();
+      ctx.strokeStyle = '#5c3a21'; ctx.lineWidth = 3; ctx.stroke();
+      ctx.beginPath(); ctx.arc(b.x, b.y, b.radius * 0.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#9e731b'; ctx.fill(); ctx.stroke();
+    }
 
-    // Draw Walls
-    for (const w of walls) {
-      // Wall drop shadow
-      ctx.fillStyle = 'rgba(0,0,0,0.3)';
-      ctx.fillRect(w.x + 4, w.y + 4, w.w, w.h);
-
-      // Main wall structure
-      ctx.fillStyle = '#5c3a21';
+    // Walls
+    ctx.fillStyle = '#5c3a21'; ctx.strokeStyle = '#e0aa3e'; ctx.lineWidth = 2;
+    for (const w of lvl.walls) {
       ctx.fillRect(w.x, w.y, w.w, w.h);
-
-      // Brass top trim
-      ctx.strokeStyle = '#e0aa3e';
-      ctx.lineWidth = 1.5;
       ctx.strokeRect(w.x, w.y, w.w, w.h);
     }
 
-    // Draw Marble
-    // Marble drop shadow
-    ctx.beginPath();
-    ctx.arc(marble.x + 3, marble.y + 3, marble.radius, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-    ctx.fill();
-
-    // Steel / Silver Marble gradient
-    const grad = ctx.createRadialGradient(
-      marble.x - 3, marble.y - 3, 2,
-      marble.x, marble.y, marble.radius
-    );
-    grad.addColorStop(0, '#ffffff');
-    grad.addColorStop(0.3, '#d6d6d6');
-    grad.addColorStop(0.8, '#707070');
-    grad.addColorStop(1, '#333333');
-
-    ctx.beginPath();
-    ctx.arc(marble.x, marble.y, marble.radius, 0, Math.PI * 2);
-    ctx.fillStyle = grad;
-    ctx.fill();
-    ctx.strokeStyle = '#111';
-    ctx.lineWidth = 0.5;
-    ctx.stroke();
+    // Marble
+    const grad = ctx.createRadialGradient(marble.x - 3, marble.y - 3, 2, marble.x, marble.y, marble.radius);
+    grad.addColorStop(0, '#fff'); grad.addColorStop(1, '#555');
+    ctx.beginPath(); ctx.arc(marble.x, marble.y, marble.radius, 0, Math.PI * 2);
+    ctx.fillStyle = grad; ctx.fill(); ctx.strokeStyle = '#111'; ctx.lineWidth = 1; ctx.stroke();
   }
 
-  // Main Loop
   function loop() {
     updatePhysics();
     draw();
     requestAnimationFrame(loop);
   }
 
-  // Button Bindings & UI Setup
-  document.getElementById('enableMotionBtn').addEventListener('click', async () => {
-    await requestMotionPermission();
-    startGame();
+  // --- Game Flow ---
+  function startGame(levelIdx) {
+    initAudio();
+    loadLevel(levelIdx);
+    lives = 3;
+    elapsedTime = 0;
+    livesEl.textContent = lives;
+    timerEl.textContent = '00:00';
+    gameState = 'PLAYING';
+    document.querySelectorAll('.overlay').forEach(el => el.classList.add('hidden'));
+    startTimer();
+  }
+
+  function showMenu() {
+    stopTimer();
+    gameState = 'MENU';
+    if (rollingGain) rollingGain.gain.setValueAtTime(0, audioCtx.currentTime);
+    document.querySelectorAll('.overlay').forEach(el => el.classList.add('hidden'));
+    document.getElementById('startOverlay').classList.remove('hidden');
+  }
+
+  function loseLife() {
+    lives--;
+    livesEl.textContent = lives;
+    if (lives <= 0) {
+      endLevel(false);
+    } else {
+      const lvl = LEVELS[currentLevelIdx];
+      marble.x = lvl.start.x; marble.y = lvl.start.y;
+      marble.vx = 0; marble.vy = 0;
+    }
+  }
+
+  function endLevel(win) {
+    gameState = win ? 'WIN' : 'GAMEOVER';
+    stopTimer();
+    if (rollingGain) rollingGain.gain.setValueAtTime(0, audioCtx.currentTime);
+
+    if (win) {
+      const totalSecs = Math.floor(elapsedTime / 1000);
+      let stars = '★★★';
+      if (totalSecs > 35) stars = '★☆☆';
+      else if (totalSecs > 20) stars = '★★☆';
+      document.getElementById('winStars').textContent = stars;
+      document.getElementById('winStats').textContent = `Completed in ${timerEl.textContent}`;
+      document.getElementById('winOverlay').classList.remove('hidden');
+    } else {
+      document.getElementById('gameOverOverlay').classList.remove('hidden');
+    }
+  }
+
+  function startTimer() {
+    startTime = Date.now();
+    timerInterval = setInterval(() => {
+      elapsedTime = Date.now() - startTime;
+      const totalSecs = Math.floor(elapsedTime / 1000);
+      const m = String(Math.floor(totalSecs / 60)).padStart(2, '0');
+      const s = String(totalSecs % 60).padStart(2, '0');
+      timerEl.textContent = `${m}:${s}`;
+    }, 250);
+  }
+  function stopTimer() { clearInterval(timerInterval); }
+
+  // --- Event Bindings ---
+  document.querySelectorAll('.levelBtn').forEach(btn => {
+    btn.addEventListener('click', () => startGame(parseInt(btn.dataset.level)));
   });
 
-  document.getElementById('startGameBtn').addEventListener('click', startGame);
+  document.getElementById('startTouchBtn').addEventListener('click', () => startGame(0));
+  document.getElementById('restartBtn').addEventListener('click', () => startGame(currentLevelIdx));
   document.getElementById('calibrateBtn').addEventListener('click', calibrate);
 
-  document.querySelectorAll('.restartBtn').forEach(btn => {
-    btn.addEventListener('click', startGame);
+  document.getElementById('nextLevelBtn').addEventListener('click', () => {
+    const next = currentLevelIdx + 1;
+    if (next < LEVELS.length) {
+      startGame(next);
+    } else {
+      showMenu();
+    }
   });
 
-  // Start engine loop
+  document.getElementById('enableMotionBtn').addEventListener('click', async () => {
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      try {
+        const response = await DeviceOrientationEvent.requestPermission();
+        if (response === 'granted') {
+          window.addEventListener('deviceorientation', handleOrientation);
+          motionActive = true;
+        }
+      } catch (e) { console.warn(e); }
+    } else {
+      window.addEventListener('deviceorientation', handleOrientation);
+      motionActive = true;
+    }
+    startGame(0);
+  });
+
   requestAnimationFrame(loop);
 </script>
 </body>
