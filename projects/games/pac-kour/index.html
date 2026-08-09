@@ -755,7 +755,7 @@
         }
 
         if (Math.abs(player.vx) + Math.abs(player.vy) > 0.1) {
-          player.direction = Math.atan2(player.vy, player.vx || 1);
+          player.direction = Math.atan2(player.vy, player.vx);
         }
 
         if (
