@@ -65,6 +65,9 @@ Daily analysis of trending AI/ML repositories on GitHub with ranked results, cat
 ### **Neon To-Do** (external — [todo-app-l3m0.onrender.com](https://todo-app-l3m0.onrender.com))
 Full-stack todo app backed by Neon Postgres. Source: [bensonlabs/database-demo](https://github.com/bensonlabs/database-demo).
 
+### **Context Console** (`/projects/context-console/`)
+Owner-only work context tracker for resuming interrupted work. Phase 1 is deployed and smoke-tested at [context-console.onrender.com](https://context-console.onrender.com), backed by Supabase project `buvlsrccvrnnbxtwiozn`. Source: [bensonlabs/context-console](https://github.com/bensonlabs/context-console).
+
 ### **Workouts** (`/projects/workouts/`)
 12-week mesocycle strength training program with detailed day-by-day breakdowns including:
 - Strength progressions (Hypertrophy, Strength, Peaking phases)
@@ -247,6 +250,7 @@ blog/
 │   ├── focus-lab/       # Productivity dashboard
 │   ├── gravitas/        # N-body gravity simulator
 │   ├── to-do-app/       # Neon Postgres todo app
+│   ├── context-console/  # Owner-only work context tracker
 │   └── workouts/        # 12-week training program
 ├── about.md             # About page
 ├── index.html           # Blog homepage (post list)

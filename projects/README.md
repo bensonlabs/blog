@@ -9,6 +9,7 @@ A collection of interactive projects and tools built for bensonlabs.org.
 - **[ai-trending](/projects/ai-trending/)** - Daily analysis of trending AI/ML repositories on GitHub with ranked results, category filtering, and repository scoring.
 - **[games](/projects/games/)** - A growing collection of browser-based games including 2048, not-Wordle, brick-break, Orbit Bloom, The Last Signal, LumenTrace, and Echoes of Eternity.
 - **[to-do-app](/projects/to-do-app/)** - Full-stack todo app backed by Neon Postgres + Render. [Live demo](https://todo-app-l3m0.onrender.com). Vibed by Qwen3.6-35B-A3-NVFP4 in zed IDE on DGX-Spark.
+- **[context-console](/projects/context-console/)** - Owner-only work context tracker. Phase 1 is deployed and smoke-tested on [Render](https://context-console.onrender.com), backed by Supabase project `buvlsrccvrnnbxtwiozn`, with source at [bensonlabs/context-console](https://github.com/bensonlabs/context-console).
 - **[workouts](/projects/workouts/)** - Workout tracking and exercise routines. Vibed by Claude Chat + Claude Code.
 
 ## Games
