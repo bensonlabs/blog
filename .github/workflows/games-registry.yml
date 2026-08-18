@@ -25,6 +25,9 @@ jobs:
           # can push directly back to the branch that triggered the run.
           ref: ${{ github.head_ref || github.ref }}
 
+      - name: Apply deterministic nav fixes
+        run: bash .github/scripts/fix-nav.sh
+
       - name: Validate nav invariants
         run: bash .github/scripts/check-nav.sh
 
@@ -34,9 +37,10 @@ jobs:
       - name: Fail PRs if the listing is out of date
         if: github.event_name == 'pull_request'
         run: |
-          git diff --exit-code projects/games/index.html || {
-            echo "::error::projects/games/index.html is stale -- run \
-            'python3 .github/scripts/build_games_registry.py' and commit the result."
+          git diff --exit-code -- projects/games/index.html projects/games/*/index.html || {
+            echo "::error::games intake artifacts are stale -- run \
+            'bash .github/scripts/fix-nav.sh' and \
+            'python3 .github/scripts/build_games_registry.py', then commit results."
             exit 1
           }
 
@@ -45,7 +49,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add projects/games/index.html
+          git add projects/games/index.html projects/games/*/index.html
           if ! git diff --cached --quiet; then
             # Deliberately no "[skip ci]" here -- this commit must still
             # trigger the Pages deploy workflow so the new game goes live.
