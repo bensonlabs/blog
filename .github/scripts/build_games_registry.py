@@ -51,7 +51,12 @@ def normalize_title(title):
     if not title:
         return title
     normalized = collapse_ws(title)
-    normalized = re.sub(r"\s+[—|-]\s+Benson\s+Labs\s*$", "", normalized, flags=re.IGNORECASE)
+    normalized = re.sub(
+        r"\s+(?:—|-|\|)\s+Benson\s+Labs\s*$",
+        "",
+        normalized,
+        flags=re.IGNORECASE,
+    )
     return normalized.strip()
 
 
@@ -69,7 +74,7 @@ def extract_meta_description(text):
     return collapse_ws(m.group(1))
 
 
-def parse_meta_block(path, text):
+def parse_meta_block(text):
     m = META_BLOCK_RE.search(text)
     if not m:
         return None, None
@@ -126,18 +131,14 @@ def build_games_array():
         index_html = game_dir / "index.html"
         text = index_html.read_text(encoding="utf-8")
 
-        fields, err = parse_meta_block(index_html, text)
+        fields, err = parse_meta_block(text)
         if err:
             errors.append(f"{index_html.relative_to(REPO_ROOT)}: {err}")
             continue
 
-        merged, err = merge_fields(slug, text, fields)
-        if err:
-            errors.append(f"{index_html.relative_to(REPO_ROOT)}: {err}")
-            continue
-
-        if not fields:
-            notes.append(
+        note = None
+        if fields is None:
+            note = (
                 f"{index_html.relative_to(REPO_ROOT)}: no bl-game-meta block; "
                 "using deterministic fallback values"
             )
@@ -148,10 +149,18 @@ def build_games_array():
                 if field not in fields or fields[field] == ""
             ]
             if fallback_fields:
-                notes.append(
+                note = (
                     f"{index_html.relative_to(REPO_ROOT)}: fallback for missing "
                     f"field(s): {', '.join(fallback_fields)}"
                 )
+
+        merged, err = merge_fields(slug, text, fields)
+        if err:
+            errors.append(f"{index_html.relative_to(REPO_ROOT)}: {err}")
+            continue
+
+        if note:
+            notes.append(note)
 
         games.append({
             "title": merged["title"],
