@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Regenerate the GAMES array in projects/games/index.html from the
-bl-game-meta comment block in each projects/games/<slug>/index.html.
+"""Regenerate the GAMES array in projects/games/index.html from each
+projects/games/<slug>/index.html.
 
 See .github/scripts/GAME_METADATA.md for the block format and field spec.
 """
@@ -15,8 +15,19 @@ INDEX_FILE = GAMES_DIR / "index.html"
 
 META_BLOCK_RE = re.compile(r"<!--\s*bl-game-meta(.*?)-->", re.DOTALL)
 FIELD_RE = re.compile(r"^(title|emoji|order|description):\s*(.*)$")
+TITLE_RE = re.compile(r"<title[^>]*>(.*?)</title>", re.IGNORECASE | re.DOTALL)
+META_DESCRIPTION_RE = re.compile(
+    r"<meta[^>]+name=[\"']description[\"'][^>]+content=[\"'](.*?)[\"'][^>]*>",
+    re.IGNORECASE | re.DOTALL,
+)
+META_DESCRIPTION_RE_ALT = re.compile(
+    r"<meta[^>]+content=[\"'](.*?)[\"'][^>]+name=[\"']description[\"'][^>]*>",
+    re.IGNORECASE | re.DOTALL,
+)
 
 REQUIRED_FIELDS = ("title", "emoji", "order", "description")
+DEFAULT_EMOJI = "🎮"
+DEFAULT_ORDER = 999
 
 START_MARKER = "// AUTO-GENERATED GAMES START -- do not hand-edit, see .github/scripts/GAME_METADATA.md"
 END_MARKER = "// AUTO-GENERATED GAMES END"
@@ -28,11 +39,45 @@ def find_game_dirs():
     )
 
 
-def parse_meta(path):
-    text = path.read_text(encoding="utf-8")
+def collapse_ws(text):
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def title_from_slug(slug):
+    return " ".join(part.capitalize() for part in slug.split("-"))
+
+
+def normalize_title(title):
+    if not title:
+        return title
+    normalized = collapse_ws(title)
+    normalized = re.sub(
+        r"\s+(?:—|-|\|)\s+Benson\s+Labs\s*$",
+        "",
+        normalized,
+        flags=re.IGNORECASE,
+    )
+    return normalized.strip()
+
+
+def extract_title(text):
+    m = TITLE_RE.search(text)
+    if not m:
+        return None
+    return normalize_title(m.group(1))
+
+
+def extract_meta_description(text):
+    m = META_DESCRIPTION_RE.search(text) or META_DESCRIPTION_RE_ALT.search(text)
+    if not m:
+        return None
+    return collapse_ws(m.group(1))
+
+
+def parse_meta_block(text):
     m = META_BLOCK_RE.search(text)
     if not m:
-        return None, "missing <!-- bl-game-meta ... --> block"
+        return None, None
 
     fields = {}
     for line in m.group(1).strip().splitlines():
@@ -43,36 +88,86 @@ def parse_meta(path):
         if not fm:
             return None, f"unrecognized metadata line: {line!r}"
         fields[fm.group(1)] = fm.group(2).strip()
+    return fields, None
 
-    missing = [f for f in REQUIRED_FIELDS if f not in fields]
-    if missing:
-        return None, f"missing required field(s): {', '.join(missing)}"
+
+def derive_fields(slug, text):
+    title = extract_title(text) or title_from_slug(slug)
+    description = extract_meta_description(text) or f"Browser game: {title}."
+    return {
+        "title": title,
+        "emoji": DEFAULT_EMOJI,
+        "order": DEFAULT_ORDER,
+        "description": description,
+    }
+
+
+def merge_fields(slug, text, fields):
+    derived = derive_fields(slug, text)
+    merged = {}
+
+    for field in REQUIRED_FIELDS:
+        value = fields.get(field) if fields else None
+        if value is None or value == "":
+            merged[field] = derived[field]
+        else:
+            merged[field] = value
 
     try:
-        fields["order"] = int(fields["order"])
+        merged["order"] = int(merged["order"])
     except ValueError:
-        return None, f"order must be an integer, got {fields['order']!r}"
+        return None, f"order must be an integer, got {merged['order']!r}"
 
-    return fields, None
+    return merged, None
 
 
 def build_games_array():
     errors = []
+    notes = []
     games = []
 
     for game_dir in find_game_dirs():
         slug = game_dir.name
         index_html = game_dir / "index.html"
-        fields, err = parse_meta(index_html)
+        text = index_html.read_text(encoding="utf-8")
+
+        fields, err = parse_meta_block(text)
         if err:
             errors.append(f"{index_html.relative_to(REPO_ROOT)}: {err}")
             continue
+
+        note = None
+        if fields is None:
+            note = (
+                f"{index_html.relative_to(REPO_ROOT)}: no bl-game-meta block; "
+                "using deterministic fallback values"
+            )
+        else:
+            fallback_fields = [
+                field
+                for field in REQUIRED_FIELDS
+                if field not in fields or fields[field] == ""
+            ]
+            if fallback_fields:
+                note = (
+                    f"{index_html.relative_to(REPO_ROOT)}: fallback for missing "
+                    f"field(s): {', '.join(fallback_fields)}"
+                )
+
+        merged, err = merge_fields(slug, text, fields)
+        if err:
+            errors.append(f"{index_html.relative_to(REPO_ROOT)}: {err}")
+            continue
+
+        if note:
+            notes.append(note)
+
         games.append({
-            "title": fields["title"],
-            "description": fields["description"],
-            "emoji": fields["emoji"],
+            "title": merged["title"],
+            "description": merged["description"],
+            "emoji": merged["emoji"],
             "path": f"/projects/games/{slug}/",
-            "order": fields["order"],
+            "order": merged["order"],
         })
 
     if errors:
@@ -80,6 +175,9 @@ def build_games_array():
         for e in errors:
             print(f"  - {e}", file=sys.stderr)
         sys.exit(1)
+
+    for note in notes:
+        print(f"NOTICE: {note}", file=sys.stderr)
 
     games.sort(key=lambda g: (g["order"], g["title"]))
     for g in games:

@@ -1,7 +1,8 @@
 # Game metadata block
 
-Every file at `projects/games/<slug>/index.html` must carry one HTML comment,
-placed anywhere in `<head>` (immediately after the CSP meta tag is a good spot):
+Preferred: every file at `projects/games/<slug>/index.html` should carry one
+HTML comment, placed anywhere in `<head>` (immediately after the CSP meta tag
+is a good spot):
 
 ```html
 <!-- bl-game-meta
@@ -26,6 +27,20 @@ Fields:
 The card's link path is always derived from the directory name
 (`/projects/games/<slug>/`) — it is not authored by hand, so it can't drift
 out of sync with the actual folder.
+
+Deterministic fallback behavior (for drop-in intake):
+
+- If the `bl-game-meta` block is missing, CI still builds a card using:
+  - `title`: `<title>` tag, else slug title-cased.
+  - `description`: `<meta name="description" content="...">`, else
+    `Browser game: <title>.`
+  - `emoji`: `🎮`
+  - `order`: `999`
+- If the block exists but omits some fields, missing fields use the same
+  fallback rules above.
+- `order` must be parseable as an integer when present.
+- Unknown lines inside the metadata block still fail validation, so typos are
+  caught deterministically.
 
 `.github/scripts/build_games_registry.py` reads this block from every game
 directory and regenerates the `GAMES` array in `projects/games/index.html`.
