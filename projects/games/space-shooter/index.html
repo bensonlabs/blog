@@ -10,8 +10,8 @@
 * { margin:0; padding:0; box-sizing:border-box; }
 html, body { height:100%; }
 body { background:var(--bg) radial-gradient(1100px 700px at 50% -12%, #0d1424, #05070c 70%);
-       color:var(--ink); display:flex; align-items:center; justify-content:center; overflow:hidden;
-       font:14px ui-monospace,Menlo,Consolas,monospace; }
+       color:var(--ink); overflow:hidden; font:14px ui-monospace,Menlo,Consolas,monospace; }
+.game-root { min-height:100vh; display:flex; align-items:center; justify-content:center; }
 #game { position:relative; line-height:1; }
 canvas { display:block; width:min(480px, 92vw); height:auto; background:#05070d;
          border-radius:10px; border:1px solid rgba(93,242,168,.14);
@@ -36,7 +36,7 @@ canvas { display:block; width:min(480px, 92vw); height:auto; background:#05070d;
 .overlay p { color:var(--dim); line-height:1.9; white-space:pre-line; font-size:13px; letter-spacing:.05em; }
 </style>
 </head>
-<body>
+<body class="nav-autohide">
 <!-- bl-nav:canonical -->
 <!-- SHARED NAV SNIPPET - standalone apps. Paste immediately after <body>. Keep byte-identical. -->
 <nav class="bl-nav" id="bl-nav">
@@ -147,21 +147,23 @@ canvas { display:block; width:min(480px, 92vw); height:auto; background:#05070d;
   })();
 </script>
 
-<div id="game">
-  <canvas id="board" width="480" height="640"></canvas>
-  <div class="hud">
-    <span id="hud-score">SCORE 000000</span>
-    <span id="hud-hp"><i id="hud-hp-bar"></i></span>
-    <span id="hud-wave">WAVE 1</span>
-  </div>
-  <div id="chips">
-    <span class="chip off" id="chip-rapid"></span>
-    <span class="chip off" id="chip-spread"></span>
-    <span class="chip off" id="chip-shield"></span>
-  </div>
-  <div class="overlay" id="overlay">
-    <h1 id="overlay-title"></h1>
-    <p id="overlay-text"></p>
+<div class="game-root">
+  <div id="game">
+    <canvas id="board" width="480" height="640"></canvas>
+    <div class="hud">
+      <span id="hud-score">SCORE 000000</span>
+      <span id="hud-hp"><i id="hud-hp-bar"></i></span>
+      <span id="hud-wave">WAVE 1</span>
+    </div>
+    <div id="chips">
+      <span class="chip off" id="chip-rapid"></span>
+      <span class="chip off" id="chip-spread"></span>
+      <span class="chip off" id="chip-shield"></span>
+    </div>
+    <div class="overlay" id="overlay">
+      <h1 id="overlay-title"></h1>
+      <p id="overlay-text"></p>
+    </div>
   </div>
 </div>
 <script>

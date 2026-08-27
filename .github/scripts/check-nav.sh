@@ -28,6 +28,15 @@ for f in projects/index.html projects/*/index.html projects/games/*/index.html; 
   fi
 done
 
+for f in projects/games/*/index.html; do
+  [ -e "$f" ] || continue
+  is_excluded "$f" && continue
+  grep -qi '<body' "$f" || continue
+
+  grep -Eqi '<body[^>]*class="[^"]*nav-autohide[^"]*"' "$f" \
+    || note "game pages must set <body class=\"nav-autohide\">: $f"
+done
+
 # No reintroduced site nav in Jekyll layouts.
 for f in _layouts/*.html; do
   [ -e "$f" ] || continue
