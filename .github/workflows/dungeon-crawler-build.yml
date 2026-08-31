@@ -1,0 +1,42 @@
+name: Dungeon crawler build
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "projects/games/dungeon-crawler/**"
+      - "!projects/games/dungeon-crawler/dist/**"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: master
+
+      - name: Install dependencies
+        working-directory: projects/games/dungeon-crawler
+        run: npm ci
+
+      - name: Build app
+        working-directory: projects/games/dungeon-crawler
+        run: npm run build
+
+      - name: Commit built dist
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add projects/games/dungeon-crawler/dist
+          if ! git diff --cached --quiet; then
+            # Deliberately no "[skip ci]" here -- this commit must still
+            # trigger the Pages deploy workflow so the game goes live.
+            git commit -m "Build dungeon-crawler dist"
+            git push
+          else
+            echo "No dist changes to commit."
+          fi
