@@ -1,0 +1,6 @@
+{
+  "name": "Mythic Dungeon Crawler",
+  "description": "An action-packed roguelike dungeon crawler where players navigate procedurally generated dungeons, discover ancient relics, and battle mythical creatures and legendary bosses.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
