@@ -5,7 +5,6 @@ on:
     branches: [master]
     paths:
       - "projects/games/dungeon-crawler/**"
-      # Don't re-trigger on the files this workflow itself commits back.
       - "!projects/games/dungeon-crawler/dist/**"
       - "!projects/games/dungeon-crawler/assets/**"
       - "!projects/games/dungeon-crawler/index.html"
@@ -22,12 +21,6 @@ jobs:
         with:
           ref: master
 
-      # Preserve the Vite source template so it survives the dist copy
-      # and is restored to the repo at the end of this job.
-      - name: Back up source index.html
-        working-directory: projects/games/dungeon-crawler
-        run: cp index.html index.source.html
-
       - name: Install dependencies
         working-directory: projects/games/dungeon-crawler
         run: npm ci
@@ -35,19 +28,16 @@ jobs:
       - name: Build app
         working-directory: projects/games/dungeon-crawler
         run: npm run build
-        # dist/index.html now has the hashed <script> / <link> tags that
-        # browsers and Jekyll need.
+        # Vite reads index.source.html as input and emits:
+        #   dist/index.source.html  (compiled, hashed <script>/<link> tags)
+        #   dist/assets/            (hashed JS + CSS bundles)
 
-      - name: Publish compiled assets
+      - name: Publish compiled output
         working-directory: projects/games/dungeon-crawler
         run: |
-          # Overwrite assets/ with the freshly-hashed build output.
           rm -rf assets
           cp -r dist/assets assets
-
-          # Overwrite index.html with the compiled version so Jekyll serves
-          # the correct <script src="assets/index-[hash].js"> reference.
-          cp dist/index.html index.html
+          cp dist/index.source.html index.html
 
       - name: Commit built output
         run: |
@@ -60,26 +50,8 @@ jobs:
             projects/games/dungeon-crawler/index.html
 
           if ! git diff --cached --quiet; then
-            git commit -m "build: dungeon-crawler dist, assets, and compiled index.html [skip redundant]"
+            git commit -m "build: dungeon-crawler compiled output"
             git push
           else
             echo "No dist changes to commit."
-          fi
-
-      # After the push, restore index.html to the Vite source template so
-      # the next developer (and the next workflow run) finds the right file.
-      - name: Restore source index.html
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          cp projects/games/dungeon-crawler/index.source.html \
-             projects/games/dungeon-crawler/index.html
-          rm  projects/games/dungeon-crawler/index.source.html
-
-          git add \
-            projects/games/dungeon-crawler/index.html
-          if ! git diff --cached --quiet; then
-            git commit -m "build: restore dungeon-crawler source index.html [skip ci]"
-            git push
           fi
