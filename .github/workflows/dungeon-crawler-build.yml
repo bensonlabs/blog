@@ -6,6 +6,7 @@ on:
     paths:
       - "projects/games/dungeon-crawler/**"
       - "!projects/games/dungeon-crawler/dist/**"
+      - "!projects/games/dungeon-crawler/assets/**"
       - "!projects/games/dungeon-crawler/index.html"
   workflow_dispatch:
 
@@ -28,19 +29,22 @@ jobs:
         working-directory: projects/games/dungeon-crawler
         run: npm run build
 
-      - name: Promote dist/index.html to game root
+      - name: Promote dist to game root
         working-directory: projects/games/dungeon-crawler
-        run: cp dist/index.html index.html
+        run: |
+          cp dist/index.html index.html
+          rm -rf assets
+          cp -r dist/assets assets
 
       - name: Commit built dist
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add projects/games/dungeon-crawler/dist projects/games/dungeon-crawler/index.html
+          git add projects/games/dungeon-crawler/dist projects/games/dungeon-crawler/index.html projects/games/dungeon-crawler/assets
           if ! git diff --cached --quiet; then
             # Deliberately no "[skip ci]" here -- this commit must still
             # trigger the Pages deploy workflow so the game goes live.
-            git commit -m "Build dungeon-crawler dist"
+            git commit -m "Build dungeon-crawler dist and assets"
             git push
           else
             echo "No dist changes to commit."
