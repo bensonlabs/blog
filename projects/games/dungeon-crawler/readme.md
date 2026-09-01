@@ -2,19 +2,25 @@
 <img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
 </div>
 
-# Run and deploy your AI Studio app
+# Mythic Dungeon Crawler
 
-This contains everything you need to run your app locally.
-
-View your app in AI Studio: https://ai.studio/apps/d9456e12-f62f-452d-acd9-8dadd42f8c7f
+React and TypeScript roguelike built with Vite. It is deployed as a static game at `/projects/games/dungeon-crawler/`.
 
 ## Run Locally
 
-**Prerequisites:**  Node.js
+Prerequisite: Node.js 22 or later.
 
+```bash
+npm ci
+npm run dev
+```
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Build and Deploy
+
+```bash
+npm run build
+```
+
+Vite uses `index.source.html` as its source entrypoint and emits `dist/index.source.html` plus hashed assets. The GitHub Pages workflow builds the game, publishes the generated assets and `index.html` into the deployment artifact, then runs Jekyll. Do not manually edit the generated root `index.html`; update `index.source.html` instead.
+
+`GEMINI_API_KEY` is only needed for Gemini API features. Copy `.env.example` to a local `.env` file if those features are enabled; never commit the key.

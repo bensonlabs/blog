@@ -27,7 +27,7 @@ When done, commit the changes and open a pull request.
 - **Static Site Generator**: Jekyll (Ruby)
 - **Hosting**: GitHub Pages
 - **Styling**: Custom CSS with Obsidian dark theme
-- **Games**: Vanilla HTML5, CSS3, and JavaScript
+- **Games**: Standalone HTML/CSS/JavaScript games plus one React, TypeScript, and Vite game
 - **Version Control**: Git + GitHub
 
 ---
@@ -38,20 +38,9 @@ When done, commit the changes and open a pull request.
 Technical troubleshooting and notes on Windows, PowerShell, networking, security, and more.
 
 ### **Games** (`/projects/games/`)
-Interactive browser games built with vanilla HTML/CSS/JavaScript. Extensible hub featuring:
-- **2048** — Classic tile-merging puzzle game with undo, score tracking, and mobile support
-- **not-Wordle** — 5-letter word guessing game with statistics tracking
-- **Brick Break** — Classic brick-breaker with 3 difficulty levels, angle-based paddle physics, level progression, and high-score tracking
-- **Orbit Bloom** — Harvest glowing motes as your shield and survive an ever-faster comet swarm
-- **The Last Signal** — Text-based sci-fi adventure with three acts and two endings
-- **LumenTrace** — Neon sliding-block puzzle where you trace charged paths through the grid without getting trapped
-- **Ethereal Wardens** — Minimalist tower defense: position wardens to repel enemy waves
-- **Neon Drift** — Auto-accelerating ship survival: drift through formations and graze obstacles to score
-- **Murmuration** — Guide a living flock through moonlit weather and bring every bird home to its matching roost
-- **Parcel Panic** — Sort a runaway stream of parcels into matching chutes, build combos, and keep the depot moving before the shelves jam
-- **Parcel Panic v2** — Sort Sparky's dog icons into matching chutes, build combos, and keep the depot moving before the shelves jam
+Interactive browser games. The current catalogue is maintained at [bensonlabs.org/projects/games/](https://bensonlabs.org/projects/games/).
 
-Adding a new game: Add a `<!-- bl-game-meta ... -->` block in the game's own `index.html` and let `/.github/scripts/build_games_registry.py` regenerate the `GAMES` array in `/projects/games/index.html`.
+Adding a new game: add a `<!-- bl-game-meta ... -->` block to the game's own `index.html`, then run `python3 .github/scripts/build_games_registry.py`. Do not hand-edit the generated `GAMES` array in `projects/games/index.html`.
 
 ### **Focus Lab** (`/projects/focus-lab/`)
 Premium productivity dashboard with Pomodoro timer, focus tasks, synthesized ambient sounds, and weekly metrics.
@@ -166,18 +155,19 @@ projects/games/your-game/
 
 ### 2. Register in Games Hub
 
-Edit `/projects/games/index.html` and add your game to the `GAMES` array:
+Add this metadata block in the game's `index.html` `<head>`, then generate the hub listing:
 
-```javascript
-const GAMES = [
-  {
-    title: "Your Game",
-    emoji: "🎮",
-    description: "Brief description of gameplay.",
-    path: "/projects/games/your-game/"
-  },
-  // ... existing games
-];
+```html
+<!-- bl-game-meta
+title: Your Game
+emoji: 🎮
+order: 999
+description: Brief description of gameplay.
+-->
+```
+
+```bash
+python3 .github/scripts/build_games_registry.py
 ```
 
 ### 3. Commit and Push
@@ -235,17 +225,8 @@ blog/
 │   ├── index.html       # Projects hub page
 │   ├── games/           # Interactive games hub
 │   │   ├── index.html
-│   │   ├── 2048/
-│   │   ├── not-wordle/
-│   │   ├── breakout/
-│   │   ├── orbit-bloom/
-│   │   ├── last-signal/
-│   │   ├── lumen-trace/
-│   │   ├── ethereal-wardens/
-│   │   ├── neon-drift/
-│   │   ├── murmuration/
-│   │   ├── parcel-panic/
-│   │   └── parcel-panic-v2/
+│   │   ├── <game-slug>/ # Individual standalone games
+│   │   └── dungeon-crawler/ # React/Vite game built during Pages deployment
 │   ├── ai-trending/     # AI/ML trending repositories dashboard
 │   ├── focus-lab/       # Productivity dashboard
 │   ├── gravitas/        # N-body gravity simulator
@@ -257,8 +238,9 @@ blog/
 ├── CNAME                # Custom domain (bensonlabs.org)
 ├── robots.txt           # Search engine instructions
 ├── README.md            # This file
-└── .github/workflows/
-    └── jekyll.yml       # Auto-deploy on push
+└── .github/
+  ├── scripts/         # Navigation and games-registry validation/generation
+  └── workflows/       # Pages deployment and registry checks
 ```
 
 ---
