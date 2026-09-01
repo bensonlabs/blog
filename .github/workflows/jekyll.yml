@@ -23,6 +23,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: projects/games/dungeon-crawler/package-lock.json
+
+      - name: Build dungeon crawler
+        working-directory: projects/games/dungeon-crawler
+        run: |
+          npm ci
+          npm run build
+          rm -rf assets
+          cp -r dist/assets assets
+          cp dist/index.source.html index.html
+
+      - name: Add shared navigation to generated game
+        run: bash .github/scripts/fix-nav.sh
+
       - name: Setup Pages
         uses: actions/configure-pages@v6
 
