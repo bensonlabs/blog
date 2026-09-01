@@ -1,0 +1,53 @@
+name: Dungeon crawler build
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "projects/games/dungeon-crawler/**"
+      - "!projects/games/dungeon-crawler/dist/**"
+      - "!projects/games/dungeon-crawler/assets/**"
+      - "!projects/games/dungeon-crawler/index.html"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+
+      - name: Install dependencies
+        working-directory: projects/games/dungeon-crawler
+        run: npm ci
+
+      - name: Build app
+        working-directory: projects/games/dungeon-crawler
+        run: npm run build
+
+      - name: Publish compiled output
+        working-directory: projects/games/dungeon-crawler
+        run: |
+          rm -rf assets
+          cp -r dist/assets assets
+          cp dist/index.source.html index.html
+
+      - name: Commit built output
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add \
+            projects/games/dungeon-crawler/assets \
+            projects/games/dungeon-crawler/index.html
+
+          if ! git diff --cached --quiet; then
+            git commit -m "build: dungeon-crawler compiled output"
+            git push
+          else
+            echo "No dist changes to commit."
+          fi
