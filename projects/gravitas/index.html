@@ -26,11 +26,17 @@ head: |
     <span id="audioBadgeText">Audio Disabled</span>
   </div>
 
+  <!-- Compact-screen sidebar controls -->
+  <div class="panel-toolbar" role="group" aria-label="Simulation panels">
+    <button type="button" id="toggleControls" class="btn btn-secondary" aria-controls="controlsPanel" aria-expanded="false">Controls</button>
+    <button type="button" id="toggleTelemetry" class="btn btn-secondary" aria-controls="telemetryPanel" aria-expanded="false">Telemetry</button>
+  </div>
+
   <!-- Primary Layout Container -->
   <div class="app-container">
     
     <!-- LEFT PANEL: Controls & Settings -->
-    <aside class="panel left-panel">
+    <aside id="controlsPanel" class="panel left-panel" aria-label="Simulation controls">
       <!-- Brand Header -->
       <header class="brand">
         <div class="logo">
@@ -182,7 +188,7 @@ head: |
     </aside>
 
     <!-- RIGHT PANEL: Telemetry, Energy Analytics & Event Feed -->
-    <aside class="panel right-panel">
+    <aside id="telemetryPanel" class="panel right-panel" aria-label="Simulation telemetry">
       <!-- Section: Telemetry Overview -->
       <section class="control-section">
         <h3 class="section-title"><i class="fa-solid fa-gauge-high"></i> Telemetry Dashboard</h3>

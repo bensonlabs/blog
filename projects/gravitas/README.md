@@ -27,7 +27,7 @@ An interactive, high-fidelity N-body gravity simulator built for the browser. Fe
 *   **Right Click & Drag**: Pan the viewport camera.
 *   **Scroll Wheel**: Zoom in/out (centered directly on your mouse cursor).
 
-Desktop use is recommended. On narrow screens, the sidebars are hidden and there is currently no control to reopen them, so the full simulator settings are not accessible.
+On narrow screens, use **Controls** or **Telemetry** below the site header to open a sidebar. Tap the same button again to close it and return to the simulation, or press **Escape**. Only one drawer opens at a time; its contents scroll independently. On tablet widths, Controls stays visible and Telemetry uses a drawer.
 
 ---
 

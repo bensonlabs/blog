@@ -81,7 +81,7 @@ The site uses a custom **Obsidian dark theme** color palette for a consistent, m
 - **Text**: `#dcddde` (light gray - readable on dark)
 - **Muted**: `#888` (secondary text)
 
-The blog and project hubs use responsive layouts. Mobile controls and orientation requirements vary by game and project. Gravitas currently works best on desktop; its sidebars are hidden on narrow screens without a control to reopen them.
+The blog and project hubs use responsive layouts. Mobile controls and orientation requirements vary by game and project. Gravitas provides Controls and Telemetry buttons to access its sidebars on narrow screens.
 
 ---
 

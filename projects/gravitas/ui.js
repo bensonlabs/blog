@@ -353,6 +353,7 @@ export class UIManager {
   // Bind Events
   init(audioSynth) {
     this.audioSynth = audioSynth;
+    setupPanelAccess();
     this.setupListeners();
     this.setupSpawnerDefaults();
     this.resizeEnergyChart();
@@ -718,4 +719,50 @@ export class UIManager {
     // Draw Total energy (Green - should stay almost completely horizontal / constant!)
     drawLine('total', '#00e676');
   }
+}
+
+// Sidebars remain inline on desktop and become independently toggled drawers
+// at the same breakpoints used by the layout.
+function setupPanelAccess() {
+  const narrow = window.matchMedia('(max-width: 768px)');
+  const compact = window.matchMedia('(max-width: 1100px)');
+  const panels = [
+    { panel: document.getElementById('controlsPanel'), button: document.getElementById('toggleControls'), query: narrow, label: 'Controls' },
+    { panel: document.getElementById('telemetryPanel'), button: document.getElementById('toggleTelemetry'), query: compact, label: 'Telemetry' }
+  ];
+  let open = null;
+  function render() {
+    for (const item of panels) {
+      const visible = !item.query.matches || open === item;
+      item.panel.classList.toggle('panel-open', item.query.matches && visible);
+      item.panel.inert = !visible;
+      item.button.setAttribute('aria-expanded', String(visible));
+      item.button.textContent = open === item ? `Close ${item.label.toLowerCase()}` : item.label;
+      if (!visible && item.panel.contains(document.activeElement)) item.button.focus();
+    }
+  }
+  for (const item of panels) {
+    item.button.addEventListener('click', () => {
+      open = open === item ? null : item;
+      render();
+    });
+  }
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && open) {
+      const button = open.button;
+      open = null;
+      render();
+      button.focus();
+    }
+  });
+  const reset = () => { open = null; render(); };
+  narrow.addEventListener('change', reset);
+  compact.addEventListener('change', reset);
+  const nav = document.getElementById('bl-nav');
+  if (nav) {
+    const measure = () => document.documentElement.style.setProperty('--site-header-height', `${nav.getBoundingClientRect().height}px`);
+    new ResizeObserver(measure).observe(nav);
+    measure();
+  }
+  render();
 }

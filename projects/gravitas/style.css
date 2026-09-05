@@ -789,39 +789,56 @@ body {
 }
 
 /* Responsiveness Settings */
+.panel-toolbar { display: none; }
+
 @media (max-width: 1100px) {
-  .app-container {
-    grid-template-columns: 320px 1fr 0px; /* Hide right panel */
-  }
-  .right-panel {
-    transform: translateX(380px);
-    position: absolute;
+  .app-container { grid-template-columns: 320px 1fr 0px; z-index: 20; }
+  .panel-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    position: fixed;
+    top: var(--site-header-height, 44px);
     right: 0;
+    padding: 6px 12px;
+    z-index: 30;
+    background: #0e0e1c;
+  }
+  .panel-toolbar .btn { min-height: 44px; }
+  #toggleControls { display: none; }
+  .right-panel {
+    position: fixed;
+    top: calc(var(--site-header-height, 44px) + 56px);
+    right: 0;
+    width: min(380px, 100vw);
+    height: calc(100dvh - var(--site-header-height, 44px) - 56px);
+    transform: translateX(100%);
+    visibility: hidden;
     z-index: 10;
+    overscroll-behavior: contain;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
-  .floating-badge {
-    left: 340px;
-  }
-  .instruction-overlay {
-    left: 340px;
-  }
+  .right-panel.panel-open { transform: translateX(0); visibility: visible; }
+  .floating-badge, .instruction-overlay { left: 340px; }
 }
 
 @media (max-width: 768px) {
-  .app-container {
-    grid-template-columns: 0px 1fr 0px; /* Hide all sidebars, user toggle required */
-  }
+  .app-container { grid-template-columns: 0px 1fr 0px; }
+  .panel-toolbar { left: 0; justify-content: space-between; }
+  #toggleControls { display: inline-flex; }
   .left-panel {
-    transform: translateX(-360px);
-    position: absolute;
+    position: fixed;
+    top: calc(var(--site-header-height, 44px) + 56px);
     left: 0;
+    width: min(360px, 100vw);
+    height: calc(100dvh - var(--site-header-height, 44px) - 56px);
+    transform: translateX(-100%);
+    visibility: hidden;
     z-index: 10;
+    overscroll-behavior: contain;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
-  .floating-badge {
-    left: 20px;
-  }
-  .instruction-overlay {
-    left: 20px;
-    bottom: 20px;
-  }
+  .left-panel.panel-open { transform: translateX(0); visibility: visible; }
+  .floating-badge { left: 20px; top: calc(var(--site-header-height, 44px) + 68px); }
+  .instruction-overlay { left: 20px; bottom: 20px; }
 }
