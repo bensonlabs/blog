@@ -15,6 +15,7 @@ fail=0
 note(){ echo "::error::$1"; fail=1; }
 
 is_excluded(){ case "$1" in vendor/*|_site/*|*/old/*) return 0;; *) return 1;; esac; }
+is_redirect_only(){ head -40 "$1" | grep -Eqi '<meta[^>]+http-equiv=.refresh.'; }
 
 extract_marked_snippet(){
   f="$1"
@@ -42,6 +43,8 @@ for f in projects/index.html projects/*/index.html projects/games/*/index.html; 
   grep -qi '<body' "$f" || continue
   # to-do-app uses layout: default and inherits nav via the include.
   head -5 "$f" | grep -q 'layout:' && continue
+  # Redirect-only index pages are handoff shims, not standalone app surfaces.
+  is_redirect_only "$f" && continue
 
   if ! grep -q "$MARKER" "$f"; then
     note "missing canonical nav snippet: $f"
@@ -64,6 +67,7 @@ for f in projects/games/*/index.html; do
   [ -e "$f" ] || continue
   is_excluded "$f" && continue
   grep -qi '<body' "$f" || continue
+  is_redirect_only "$f" && continue
 
   grep -Eqi '<body[^>]*class="[^"]*nav-autohide[^"]*"' "$f" \
     || note "game pages must set <body class=\"nav-autohide\">: $f"

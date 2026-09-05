@@ -9,6 +9,7 @@ SNIPPET_FILE="_includes/nav-inject.html"
 changed=0
 
 is_excluded(){ case "$1" in vendor/*|_site/*|*/old/*) return 0;; *) return 1;; esac; }
+is_redirect_only(){ head -40 "$1" | grep -Eqi '<meta[^>]+http-equiv=.refresh.'; }
 
 if [ ! -f "$SNIPPET_FILE" ]; then
   echo "::error::missing canonical snippet source: $SNIPPET_FILE"
@@ -89,6 +90,8 @@ for f in projects/index.html projects/*/index.html projects/games/*/index.html; 
   grep -qi '<body' "$f" || continue
   # to-do-app uses layout: default and inherits nav via the include.
   head -5 "$f" | grep -q 'layout:' && continue
+  # Redirect-only index pages are handoff shims, not standalone app surfaces.
+  is_redirect_only "$f" && continue
 
   if grep -q "$MARKER" "$f"; then
     replace_marked_snippet "$f" || exit 1
