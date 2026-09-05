@@ -17,18 +17,20 @@ note(){ echo "::error::$1"; fail=1; }
 is_excluded(){ case "$1" in vendor/*|_site/*|*/old/*) return 0;; *) return 1;; esac; }
 is_redirect_only(){ head -40 "$1" | grep -Eqi '<meta[^>]+http-equiv=.refresh.'; }
 
-extract_marked_snippet(){
-  f="$1"
-  out="$2"
-  awk -v marker="$MARKER" '
-    BEGIN { printing=0; found=0 }
-    !printing && index($0, marker) > 0 { printing=1; found=1 }
-    printing { print }
-    printing && $0 ~ /<\/script>[[:space:]]*$/ { printing=0; exit }
-    END {
-      if (!found || printing) exit 3
-    }
-  ' "$f" > "$out"
+snippet_matches(){
+  python3 - "$SNIPPET_FILE" "$1" <<'PY'
+from pathlib import Path
+import sys
+
+snippet_path, page_path = sys.argv[1], sys.argv[2]
+marker = "<!-- bl-nav:canonical -->"
+snippet = Path(snippet_path).read_text(encoding="utf-8")
+page = Path(page_path).read_text(encoding="utf-8")
+start = page.find(marker)
+if start < 0:
+    sys.exit(1)
+sys.exit(0 if page.startswith(snippet, start) else 2)
+PY
 }
 
 if [ ! -f "$SNIPPET_FILE" ]; then
@@ -49,13 +51,9 @@ for f in projects/index.html projects/*/index.html projects/games/*/index.html; 
   if ! grep -q "$MARKER" "$f"; then
     note "missing canonical nav snippet: $f"
   elif [ -f "$SNIPPET_FILE" ]; then
-    tmp="$(mktemp "${TMPDIR:-/tmp}/check-nav-snippet.XXXXXX")" || exit 1
-    if ! extract_marked_snippet "$f" "$tmp"; then
-      note "unable to extract complete canonical nav snippet: $f"
-    elif ! cmp -s "$SNIPPET_FILE" "$tmp"; then
+    if ! snippet_matches "$f"; then
       note "canonical nav snippet differs from $SNIPPET_FILE: $f"
     fi
-    rm -f "$tmp"
   fi
 
   if grep -Eqi 'back to blog|bensonlabs\.org' "$f"; then
