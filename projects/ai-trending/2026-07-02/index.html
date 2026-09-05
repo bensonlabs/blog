@@ -1,123 +1,123 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+---
+layout: project
+title: "AI Trending &mdash; Benson Labs"
+head: |
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Trending &mdash; Benson Labs</title>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  background: #1e1e1e; color: #dcddde;
-  min-height: 100vh;
-  display: flex; flex-direction: column;
-  align-items: center;
-  padding: 40px 16px 60px;
-}
-.container { max-width: 960px; width: 100%; }
-h1 {
-  font-size: 2rem; font-weight: 700;
-  color: #a78bfa; margin-bottom: 6px;
-}
-.subtitle {
-  color: #888; font-size: 0.95rem; margin-bottom: 30px;
-}
-.subtitle a { color: #a78bfa; text-decoration: none; }
-.subtitle a:hover { text-decoration: underline; }
-.stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 12px; margin-bottom: 36px;
-}
-.stat-card {
-  background: #252525; border: 1px solid #3a3a3a;
-  border-radius: 8px; padding: 16px; text-align: center;
-}
-.stat-value { font-size: 1.5rem; font-weight: 700; color: #a78bfa; }
-.stat-label { font-size: 0.8rem; color: #888; margin-top: 4px; }
-h2 {
-  font-size: 1.15rem; font-weight: 600;
-  color: #a78bfa; margin: 32px 0 16px;
-  padding-bottom: 8px; border-bottom: 1px solid #3a3a3a;
-}
-.cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 12px;
-}
-.card {
-  background: #252525; border: 1px solid #3a3a3a;
-  border-radius: 8px; padding: 16px;
-  transition: border-color 0.2s;
-}
-.card:hover { border-color: #7c3aed; }
-.card a {
-  color: #a78bfa; text-decoration: none;
-  font-weight: 600; font-size: 1.05rem;
-  display: block; margin-bottom: 6px;
-}
-.card a:hover { text-decoration: underline; }
-.card .desc {
-  color: #888; font-size: 0.88rem;
-  line-height: 1.4; margin-bottom: 10px;
-}
-.card .meta {
-  display: flex; gap: 10px; font-size: 0.78rem;
-  color: #888; flex-wrap: wrap; align-items: center;
-}
-.badge {
-  background: #7c3aed; color: #fff;
-  padding: 2px 8px; border-radius: 4px;
-  font-size: 0.72rem; font-weight: 600;
-}
-.score-val { color: #a78bfa; font-weight: 600; }
-.filters {
-  display: flex; gap: 8px; flex-wrap: wrap;
-  margin-bottom: 12px;
-}
-.filter-btn {
-  background: #252525; color: #888;
-  border: 1px solid #3a3a3a;
-  padding: 5px 12px; border-radius: 6px;
-  font-size: 0.82rem; cursor: pointer;
-  transition: all 0.2s;
-}
-.filter-btn:hover, .filter-btn.active {
-  background: #7c3aed; color: #fff; border-color: #7c3aed;
-}
-.table-wrap { overflow-x: auto; }
-table {
-  width: 100%; border-collapse: collapse;
-  font-size: 0.88rem; min-width: 700px;
-}
-thead { background: #252525; }
-th {
-  text-align: left; padding: 10px 12px;
-  font-weight: 600; color: #888;
-  border-bottom: 1px solid #3a3a3a;
-  white-space: nowrap; font-size: 0.82rem;
-}
-td {
-  padding: 10px 12px; border-bottom: 1px solid #3a3a3a;
-}
-td a { color: #a78bfa; text-decoration: none; }
-td a:hover { text-decoration: underline; }
-.rank { font-weight: 700; color: #a78bfa; text-align: center; width: 36px; }
-.bar-cell { min-width: 80px; }
-.bar { height: 5px; background: #3a3a3a; border-radius: 3px; overflow: hidden; }
-.bar-fill { height: 100%; background: #7c3aed; border-radius: 3px; }
-.footer {
-  color: #888; font-size: 0.78rem;
-  text-align: center; margin-top: 40px;
-  padding-top: 20px; border-top: 1px solid #3a3a3a; width: 100%;
-}
-.footer a { color: #a78bfa; }
-tr.hidden { display: none; }
-  </style>
-</head>
-<body>
-  <div class="container">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Trending &mdash; Benson Labs</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #1e1e1e; color: #dcddde;
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center;
+    padding: 40px 16px 60px;
+  }
+  .container { max-width: 960px; width: 100%; }
+  h1 {
+    font-size: 2rem; font-weight: 700;
+    color: #a78bfa; margin-bottom: 6px;
+  }
+  .subtitle {
+    color: #888; font-size: 0.95rem; margin-bottom: 30px;
+  }
+  .subtitle a { color: #a78bfa; text-decoration: none; }
+  .subtitle a:hover { text-decoration: underline; }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px; margin-bottom: 36px;
+  }
+  .stat-card {
+    background: #252525; border: 1px solid #3a3a3a;
+    border-radius: 8px; padding: 16px; text-align: center;
+  }
+  .stat-value { font-size: 1.5rem; font-weight: 700; color: #a78bfa; }
+  .stat-label { font-size: 0.8rem; color: #888; margin-top: 4px; }
+  h2 {
+    font-size: 1.15rem; font-weight: 600;
+    color: #a78bfa; margin: 32px 0 16px;
+    padding-bottom: 8px; border-bottom: 1px solid #3a3a3a;
+  }
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+  }
+  .card {
+    background: #252525; border: 1px solid #3a3a3a;
+    border-radius: 8px; padding: 16px;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: #7c3aed; }
+  .card a {
+    color: #a78bfa; text-decoration: none;
+    font-weight: 600; font-size: 1.05rem;
+    display: block; margin-bottom: 6px;
+  }
+  .card a:hover { text-decoration: underline; }
+  .card .desc {
+    color: #888; font-size: 0.88rem;
+    line-height: 1.4; margin-bottom: 10px;
+  }
+  .card .meta {
+    display: flex; gap: 10px; font-size: 0.78rem;
+    color: #888; flex-wrap: wrap; align-items: center;
+  }
+  .badge {
+    background: #7c3aed; color: #fff;
+    padding: 2px 8px; border-radius: 4px;
+    font-size: 0.72rem; font-weight: 600;
+  }
+  .score-val { color: #a78bfa; font-weight: 600; }
+  .filters {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .filter-btn {
+    background: #252525; color: #888;
+    border: 1px solid #3a3a3a;
+    padding: 5px 12px; border-radius: 6px;
+    font-size: 0.82rem; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    background: #7c3aed; color: #fff; border-color: #7c3aed;
+  }
+  .table-wrap { overflow-x: auto; }
+  table {
+    width: 100%; border-collapse: collapse;
+    font-size: 0.88rem; min-width: 700px;
+  }
+  thead { background: #252525; }
+  th {
+    text-align: left; padding: 10px 12px;
+    font-weight: 600; color: #888;
+    border-bottom: 1px solid #3a3a3a;
+    white-space: nowrap; font-size: 0.82rem;
+  }
+  td {
+    padding: 10px 12px; border-bottom: 1px solid #3a3a3a;
+  }
+  td a { color: #a78bfa; text-decoration: none; }
+  td a:hover { text-decoration: underline; }
+  .rank { font-weight: 700; color: #a78bfa; text-align: center; width: 36px; }
+  .bar-cell { min-width: 80px; }
+  .bar { height: 5px; background: #3a3a3a; border-radius: 3px; overflow: hidden; }
+  .bar-fill { height: 100%; background: #7c3aed; border-radius: 3px; }
+  .footer {
+    color: #888; font-size: 0.78rem;
+    text-align: center; margin-top: 40px;
+    padding-top: 20px; border-top: 1px solid #3a3a3a; width: 100%;
+  }
+  .footer a { color: #a78bfa; }
+  tr.hidden { display: none; }
+    </style>
+---
+<div class="container">
     <h1>&#x1F916; AI Trending Repos</h1>
     <p class="subtitle">
       Daily analysis of trending AI/ML repositories on GitHub &middot;
@@ -530,5 +530,3 @@ tr.hidden { display: none; }
       }
     });
   </script>
-</body>
-</html>

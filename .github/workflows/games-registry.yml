@@ -1,62 +1,20 @@
 name: Games registry
-
-# Runs automatically whenever a game's index.html is added or changed --
-# no agent/human needs to remember to trigger anything by hand.
 on:
   push:
     branches: [master]
-    paths:
-      - "projects/games/**/index.html"
   pull_request:
-    paths:
-      - "projects/games/**/index.html"
   workflow_dispatch:
-
+permissions:
+  contents: read
 jobs:
-  build-registry:
+  validate:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v7
-        with:
-          # need a real ref (not detached HEAD) so the auto-commit step below
-          # can push directly back to the branch that triggered the run.
-          ref: ${{ github.head_ref || github.ref }}
-
-      - name: Apply deterministic nav fixes
-        run: bash .github/scripts/fix-nav.sh
-
-      - name: Validate nav invariants
-        run: bash .github/scripts/check-nav.sh
-
-      - name: Validate game metadata & regenerate listing
-        run: python3 .github/scripts/build_games_registry.py
-
-      - name: Fail PRs if the listing is out of date
-        if: github.event_name == 'pull_request'
+      - name: Test metadata contracts and source immutability
+        run: python3 -m unittest discover -s .github/scripts -p 'test_*.py'
+      - name: Generate catalogue without changing authored files
         run: |
-          git diff --exit-code -- projects/games/index.html 'projects/games/**/index.html' || {
-            echo "::error::games intake artifacts are stale -- run \
-            'bash .github/scripts/fix-nav.sh' and \
-            'python3 .github/scripts/build_games_registry.py', then commit results."
-            exit 1
-          }
-
-      - name: Commit regenerated listing
-        if: github.event_name == 'push'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add projects/games/index.html 'projects/games/**/index.html'
-          if ! git diff --cached --quiet; then
-            # Deliberately no "[skip ci]" here -- this commit must still
-            # trigger the Pages deploy workflow so the new game goes live.
-            # It will also re-trigger this workflow once; that run finds no
-            # diff and exits immediately, so it's self-terminating.
-            git commit -m "Auto-update games registry"
-            git push
-          else
-            echo "No registry changes to commit."
-          fi
+          python3 .github/scripts/build_games_registry.py
+          git diff --exit-code

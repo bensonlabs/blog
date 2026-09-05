@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="{{ page.lang | default: 'en' }}">
+<head>
+  {% if page.head %}{{ page.head }}{% else %}{% include blog-head.html %}{% endif %}
+  <link rel="stylesheet" href="{{ '/assets/css/header.css' | relative_url }}">
+  <script defer src="{{ '/assets/js/header.js' | relative_url }}"></script>
+</head>
+<body{% if page.body_attributes %} {{ page.body_attributes }}{% endif %}>
+  {% include nav.html %}
+  {{ content }}
+</body>
+</html>

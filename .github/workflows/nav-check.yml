@@ -1,50 +1,33 @@
-name: Nav consistency
-
+name: Rendered pages
 on:
-  push:
-    branches: [master]
   pull_request:
   workflow_dispatch:
-
 permissions:
-  contents: write
-
+  contents: read
 jobs:
-  nav-check:
+  check:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
         with:
-          persist-credentials: true
-
-      - name: Apply deterministic nav fixes
-        run: bash .github/scripts/fix-nav.sh
-
-      - name: Run navigation invariants check
-        run: bash .github/scripts/check-nav.sh
-
-      - name: Detect nav fixer changes
-        id: nav_changes
+          node-version: 22
+          cache: npm
+          cache-dependency-path: projects/games/dungeon-crawler/package-lock.json
+      - name: Build Dungeon Crawler without injection
+        working-directory: projects/games/dungeon-crawler
         run: |
-          if git diff --quiet; then
-            echo "has_changes=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "has_changes=true" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Auto-commit nav fixes on branch pushes
-        if: github.event_name == 'push' && github.actor != 'github-actions[bot]' && steps.nav_changes.outputs.has_changes == 'true'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add projects/index.html projects/*/index.html 'projects/games/**/index.html'
-          git commit -m "chore(nav): auto-fix canonical nav snippet"
-          git push
-
-      - name: Require contributors to commit nav fixes on PRs
-        if: github.event_name == 'pull_request' && steps.nav_changes.outputs.has_changes == 'true'
-        run: |
-          echo "::error::Navigation fixes are required. Run 'bash .github/scripts/fix-nav.sh' locally and commit the resulting changes."
-          git --no-pager diff -- projects/index.html projects/*/index.html 'projects/games/**/index.html'
-          exit 1
+          npm ci
+          npm run build
+          rm -rf assets
+          cp -r dist/assets assets
+          cp dist/index.source.html index.html
+      - run: python3 .github/scripts/check_dungeon_build.py
+      - name: Generate catalogue for this Jekyll build
+        run: python3 .github/scripts/build_games_registry.py
+      - uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./
+          destination: ./_site
+      - run: bash .github/scripts/check-nav.sh _site
