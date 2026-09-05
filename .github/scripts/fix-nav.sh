@@ -10,20 +10,6 @@ changed=0
 
 is_excluded(){ case "$1" in vendor/*|_site/*|*/old/*) return 0;; *) return 1;; esac; }
 
-app_entry_files(){
-  for f in projects/index.html projects/*/index.html; do
-    [ -e "$f" ] || continue
-    echo "$f"
-  done
-
-  if [ -d projects/games ]; then
-    for d in projects/games/*; do
-      [ -d "$d" ] || continue
-      find "$d" -path '*/old/*' -prune -o -name index.html -type f -print
-    done
-  fi
-}
-
 if [ ! -f "$SNIPPET_FILE" ]; then
   echo "::error::missing canonical snippet source: $SNIPPET_FILE"
   exit 1
@@ -97,10 +83,7 @@ replace_marked_snippet(){
   fi
 }
 
-targets="$(mktemp "${TMPDIR:-/tmp}/fix-nav-targets.XXXXXX")" || exit 1
-app_entry_files | sort -u > "$targets"
-
-while IFS= read -r f; do
+for f in projects/index.html projects/*/index.html projects/games/*/index.html; do
   [ -e "$f" ] || continue
   is_excluded "$f" && continue
   grep -qi '<body' "$f" || continue
@@ -108,12 +91,11 @@ while IFS= read -r f; do
   head -5 "$f" | grep -q 'layout:' && continue
 
   if grep -q "$MARKER" "$f"; then
-    replace_marked_snippet "$f" || { rm -f "$targets"; exit 1; }
+    replace_marked_snippet "$f" || exit 1
   else
-    insert_snippet_after_body "$f" || { rm -f "$targets"; exit 1; }
+    insert_snippet_after_body "$f" || exit 1
   fi
-done < "$targets"
-rm -f "$targets"
+done
 
 if [ "$changed" -eq 0 ]; then
   echo "No canonical nav fixes needed."

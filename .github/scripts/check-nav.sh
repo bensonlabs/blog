@@ -16,29 +16,6 @@ note(){ echo "::error::$1"; fail=1; }
 
 is_excluded(){ case "$1" in vendor/*|_site/*|*/old/*) return 0;; *) return 1;; esac; }
 
-app_entry_files(){
-  for f in projects/index.html projects/*/index.html; do
-    [ -e "$f" ] || continue
-    echo "$f"
-  done
-
-  if [ -d projects/games ]; then
-    for d in projects/games/*; do
-      [ -d "$d" ] || continue
-      find "$d" -path '*/old/*' -prune -o -name index.html -type f -print
-    done
-  fi
-}
-
-game_entry_files(){
-  if [ -d projects/games ]; then
-    for d in projects/games/*; do
-      [ -d "$d" ] || continue
-      find "$d" -path '*/old/*' -prune -o -name index.html -type f -print
-    done
-  fi
-}
-
 extract_marked_snippet(){
   f="$1"
   out="$2"
@@ -57,11 +34,9 @@ if [ ! -f "$SNIPPET_FILE" ]; then
   note "missing canonical snippet source: $SNIPPET_FILE"
 fi
 
-targets="$(mktemp "${TMPDIR:-/tmp}/check-nav-targets.XXXXXX")" || exit 1
-app_entry_files | sort -u > "$targets"
-
-# App entry points that MUST carry the canonical snippet.
-while IFS= read -r f; do
+# App entry points that MUST carry the snippet:
+#   projects/index.html, projects/*/index.html, projects/games/*/index.html
+for f in projects/index.html projects/*/index.html projects/games/*/index.html; do
   [ -e "$f" ] || continue
   is_excluded "$f" && continue
   grep -qi '<body' "$f" || continue
@@ -83,21 +58,16 @@ while IFS= read -r f; do
   if grep -Eqi 'back to blog|bensonlabs\.org' "$f"; then
     grep -qi 'class="back-link"' "$f" && note "stray back-to-blog link (remove it, nav replaces it): $f"
   fi
-done < "$targets"
-rm -f "$targets"
+done
 
-game_targets="$(mktemp "${TMPDIR:-/tmp}/check-nav-games.XXXXXX")" || exit 1
-game_entry_files | sort -u > "$game_targets"
-
-while IFS= read -r f; do
+for f in projects/games/*/index.html; do
   [ -e "$f" ] || continue
   is_excluded "$f" && continue
   grep -qi '<body' "$f" || continue
 
   grep -Eqi '<body[^>]*class="[^"]*nav-autohide[^"]*"' "$f" \
     || note "game pages must set <body class=\"nav-autohide\">: $f"
-done < "$game_targets"
-rm -f "$game_targets"
+done
 
 # No reintroduced site nav in Jekyll layouts.
 for f in _layouts/*.html; do
