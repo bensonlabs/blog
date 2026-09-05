@@ -39,15 +39,11 @@ jobs:
           cp -r dist/assets assets
           cp dist/index.source.html index.html
 
-      - name: Add shared navigation to generated game
-        run: bash .github/scripts/fix-nav.sh
-
       - name: Verify generated dungeon handoff
-        run: |
-          test -f projects/games/dungeon-crawler/index.html
-          test -d projects/games/dungeon-crawler/assets
-          grep -q 'bl-nav:canonical' projects/games/dungeon-crawler/index.html
-          grep -q 'nav-autohide' projects/games/dungeon-crawler/index.html
+        run: python3 .github/scripts/check_dungeon_build.py
+
+      - name: Generate catalogue for this Pages artifact
+        run: python3 .github/scripts/build_games_registry.py
 
       - name: Setup Pages
         uses: actions/configure-pages@v6
@@ -57,6 +53,9 @@ jobs:
         with:
           source: ./
           destination: ./_site
+
+      - name: Validate rendered pages
+        run: bash .github/scripts/check-nav.sh _site
 
       - name: Inspect Pages artifact contents
         run: |

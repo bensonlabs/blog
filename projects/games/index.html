@@ -1,274 +1,163 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+---
+layout: project
+title: "Games — Benson Labs"
+head: |
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <!--
-    Content-Security-Policy:
-    - 'unsafe-inline' is required for script-src and style-src because all scripts
-      and styles are inline. Refactoring them to external files would allow removing it.
-    - frame-ancestors 'none' prevents clickjacking but is ignored in <meta> tags per spec;
-      it only works via an HTTP response header, which GitHub Pages does not support.
-  -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'none'">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Games — Benson Labs</title>
-  <style>
-    /* ── OBSIDIAN DARK THEME ── */
-    :root {
-      --bg:      #1e1e1e;
-      --surface: #252525;
-      --card:    #2d2d2d;
-      --border:  #3a3a3a;
-      --text:    #dcddde;
-      --muted:   #888;
-      --accent:  #7c3aed;
-      --accent2: #a78bfa;
-    }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    html, body {
-      min-height: 100%;
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    }
-
-    body {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 0 16px 60px;
-    }
-
-    /* ── HEADER ── */
-    .page-header {
-      width: 100%;
-      padding-top: 40px;
-      max-width: 800px;
-      margin-bottom: 40px;
-    }
-
-    .back-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--muted);
-      text-decoration: none;
-      font-size: 0.85rem;
-      margin-bottom: 20px;
-      transition: color 0.15s;
-    }
-    .back-link:hover { color: var(--accent2); }
-
-    .page-header h1 {
-      font-size: clamp(1.8rem, 5vw, 2.6rem);
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      color: var(--text);
-    }
-
-    .page-header h1 span { color: var(--accent2); }
-
-    .page-header p {
-      margin-top: 8px;
-      color: var(--muted);
-      font-size: 1rem;
-    }
-
-    /* ── GAME GRID ── */
-    .games-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 20px;
-      width: 100%;
-      max-width: 800px;
-    }
-
-    /* ── GAME CARD ── */
-    .game-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
-      text-decoration: none;
-      color: inherit;
-      outline-offset: 3px;
-    }
-
-    .game-card:hover,
-    .game-card:focus-visible {
-      border-color: var(--accent2);
-      transform: translateY(-3px);
-      box-shadow: 0 8px 24px rgba(124, 58, 237, 0.2);
-    }
-
-    .card-icon {
-      font-size: 2.6rem;
-      line-height: 1;
-      user-select: none;
-    }
-
-    .card-title {
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: var(--text);
-      letter-spacing: -0.01em;
-    }
-
-    .card-desc {
-      font-size: 0.88rem;
-      color: var(--muted);
-      line-height: 1.55;
-      flex: 1;
-    }
-
-    .card-play {
-      display: inline-block;
-      margin-top: 4px;
-      padding: 9px 20px;
-      background: var(--accent);
-      color: #fff;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      text-align: center;
-      letter-spacing: 0.3px;
-      transition: background 0.15s, opacity 0.15s;
-      pointer-events: none; /* card <a> handles the click */
-    }
-    .game-card:hover .card-play,
-    .game-card:focus-visible .card-play { background: var(--accent2); }
-    .game-card:active .card-play { opacity: 0.8; }
-
-    /* ── FOOTER ── */
-    .page-footer {
-      margin-top: 60px;
-      color: var(--muted);
-      font-size: 0.8rem;
-    }
-    .page-footer a { color: var(--muted); text-decoration: none; }
-    .page-footer a:hover { color: var(--accent2); }
-  </style>
-</head>
-<body>
-<!-- bl-nav:canonical -->
-<!-- SHARED NAV SNIPPET - standalone apps. Paste immediately after <body>. Keep byte-identical. -->
-<nav class="bl-nav" id="bl-nav">
-  <a href="/" class="bl-nav__brand">bensonlabs</a>
-  <button class="bl-nav__toggle" id="bl-nav-toggle" aria-label="Menu" aria-expanded="false">
-    <span></span><span></span><span></span>
-  </button>
-  <div class="bl-nav__links" id="bl-nav-links">
-    <a href="/" class="bl-nav__link">Blog</a>
-      <a href="/projects/" class="bl-nav__link">Projects</a>
-      <a href="/projects/games/" class="bl-nav__link">Games</a>
-      <a href="/projects/workouts/" class="bl-nav__link">Workouts</a>
-      <a href="/bootstraps/" class="bl-nav__link">Bootstraps</a>
-      <a href="/about/" class="bl-nav__link">About</a>
-  </div>
-</nav>
-<style>
-  #bl-nav{
-    display:flex;align-items:center;justify-content:space-between;
-    gap:1rem;padding:.4rem 1rem;min-height:44px;
-    background:#252525 !important;border-bottom:1px solid #3a3a3a;
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-    position:sticky;top:0;z-index:99999;box-sizing:border-box;align-self:stretch;width:100%;
-  }
-  #bl-nav *{box-sizing:border-box;}
-  #bl-nav .bl-nav__brand{
-    color:#a78bfa !important;font-weight:700;font-size:1.05rem;
-    text-decoration:none !important;letter-spacing:-.01em;flex:0 0 auto;line-height:1;
-  }
-  #bl-nav .bl-nav__brand:hover{color:#7c3aed !important;}
-  #bl-nav .bl-nav__links{display:flex;align-items:center;gap:1.4rem;}
-  #bl-nav .bl-nav__link{
-    color:#c9c9c9 !important;text-decoration:none !important;
-    font-size:.9rem;white-space:nowrap;transition:color .15s;line-height:1;
-    background:none !important;border:none;padding:0;
-  }
-  #bl-nav .bl-nav__link:hover{color:#a78bfa !important;}
-  #bl-nav .bl-nav__link.is-active{color:#fff !important;font-weight:600;}
-  #bl-nav .bl-nav__toggle{
-    display:none;flex-direction:column;gap:5px;
-    background:none !important;border:none;cursor:pointer;padding:6px;flex:0 0 auto;
-  }
-  #bl-nav .bl-nav__toggle span{
-    display:block;width:22px;height:2px;background:#dcddde;border-radius:2px;
-    transition:transform .2s,opacity .2s;
-  }
-  #bl-nav.is-open .bl-nav__toggle span:nth-child(1){transform:translateY(7px) rotate(45deg);}
-  #bl-nav.is-open .bl-nav__toggle span:nth-child(2){opacity:0;}
-  #bl-nav.is-open .bl-nav__toggle span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
-
-  @media (max-width:820px){
-    #bl-nav .bl-nav__toggle{display:flex !important;}
-    #bl-nav .bl-nav__links{
-      display:none !important;position:absolute;top:100%;left:0;right:0;
-      flex-direction:column;align-items:stretch;gap:0;
-      background:#252525 !important;border-bottom:1px solid #3a3a3a;
-      padding:.25rem 0;
-    }
-    #bl-nav.is-open .bl-nav__links{display:flex !important;}
-    #bl-nav .bl-nav__link{
-      width:100%;padding:.7rem 1rem !important;font-size:1rem;
-    }
-    #bl-nav .bl-nav__link:hover{background:#2d2d2d !important;}
-  }
-
-  /* Auto-hide (games only): opaque, slides fully out of view */
-  .nav-autohide #bl-nav{position:fixed;top:0;left:0;right:0;transform:translateY(-100%);transition:transform .2s ease;}
-  .nav-autohide #bl-nav.is-visible,
-  .nav-autohide #bl-nav.is-open{transform:translateY(0);}
-  .nav-autohide .bl-nav__trigger{position:fixed;top:0;left:0;right:0;height:14px;z-index:99998;}
-  .nav-autohide .bl-nav__menu-fab{
-    position:fixed;top:8px;right:8px;z-index:99998;
-    width:40px;height:40px;border-radius:8px;border:none;cursor:pointer;
-    background:rgba(37,37,37,.85) !important;display:flex;flex-direction:column;
-    align-items:center;justify-content:center;gap:4px;padding:0;
-  }
-  .nav-autohide .bl-nav__menu-fab span{display:block;width:18px;height:2px;background:#dcddde;border-radius:2px;}
-  .nav-autohide.is-revealed .bl-nav__menu-fab{display:none;}
-</style>
-<div class="bl-nav__trigger"></div>
-<button class="bl-nav__menu-fab" id="bl-nav-fab" aria-label="Open menu"><span></span><span></span><span></span></button>
-<script>
-  (function(){
-    var nav=document.getElementById('bl-nav');
-    var toggle=document.getElementById('bl-nav-toggle');
-    if(nav&&toggle){
-      toggle.addEventListener('click',function(){
-        var open=nav.classList.toggle('is-open');
-        toggle.setAttribute('aria-expanded',open?'true':'false');
-      });
-    }
-    if(document.body.classList.contains('nav-autohide')){
-      var trigger=document.querySelector('.bl-nav__trigger');
-      var fab=document.getElementById('bl-nav-fab');
-      function reveal(){nav.classList.add('is-visible');document.body.classList.add('is-revealed');}
-      function hide(){if(!nav.classList.contains('is-open')){nav.classList.remove('is-visible');document.body.classList.remove('is-revealed');}}
-      if(trigger){
-        trigger.addEventListener('mouseenter',reveal);
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <!--
+      Content-Security-Policy:
+      - 'unsafe-inline' is required for script-src and style-src because all scripts
+        and styles are inline. Refactoring them to external files would allow removing it.
+      - frame-ancestors 'none' prevents clickjacking but is ignored in <meta> tags per spec;
+        it only works via an HTTP response header, which GitHub Pages does not support.
+    -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Games — Benson Labs</title>
+    <style>
+      /* ── OBSIDIAN DARK THEME ── */
+      :root {
+        --bg:      #1e1e1e;
+        --surface: #252525;
+        --card:    #2d2d2d;
+        --border:  #3a3a3a;
+        --text:    #dcddde;
+        --muted:   #888;
+        --accent:  #7c3aed;
+        --accent2: #a78bfa;
       }
-      if(fab){
-        fab.addEventListener('click',function(){reveal();nav.classList.add('is-open');});
+
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      html, body {
+        min-height: 100%;
+        background: var(--bg);
+        color: var(--text);
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
       }
-      if(nav){ nav.addEventListener('mouseleave',hide); }
-    } else {
-      // non-game pages: remove the game-only FAB if present
-      var fab=document.getElementById('bl-nav-fab'); if(fab) fab.remove();
-    }
-  })();
-</script>
 
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0 16px 60px;
+      }
 
-  <div class="page-header">
+      /* ── HEADER ── */
+      .page-header {
+        width: 100%;
+        padding-top: 40px;
+        max-width: 800px;
+        margin-bottom: 40px;
+      }
+
+      .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 0.85rem;
+        margin-bottom: 20px;
+        transition: color 0.15s;
+      }
+      .back-link:hover { color: var(--accent2); }
+
+      .page-header h1 {
+        font-size: clamp(1.8rem, 5vw, 2.6rem);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+
+      .page-header h1 span { color: var(--accent2); }
+
+      .page-header p {
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 1rem;
+      }
+
+      /* ── GAME GRID ── */
+      .games-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 20px;
+        width: 100%;
+        max-width: 800px;
+      }
+
+      /* ── GAME CARD ── */
+      .game-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+        text-decoration: none;
+        color: inherit;
+        outline-offset: 3px;
+      }
+
+      .game-card:hover,
+      .game-card:focus-visible {
+        border-color: var(--accent2);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(124, 58, 237, 0.2);
+      }
+
+      .card-icon {
+        font-size: 2.6rem;
+        line-height: 1;
+        user-select: none;
+      }
+
+      .card-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--text);
+        letter-spacing: -0.01em;
+      }
+
+      .card-desc {
+        font-size: 0.88rem;
+        color: var(--muted);
+        line-height: 1.55;
+        flex: 1;
+      }
+
+      .card-play {
+        display: inline-block;
+        margin-top: 4px;
+        padding: 9px 20px;
+        background: var(--accent);
+        color: #fff;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-align: center;
+        letter-spacing: 0.3px;
+        transition: background 0.15s, opacity 0.15s;
+        pointer-events: none; /* card <a> handles the click */
+      }
+      .game-card:hover .card-play,
+      .game-card:focus-visible .card-play { background: var(--accent2); }
+      .game-card:active .card-play { opacity: 0.8; }
+
+      /* ── FOOTER ── */
+      .page-footer {
+        margin-top: 60px;
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+      .page-footer a { color: var(--muted); text-decoration: none; }
+      .page-footer a:hover { color: var(--accent2); }
+    </style>
+---
+<div class="page-header">
     <h1>Games <span>↗</span></h1>
     <p>A growing collection of browser-based games.</p>
   </div>
@@ -277,154 +166,7 @@
 
   <script>
     // ── GAMES REGISTRY ──────────────────────────────────────────────────────
-    // AUTO-GENERATED GAMES START -- do not hand-edit, see .github/scripts/GAME_METADATA.md
-    const GAMES = [
-      {
-        title: "2048",
-        description: "Slide tiles on a 4×4 grid and merge matching numbers to reach 2048. Classic gameplay with undo, score tracking, and full touch support.",
-        emoji: "🔢",
-        path: "/projects/games/2048/",
-      },
-      {
-        title: "not-Wordle",
-        description: "Guess the hidden 5-letter word in six tries. Each guess reveals which letters are correct, present, or absent. Made by Github Copilot in Github iOS app.",
-        emoji: "🟩",
-        path: "/projects/games/not-wordle/",
-      },
-      {
-        title: "brick-break",
-        description: "Classic brick-breaker with 3 difficulty levels, angle-based paddle physics, level progression, and high-score tracking. Made by Github Copilot in Github iOS app.",
-        emoji: "🧱",
-        path: "/projects/games/breakout/",
-      },
-      {
-        title: "NeoSweep XZ9",
-        description: "Uncover the neon grid without triggering quantum mines. Manage your scans wisely to survive. Made by MetaLlama 3X in TextEditor on Cloud9.",
-        emoji: "🛰️",
-        path: "/projects/games/neo-sweep/",
-      },
-      {
-        title: "Orbit Bloom",
-        description: "Harvest glowing motes as your shield while surviving an ever-faster comet swarm. Pulse at the right moment to clear the field. Two versions to choose from. Made by GPT-5.4-mini in Hermes-agent on fedora 44 server.",
-        emoji: "🌸",
-        path: "/projects/games/orbit-bloom/",
-      },
-      {
-        title: "The Last Signal",
-        description: "A text-based sci-fi adventure. Play as Dr. Mara Chen investigating an abandoned research station. Three acts, one station, two endings — no keyboard required. Made by Qwen3.6 in Zed IDE on DGX-Spark.",
-        emoji: "📡",
-        path: "/projects/games/last-signal/",
-      },
-      {
-        title: "Ethereal Wardens",
-        description: "Minimalist tower defense — position your wardens strategically to repel waves of enemies before they breach your defenses. Made by Ornith 1.0 in Hermes-agent on DGX-Spark.",
-        emoji: "🏰",
-        path: "/projects/games/ethereal-wardens/",
-      },
-      {
-        title: "LumenTrace",
-        description: "Slide charged light through the grid and trace every empty path without getting trapped. A neon Rust-powered puzzle built for the browser.",
-        emoji: "⚡",
-        path: "/projects/games/lumen-trace/",
-      },
-      {
-        title: "Neon Drift",
-        description: "Survive as long as possible in the Neon Drift Zone. Your ship auto-accelerates — manage momentum, drift through tight formations, and graze obstacles to multiply your score. Made by Nemotron 3 Ultra 550b A55b in OpenCat on iOS.",
-        emoji: "🚀",
-        path: "/projects/games/neon-drift/",
-      },
-      {
-        title: "Gravity Glyphs",
-        description: "Manipulate gravity and chain glowing glyph effects in a fast arcade puzzle built with WebAssembly.",
-        emoji: "🧲",
-        path: "/projects/games/gravity-glyphs/",
-      },
-      {
-        title: "Echoes of Eternity",
-        description: "Static sci-fi survival runner built for GitHub Pages. Collect memory fragments, dodge collapse gates, and keep your best echoes alive between loops.",
-        emoji: "🌀",
-        path: "/projects/games/echoes-of-eternity/",
-      },
-      {
-        title: "Murmuration",
-        description: "Guide a living flock through moonlit weather and bring every bird home to its matching roost. A gentle physics game about attention, wind, and letting go. Made by GPT-5.6-Luna in Hermes Agent on mini-M4.",
-        emoji: "🕊️",
-        path: "/projects/games/murmuration/",
-      },
-      {
-        title: "Parcel Panic",
-        description: "Sort a runaway stream of parcels into matching chutes, build combos, and keep the depot moving before the shelves jam. Made by GPT-5.6-Luna in Hermes Agent on mini-M4.",
-        emoji: "📦",
-        path: "/projects/games/parcel-panic/",
-      },
-      {
-        title: "Parcel Panic v2",
-        description: "Sort Sparky's dog icons into matching chutes, build combos, and keep the depot moving before the shelves jam. Made by GPT-5.6-Luna in Hermes Agent on mini-M4.",
-        emoji: "🐶",
-        path: "/projects/games/parcel-panic-v2/",
-      },
-      {
-        title: "Pac-Kour",
-        description: "Sprint, wall-jump, and clear every pellet in a compact platforming maze where Pac-Man momentum matters as much as your route.",
-        emoji: "🟡",
-        path: "/projects/games/pac-kour/",
-      },
-      {
-        title: "Marble Tilt",
-        description: "Guide a steel marble through a tilt-controlled wooden maze, avoid pit hazards, and reach the goal before losing all your lives.",
-        emoji: "⚪",
-        path: "/projects/games/marble-tilt/",
-      },
-      {
-        title: "VOIDFALL",
-        description: "Survive endless waves of enemy drones, darters, and spinners in this deep-space arcade shooter. Collect power-ups, outlast the VOIDLORD boss every 4th wave, and post your best score.",
-        emoji: "🚀",
-        path: "/projects/games/space-shooter/",
-      },
-      {
-        title: "Driftline",
-        description: "Browser game: Driftline.",
-        emoji: "🎮",
-        path: "/projects/games/driftline/",
-      },
-      {
-        title: "ECHO/SHIFT",
-        description: "A time-loop action puzzle where every attempt becomes your ally.",
-        emoji: "🎮",
-        path: "/projects/games/echo-shift/",
-      },
-      {
-        title: "Mythic Dungeon Crawler",
-        description: "Dark-fantasy roguelike dungeon crawler with procedural labyrinths, dynamic lighting, real-time combat, spells, and Web Audio. Made by Gemini 2.5 Pro in Google AI Studio.",
-        emoji: "⚔️",
-        path: "/projects/games/dungeon-crawler/",
-      },
-      {
-        title: "Parkour World",
-        description: "High-octane 2D vector momentum platformer featuring kinetic physics, wall-running, breakfall slide-rolls, dynamic flow states, procedural skyline districts, and a custom Web Audio synthesizer soundtrack. Made by Gemini 2.5 Pro in Google AI Studio.",
-        emoji: "🏃",
-        path: "/projects/games/parkour-world/",
-      },
-      {
-        title: "Roof &amp; Root",
-        description: "A small, self-contained gardening game. Catch rain on canvas awnings, tip it into thirsty pots, and tend seven rooftop gardens.",
-        emoji: "🎮",
-        path: "/projects/games/root-and-root/",
-      },
-      {
-        title: "Sparky's Run",
-        description: "A browser puzzle game where dogs navigate narrowing routes. Made by Hermes Agent in Hermes Desktop on mini-M4.",
-        emoji: "🐶",
-        path: "/projects/games/sparkys-run/",
-      },
-      {
-        title: "WISPR",
-        description: "Ethereal 3D inertia-parkour where you chain jumps and momentum anchors across floating crystal slabs. Made by GPT-5.3-Codex in Copilot CLI on macOS.",
-        emoji: "🔘",
-        path: "/projects/games/wispr/",
-      },
-    ];
-    // AUTO-GENERATED GAMES END
+    const GAMES = {{ site.data.games | jsonify | replace: '</', '<\/' }};
     // ────────────────────────────────────────────────────────────────────────
 
     const grid = document.getElementById("games-grid");
@@ -454,6 +196,3 @@
       grid.appendChild(card);
     });
   </script>
-
-</body>
-</html>

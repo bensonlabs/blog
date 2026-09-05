@@ -1,41 +1,45 @@
 # Copilot / agent instructions for bensonlabs/blog
 
-This repo is a Jekyll site (GitHub Pages, stock `jekyll-build-pages`, safe mode)
-plus a set of standalone browser apps under `projects/`. Follow these rules when
-adding or editing content. They exist to keep navigation unified across the site.
+This is a GitHub Pages Jekyll site in safe mode. Do not add unsupported plugins.
+Emoji on catalogue cards are intentional; preserve their ordering and presentation.
 
-## Navigation: one source of truth
+## Headers, project pages, and standalone games
 
-- Site nav links live in exactly ONE file: `_data/navigation.yml`.
-  To add a page to the nav, add an entry there. Do not hardcode nav anywhere else.
-- Nav markup for Jekyll-rendered pages lives in `_includes/nav.html`.
-- Never add per-page or per-layout `<nav>` blocks. Never reintroduce
-  "← back to blog" links; the shared nav replaces them.
+`_includes/nav.html` is the only site-header markup source; `_data/navigation.yml`
+is the only source of its links. Header styling and behavior live in
+`assets/css/header.css` and `assets/js/header.js`.
 
-## Page types and how they get nav
+Blog pages inherit `default → base`; posts inherit `post → default → base`.
+Normal project pages use `layout: project` (which inherits `base`) and contain
+only body content after front matter. Preserve their original head elements in
+the YAML `head: |` literal (metadata, CSP, fonts, styles, scripts), and any body
+attributes in `body_attributes`. The project layout adds no content-width wrapper.
+Never put a complete HTML document inside a layout. Keep Workouts' Liquid raw
+blocks and JavaScript template placeholders intact.
 
-- Blog posts: front matter `layout: post`. Nav is inherited. Nothing to add.
-- Jekyll pages (Markdown/HTML fragments): `layout: default`. Nav inherited.
-- Standalone apps under `projects/` (full HTML documents with their own
-  `<head>`/`<body>`): these are NOT processed into the blog layout. Paste the
-  shared nav snippet from `_includes/nav-inject.html` immediately after `<body>`.
-  Keep it byte-identical to the canonical snippet.
+Games at `projects/games/<slug>/` are complete standalone documents without front
+matter, a site header, copied snippets, canonical markers, or auto-hide code.
+Their controls, body layout, fullscreen, audio, and storage belong to the game;
+no corner needs to be reserved for a site menu. Game-owned navigation and an
+optional back-to-games link are fine. Choose CSP for the game's own assets.
 
-## Games and full-screen apps
+Run `python3 .github/scripts/build_games_registry.py` **before** Jekyll. It validates
+authored metadata and creates ignored `_data/games.json`; the catalogue fragment
+reads that data without changing its presentation. Neither the generator nor CI
+edits game files or commits generated catalogue data. The Pages job generates
+this data in the same build that renders and uploads the site.
 
-- For any game or full-screen interactive, add `class="nav-autohide"` to its
-  `<body>`. This hides the nav until the cursor reaches the top edge.
-- Do not apply `nav-autohide` to the blog, projects hub, or workouts.
+See `.github/scripts/GAME_METADATA.md` for metadata precedence and fallbacks.
+For Dungeon Crawler, edit `game.json` for the catalogue and `index.source.html`
+for the Vite shell; keep the existing Vite input, base path, and hashed assets.
+Its unrelated `metadata.json` is not catalogue input. After `npm ci && npm run build`
+in its directory, copy `dist/assets` to `assets` and `dist/index.source.html` to
+`index.html`, without injecting anything. Treat `index.html` as generated output.
 
-## Theme
+Validate with `python3 -m unittest discover -s .github/scripts -p 'test_*.py'`,
+`python3 .github/scripts/check_dungeon_build.py`, and, after Jekyll,
+`bash .github/scripts/check-nav.sh _site`. The last check is read-only and checks
+rendered normal pages; it never requires a site header inside a game.
 
-- Palette is Obsidian dark: bg #1e1e1e, surface #252525, card #2d2d2d,
-  border #3a3a3a, text #dcddde, muted #888, accent #7c3aed, accent2 #a78bfa.
-- Do not introduce new nav colors. The nav owns its palette in the snippet/include.
-- Emoji on game cards are intentional. Do not replace them with icons or images.
-
-## Do not
-
-- Do not hardcode navigation into individual pages.
-- Do not edit the nav markup inside an app body except to paste the canonical snippet.
-- Do not add Jekyll plugins (GitHub Pages safe mode will reject them).
+AI Trending's generator writes `latest/index.html` and a dated `YYYY-MM-DD/index.html`
+fragment. The root `projects/ai-trending/index.html` stays a redirect to `latest/`.

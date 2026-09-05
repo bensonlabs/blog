@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Fetch GitHub AI trending repos, calculate composite scores, and generate
-the HTML dashboard at projects/ai-trending/index.html.
+layout-backed dashboards at projects/ai-trending/latest/ and dated URLs.
 
 Usage: python3 fetch_trending.py
 """
@@ -20,7 +20,7 @@ from html import escape as html_escape
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 DATA_FILE = os.path.join(OUTPUT_DIR, "data.json")
-HTML_FILE = os.path.join(OUTPUT_DIR, "index.html")
+HTML_FILE = os.path.join(OUTPUT_DIR, "latest", "index.html")
 
 # Rate-limit guard
 DELAY = 0.3  # seconds between GitHub API calls
@@ -416,9 +416,10 @@ def generate_dashboard(repos):
     # All repos for the detailed table
     all_repos = repos
     
-    html = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
+    html = f"""---
+layout: project
+title: "AI Trending — Benson Labs"
+head: |
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -697,8 +698,8 @@ def generate_dashboard(repos):
       display: none;
     }}
   </style>
-</head>
-<body>
+---
+{{% raw %}}
   <div class="page-header">
     <h1 class="page-title">🤖 AI Trending Repos</h1>
     <p class="page-subtitle">
@@ -832,11 +833,15 @@ def generate_dashboard(repos):
       }}
     }});
   </script>
-</body>
-</html>"""
+{{% endraw %}}"""
     
-    with open(HTML_FILE, "w") as f:
-        f.write(html)
+    # The root index remains the existing latest/ redirect. Keep dated URLs.
+    dated_file = os.path.join(OUTPUT_DIR, date, "index.html")
+    for target in (HTML_FILE, dated_file):
+        os.makedirs(os.path.dirname(target), exist_ok=True)
+        with open(target, "w", encoding="utf-8") as f:
+            f.write(html)
+
 
 if __name__ == "__main__":
     main()

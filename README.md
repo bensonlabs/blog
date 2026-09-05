@@ -13,9 +13,10 @@ After adding a new project or game to the repo, paste this into GitHub Copilot t
 ```
 I've added new content to this repo. Check the `projects/` folder for any
 projects or games that aren't already reflected in the site docs.
-For games, read each new game's `index.html`, add a `bl-game-meta` block
-if it is missing, then run `.github/scripts/build_games_registry.py` so
-`projects/games/index.html` stays in sync. Also update the Site Sections
+For standalone games, read the authored `index.html` and add a `bl-game-meta`
+block if needed. For compiled games, use `game.json`; never edit generated
+`index.html` for metadata. Run `.github/scripts/build_games_registry.py` to
+generate ignored `_data/games.json` for Jekyll. Also update the Site Sections
 and Project Structure in README.md to reflect everything that now exists.
 When done, commit the changes and open a pull request.
 ```
@@ -40,7 +41,7 @@ Technical troubleshooting and notes on Windows, PowerShell, networking, security
 ### **Games** (`/projects/games/`)
 Interactive browser games. The current catalogue is maintained at [bensonlabs.org/projects/games/](https://bensonlabs.org/projects/games/).
 
-Adding a new game: add a `<!-- bl-game-meta ... -->` block to the game's own `index.html`, then run `python3 .github/scripts/build_games_registry.py`. Do not hand-edit the generated `GAMES` array in `projects/games/index.html`.
+Adding a new game: add a `<!-- bl-game-meta ... -->` block to the game's own `index.html`, then run `python3 .github/scripts/build_games_registry.py`. For compiled games use `game.json`; do not hand-edit generated `_data/games.json`.
 
 ### **Focus Lab** (`/projects/focus-lab/`)
 Premium productivity dashboard with Pomodoro timer, focus tasks, synthesized ambient sounds, and weekly metrics.
@@ -176,6 +177,47 @@ The game card will automatically appear on the games hub once deployed.
 
 ---
 
+## Headers, project pages, and standalone games
+
+`_includes/nav.html` is the only site-header markup source; `_data/navigation.yml`
+is the only source of its links. Header styling and behavior live in
+`assets/css/header.css` and `assets/js/header.js`.
+
+Blog pages inherit `default → base`; posts inherit `post → default → base`.
+Normal project pages use `layout: project` (which inherits `base`) and contain
+only body content after front matter. Preserve their original head elements in
+the YAML `head: |` literal (metadata, CSP, fonts, styles, scripts), and any body
+attributes in `body_attributes`. The project layout adds no content-width wrapper.
+Never put a complete HTML document inside a layout. Keep Workouts' Liquid raw
+blocks and JavaScript template placeholders intact.
+
+Games at `projects/games/<slug>/` are complete standalone documents without front
+matter, a site header, copied snippets, canonical markers, or auto-hide code.
+Their controls, body layout, fullscreen, audio, and storage belong to the game;
+no corner needs to be reserved for a site menu. Game-owned navigation and an
+optional back-to-games link are fine. Choose CSP for the game's own assets.
+
+Run `python3 .github/scripts/build_games_registry.py` **before** Jekyll. It validates
+authored metadata and creates ignored `_data/games.json`; the catalogue fragment
+reads that data without changing its presentation. Neither the generator nor CI
+edits game files or commits generated catalogue data. The Pages job generates
+this data in the same build that renders and uploads the site.
+
+See `.github/scripts/GAME_METADATA.md` for metadata precedence and fallbacks.
+For Dungeon Crawler, edit `game.json` for the catalogue and `index.source.html`
+for the Vite shell; keep the existing Vite input, base path, and hashed assets.
+Its unrelated `metadata.json` is not catalogue input. After `npm ci && npm run build`
+in its directory, copy `dist/assets` to `assets` and `dist/index.source.html` to
+`index.html`, without injecting anything. Treat `index.html` as generated output.
+
+Validate with `python3 -m unittest discover -s .github/scripts -p 'test_*.py'`,
+`python3 .github/scripts/check_dungeon_build.py`, and, after Jekyll,
+`bash .github/scripts/check-nav.sh _site`. The last check is read-only and checks
+rendered normal pages; it never requires a site header inside a game.
+
+AI Trending's generator writes `latest/index.html` and a dated `YYYY-MM-DD/index.html`
+fragment. The root `projects/ai-trending/index.html` stays a redirect to `latest/`.
+
 ## Local Development (Optional)
 
 If you want to preview the site locally before pushing:
@@ -184,7 +226,8 @@ If you want to preview the site locally before pushing:
 # Install dependencies (first time only)
 bundle install
 
-# Run local server
+# Generate catalogue and run local server
+python3 .github/scripts/build_games_registry.py
 bundle exec jekyll serve
 
 # Open in browser

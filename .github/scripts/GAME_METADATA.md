@@ -1,48 +1,61 @@
-# Game metadata block
+# Game catalogue metadata
 
-Preferred: every file at `projects/games/<slug>/index.html` should carry one
-HTML comment, placed anywhere in `<head>` (immediately after the CSP meta tag
-is a good spot):
+The read-only generator `.github/scripts/build_games_registry.py` creates ignored
+`_data/games.json`. Run it before Jekyll; `projects/games/index.html` is an authored
+layout-backed catalogue fragment that consumes this data. Never stage the JSON
+or rewrite individual games to register them. Pages generates the catalogue in
+its own build; deployment does not depend on bot commits.
+
+## Authored sources and precedence
+
+Each immediate game directory with `index.html`, `index.source.html`, or `game.json`
+is discovered once. Sources, in order of precedence:
+
+1. `game.json`: a JSON object with the fields below. This replaces the metadata
+   comment as a whole, rather than merging two authored blocks.
+2. Without a sidecar, a `bl-game-meta` comment in `index.source.html`, if that
+   authored compiled entrypoint exists.
+3. Otherwise, a `bl-game-meta` comment in the standalone `index.html`.
+
+If `index.source.html` exists, its HTML supplies fallback title/description even
+when a sidecar overrides its metadata. A sidecar without an authored HTML source
+uses slug-based fallbacks. Generated `index.html` is never read for a sidecar game.
+`metadata.json` is unrelated and is never read. Dungeon Crawler uses `game.json`;
+its legacy source comment remains for compatibility, but the sidecar wins.
 
 ```html
 <!-- bl-game-meta
 title: Neon Drift
 emoji: 🚀
 order: 70
-description: Survive as long as possible in the Neon Drift Zone. Your ship auto-accelerates — manage momentum, drift through tight formations, and graze obstacles to multiply your score. Made by Nemotron 3 Ultra 550b A55b in OpenCat on iOS.
+description: Survive the Neon Drift Zone. Made by <model> in <tool> on <hardware>.
 -->
 ```
 
-Fields:
+Equivalent compiled-game `game.json`:
 
-- `title` — display name on the games grid card.
-- `emoji` — single emoji used as the card icon.
-- `order` — integer controlling sort position on the grid (lower first). Leave
-  gaps (10, 20, 30...) so new games can be inserted without renumbering
-  everything.
-- `description` — one line, shown on the card. Convention: end with
-  `Made by <model> in <tool> on <hardware>.` when the game was built
-  agentically, so the grid doubles as a model-capability benchmark log.
+```json
+{
+  "title": "Neon Drift",
+  "emoji": "🚀",
+  "order": 70,
+  "description": "Survive the Neon Drift Zone."
+}
+```
 
-The card's link path is always derived from the directory name
-(`/projects/games/<slug>/`) — it is not authored by hand, so it can't drift
-out of sync with the actual folder.
+`title`, `emoji`, and `description` are strings. `order` is an integer (an integer
+string is accepted for legacy comments). Lower orders appear first; ties sort by
+title, then retain sorted directory discovery order. Equal titles/orders across
+games are permitted. Paths always derive from the directory name.
 
-Deterministic fallback behavior (for drop-in intake):
+Missing or empty fields preserve the initial fallback behavior: title from the
+HTML title with the Benson Labs suffix removed, else title-cased slug;
+description from its meta description, else `Browser game: <title>.`; emoji `🎮`;
+order `999`. Missing comments are allowed with a notice. Unknown fields/lines,
+duplicate comment blocks or field names, malformed JSON/comments, non-string
+text fields, null values in JSON, and non-integer orders fail validation. An
+ignored legacy source comment is still checked for malformed/duplicate syntax.
 
-- If the `bl-game-meta` block is missing, CI still builds a card using:
-  - `title`: `<title>` tag, else slug title-cased.
-  - `description`: `<meta name="description" content="...">`, else
-    `Browser game: <title>.`
-  - `emoji`: `🎮`
-  - `order`: `999`
-- If the block exists but omits some fields, missing fields use the same
-  fallback rules above.
-- `order` must be parseable as an integer when present.
-- Unknown lines inside the metadata block still fail validation, so typos are
-  caught deterministically.
-
-`.github/scripts/build_games_registry.py` reads this block from every game
-directory and regenerates the `GAMES` array in `projects/games/index.html`.
-Do not hand-edit that array — edit the metadata block in the game's own
-`index.html` instead and let CI regenerate the listing.
+Games are standalone documents with no front matter or shared header. Do not add
+snippets, canonical markers, auto-hide scripts, or space for a site menu button.
+Game controls, navigation, audio, fullscreen, and saved state remain game-owned.

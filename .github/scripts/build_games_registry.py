@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Regenerate the GAMES array in projects/games/index.html from each
-projects/games/<slug>/index.html.
+"""Validate authored game metadata and generate ignored _data/games.json.
 
-See .github/scripts/GAME_METADATA.md for the block format and field spec.
+Precedence: game.json > index.source.html > index.html. Generated compiled
+entrypoints are never metadata inputs. Partial metadata uses legacy fallbacks.
+See GAME_METADATA.md for the source and validation contract.
 """
 import json
 import re
@@ -11,7 +12,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 GAMES_DIR = REPO_ROOT / "projects" / "games"
-INDEX_FILE = GAMES_DIR / "index.html"
+OUTPUT_FILE = REPO_ROOT / "_data" / "games.json"
 
 META_BLOCK_RE = re.compile(r"<!--\s*bl-game-meta(.*?)-->", re.DOTALL)
 FIELD_RE = re.compile(r"^(title|emoji|order|description):\s*(.*)$")
@@ -29,14 +30,9 @@ REQUIRED_FIELDS = ("title", "emoji", "order", "description")
 DEFAULT_EMOJI = "🎮"
 DEFAULT_ORDER = 999
 
-START_MARKER = "// AUTO-GENERATED GAMES START -- do not hand-edit, see .github/scripts/GAME_METADATA.md"
-END_MARKER = "// AUTO-GENERATED GAMES END"
-
-
 def find_game_dirs():
-    return sorted(
-        p.parent for p in GAMES_DIR.glob("*/index.html")
-    )
+    return sorted({p.parent for name in ("index.html", "index.source.html", "game.json")
+                   for p in GAMES_DIR.glob(f"*/{name}")})
 
 
 def collapse_ws(text):
@@ -75,6 +71,16 @@ def extract_meta_description(text):
 
 
 def parse_meta_block(text):
+    matches = META_BLOCK_RE.findall(text)
+    starts = re.findall(r"<!--\s*bl-game-meta\b", text)
+    if len(starts) != len(matches):
+        return None, "malformed bl-game-meta block"
+    if len(matches) > 1:
+        return None, "duplicate bl-game-meta blocks"
+    if not matches:
+        if "bl-game-meta" in text:
+            return None, "malformed bl-game-meta block"
+        return None, None
     m = META_BLOCK_RE.search(text)
     if not m:
         return None, None
@@ -87,6 +93,8 @@ def parse_meta_block(text):
         fm = FIELD_RE.match(line)
         if not fm:
             return None, f"unrecognized metadata line: {line!r}"
+        if fm.group(1) in fields:
+            return None, f"duplicate metadata field: {fm.group(1)}"
         fields[fm.group(1)] = fm.group(2).strip()
     return fields, None
 
@@ -113,12 +121,55 @@ def merge_fields(slug, text, fields):
         else:
             merged[field] = value
 
+    for field in ("title", "emoji", "description"):
+        if not isinstance(merged[field], str):
+            return None, f"{field} must be a string"
+    if isinstance(merged["order"], bool) or not re.fullmatch(r"[+-]?\d+", str(merged["order"])):
+        return None, f"order must be an integer, got {merged['order']!r}"
     try:
         merged["order"] = int(merged["order"])
-    except ValueError:
+    except (ValueError, TypeError):
         return None, f"order must be an integer, got {merged['order']!r}"
 
     return merged, None
+
+
+def unique_object(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate metadata field: {key}")
+        result[key] = value
+    return result
+
+
+def read_metadata(game_dir):
+    # A compiled game's generated index.html must not affect even fallbacks.
+    source = game_dir / "index.source.html"
+    sidecar = game_dir / "game.json"
+    if source.exists():
+        text = source.read_text(encoding="utf-8")
+    elif sidecar.exists():
+        # Do not even open a generated entrypoint: it may not exist yet.
+        text = ""
+    else:
+        source = game_dir / "index.html"
+        text = source.read_text(encoding="utf-8")
+    fields, err = parse_meta_block(text)
+    if err:
+        raise ValueError(err)
+    if sidecar.exists():
+        fields = json.loads(sidecar.read_text(encoding="utf-8"), object_pairs_hook=unique_object)
+        if not isinstance(fields, dict):
+            raise ValueError("game.json must contain an object")
+        unknown = fields.keys() - set(REQUIRED_FIELDS)
+        if unknown:
+            raise ValueError(f"unknown fields: {', '.join(sorted(unknown))}")
+        for key, value in fields.items():
+            if value is None:
+                raise ValueError(f"{key} cannot be null; omit it to use a fallback")
+        source = sidecar
+    return source, text, fields
 
 
 def build_games_array():
@@ -128,12 +179,10 @@ def build_games_array():
 
     for game_dir in find_game_dirs():
         slug = game_dir.name
-        index_html = game_dir / "index.html"
-        text = index_html.read_text(encoding="utf-8")
-
-        fields, err = parse_meta_block(text)
-        if err:
-            errors.append(f"{index_html.relative_to(REPO_ROOT)}: {err}")
+        try:
+            index_html, text, fields = read_metadata(game_dir)
+        except (ValueError, OSError) as exc:
+            errors.append(f"{game_dir.relative_to(REPO_ROOT)}: {exc}")
             continue
 
         note = None
@@ -185,43 +234,11 @@ def build_games_array():
     return games
 
 
-def render_js_array(games):
-    lines = [START_MARKER, "    const GAMES = ["]
-    for g in games:
-        lines.append("      {")
-        lines.append(f"        title: {json.dumps(g['title'], ensure_ascii=False)},")
-        lines.append(f"        description: {json.dumps(g['description'], ensure_ascii=False)},")
-        lines.append(f"        emoji: {json.dumps(g['emoji'], ensure_ascii=False)},")
-        lines.append(f"        path: {json.dumps(g['path'], ensure_ascii=False)},")
-        lines.append("      },")
-    lines.append("    ];")
-    lines.append(f"    {END_MARKER}")
-    return "\n".join(lines)
-
-
 def main():
     games = build_games_array()
-    new_block = render_js_array(games)
-
-    text = INDEX_FILE.read_text(encoding="utf-8")
-    pattern = re.compile(
-        re.escape(START_MARKER) + r".*?" + re.escape(END_MARKER),
-        re.DOTALL,
-    )
-    if not pattern.search(text):
-        print(
-            f"Could not find {START_MARKER!r} .. {END_MARKER!r} markers in "
-            f"{INDEX_FILE.relative_to(REPO_ROOT)}",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-    new_text = pattern.sub(lambda _: new_block, text, count=1)
-    if new_text != text:
-        INDEX_FILE.write_text(new_text, encoding="utf-8")
-        print(f"Updated {INDEX_FILE.relative_to(REPO_ROOT)} with {len(games)} games.")
-    else:
-        print(f"{INDEX_FILE.relative_to(REPO_ROOT)} already up to date ({len(games)} games).")
+    OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
+    OUTPUT_FILE.write_text(json.dumps(games, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(f"Generated {OUTPUT_FILE.name} ({len(games)} games).")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,48 @@
+/* Above page content; below application dialogs (100+). */
+#bl-nav{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:1rem;padding:.4rem 1rem;min-height:44px;
+    background:#252525 !important;border-bottom:1px solid #3a3a3a;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    position:sticky;top:0;z-index:90;box-sizing:border-box;align-self:stretch;width:100%;
+  }
+  #bl-nav *{box-sizing:border-box;}
+  #bl-nav .bl-nav__brand{
+    color:#a78bfa !important;font-weight:700;font-size:1.05rem;
+    text-decoration:none !important;letter-spacing:-.01em;flex:0 0 auto;line-height:1;
+  }
+  #bl-nav .bl-nav__brand:hover{color:#7c3aed !important;}
+  #bl-nav .bl-nav__links{display:flex;align-items:center;gap:1.4rem;}
+  #bl-nav .bl-nav__link{
+    color:#c9c9c9 !important;text-decoration:none !important;
+    font-size:.9rem;white-space:nowrap;transition:color .15s;line-height:1;
+    background:none !important;border:none;padding:0;
+  }
+  #bl-nav .bl-nav__link:hover{color:#a78bfa !important;}
+  #bl-nav .bl-nav__link.is-active{color:#fff !important;font-weight:600;}
+  #bl-nav .bl-nav__toggle{
+    display:none;flex-direction:column;gap:5px;
+    background:none !important;border:none;cursor:pointer;padding:6px;flex:0 0 auto;
+  }
+  #bl-nav .bl-nav__toggle span{
+    display:block;width:22px;height:2px;background:#dcddde;border-radius:2px;
+    transition:transform .2s,opacity .2s;
+  }
+  #bl-nav.is-open .bl-nav__toggle span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+  #bl-nav.is-open .bl-nav__toggle span:nth-child(2){opacity:0;}
+  #bl-nav.is-open .bl-nav__toggle span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+
+  @media (max-width:820px){
+    #bl-nav .bl-nav__toggle{display:flex !important;}
+    #bl-nav .bl-nav__links{
+      display:none !important;position:absolute;top:100%;left:0;right:0;
+      flex-direction:column;align-items:stretch;gap:0;
+      background:#252525 !important;border-bottom:1px solid #3a3a3a;
+      padding:.25rem 0;
+    }
+    #bl-nav.is-open .bl-nav__links{display:flex !important;}
+    #bl-nav .bl-nav__link{
+      width:100%;padding:.7rem 1rem !important;font-size:1rem;
+    }
+    #bl-nav .bl-nav__link:hover{background:#2d2d2d !important;}
+  }
