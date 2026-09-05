@@ -24,6 +24,10 @@ Builds on v2 with the following improvements:
 | Tabular numbers | `font-variant-numeric: tabular-nums` applied to HUD elements so score digits don't shift layout |
 | Reduced-motion | `@media (prefers-reduced-motion: reduce)` support — disables animations for users who prefer it |
 
+### v4 — `orbit-bloom-v4.html`
+
+The newest standalone iteration. It is available alongside v2 and v3 for direct play.
+
 ## Version selection
 
 `index.html` is a lightweight selector page that presents both versions as cards and links directly to each `.html` file. Navigate to:
@@ -37,4 +41,5 @@ to see the selector, or go directly to a version:
 ```
 /projects/games/orbit-bloom/orbit-bloom-v2.html
 /projects/games/orbit-bloom/orbit-bloom-v3.html
+/projects/games/orbit-bloom/orbit-bloom-v4.html
 ```

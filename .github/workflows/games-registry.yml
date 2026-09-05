@@ -37,8 +37,7 @@ jobs:
       - name: Fail PRs if the listing is out of date
         if: github.event_name == 'pull_request'
         run: |
-          GAME_INDEX_FILES=$(find projects/games -type f -name index.html | sort)
-          git diff --exit-code -- projects/games/index.html $GAME_INDEX_FILES || {
+          git diff --exit-code -- projects/games/index.html 'projects/games/**/index.html' || {
             echo "::error::games intake artifacts are stale -- run \
             'bash .github/scripts/fix-nav.sh' and \
             'python3 .github/scripts/build_games_registry.py', then commit results."
@@ -50,8 +49,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          GAME_INDEX_FILES=$(find projects/games -type f -name index.html | sort)
-          git add projects/games/index.html $GAME_INDEX_FILES
+          git add projects/games/index.html 'projects/games/**/index.html'
           if ! git diff --cached --quiet; then
             # Deliberately no "[skip ci]" here -- this commit must still
             # trigger the Pages deploy workflow so the new game goes live.

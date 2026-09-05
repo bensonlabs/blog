@@ -20,7 +20,7 @@ No keyboard required. Just click your way through the dark.
 
 ## Play It
 
-[Play The Last Signal](https://bensonlabs.org/projects/games/)
+[Play The Last Signal](https://bensonlabs.org/projects/games/last-signal/)
 
 ## Controls
 
@@ -43,4 +43,4 @@ Created by [Benson Labs](https://bensonlabs.org/)
 
 ## License
 
-© 2025 Benson Labs. All rights reserved.
+© 2026 Benson Labs. All rights reserved.

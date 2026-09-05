@@ -14,6 +14,9 @@ Echoes of Eternity is now a static browser game designed to run directly from th
 - `projects/games/echoes-of-eternity/index.html`
 - `projects/games/echoes-of-eternity/style.css`
 - `projects/games/echoes-of-eternity/main.js`
+- `projects/games/echoes-of-eternity/index.v2.html` - Alternate standalone prototype using CDN-loaded Three.js, Matter.js, TensorFlow.js, Tone.js, and Simplex Noise.
+
+`index.html` is the GitHub Pages game linked from the games hub. `index.v2.html` is an experimental alternate version and is not the hub entrypoint.
 
 ## Controls
 

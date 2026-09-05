@@ -38,8 +38,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          GAME_INDEX_FILES=$(find projects/games -type f -name index.html | sort)
-          git add projects/index.html projects/*/index.html $GAME_INDEX_FILES
+          git add projects/index.html projects/*/index.html 'projects/games/**/index.html'
           git commit -m "chore(nav): auto-fix canonical nav snippet"
           git push
 
@@ -47,6 +46,5 @@ jobs:
         if: github.event_name == 'pull_request' && steps.nav_changes.outputs.has_changes == 'true'
         run: |
           echo "::error::Navigation fixes are required. Run 'bash .github/scripts/fix-nav.sh' locally and commit the resulting changes."
-          GAME_INDEX_FILES=$(find projects/games -type f -name index.html | sort)
-          git --no-pager diff -- projects/index.html projects/*/index.html $GAME_INDEX_FILES
+          git --no-pager diff -- projects/index.html projects/*/index.html 'projects/games/**/index.html'
           exit 1

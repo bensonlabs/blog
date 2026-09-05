@@ -11,4 +11,3 @@ Open `index.html` directly or serve the folder with any static server.
 - `index.html` - entry point
 - `styles.css` - page and game styling
 - `js/game.js` - gameplay, rendering, level data
-- `assets/` - future art/audio
