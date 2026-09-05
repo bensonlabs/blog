@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deterministically injects or refreshes the canonical standalone-app nav snippet.
+# Deterministically injects the canonical standalone-app nav snippet when missing.
 # Targets the same app entry pages covered by check-nav.sh.
 # Portable: works on bash 3.2 (stock macOS) and Linux (CI).
 set -u
@@ -48,42 +48,6 @@ insert_snippet_after_body(){
   fi
 }
 
-replace_marked_snippet(){
-  f="$1"
-  tmp="$(mktemp "${TMPDIR:-/tmp}/fix-nav.XXXXXX")" || return 1
-
-  if ! awk -v marker="$MARKER" -v snippet="$SNIPPET_FILE" '
-    BEGIN { replacing=0; replaced=0 }
-    !replacing && index($0, marker) > 0 {
-      while ((getline line < snippet) > 0) print line
-      close(snippet)
-      replacing=1
-      replaced=1
-      next
-    }
-    replacing {
-      if ($0 ~ /<\/script>[[:space:]]*$/) replacing=0
-      next
-    }
-    { print }
-    END {
-      if (!replaced || replacing) exit 3
-    }
-  ' "$f" > "$tmp"; then
-    rm -f "$tmp"
-    echo "::error::unable to replace marked canonical nav snippet: $f"
-    return 1
-  fi
-
-  if ! cmp -s "$f" "$tmp"; then
-    mv "$tmp" "$f"
-    echo "refreshed canonical nav snippet: $f"
-    changed=1
-  else
-    rm -f "$tmp"
-  fi
-}
-
 for f in projects/index.html projects/*/index.html projects/games/*/index.html; do
   [ -e "$f" ] || continue
   is_excluded "$f" && continue
@@ -93,11 +57,8 @@ for f in projects/index.html projects/*/index.html projects/games/*/index.html; 
   # Redirect-only index pages are handoff shims, not standalone app surfaces.
   is_redirect_only "$f" && continue
 
-  if grep -q "$MARKER" "$f"; then
-    replace_marked_snippet "$f" || exit 1
-  else
-    insert_snippet_after_body "$f" || exit 1
-  fi
+  grep -q "$MARKER" "$f" && continue
+  insert_snippet_after_body "$f" || exit 1
 done
 
 if [ "$changed" -eq 0 ]; then
