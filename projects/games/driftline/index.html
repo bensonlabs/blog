@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Driftline</title>
+<style>
+  :root{
+    --abyss:#050d16;
+    --abyss-2:#0a1c2b;
+    --water:#123249;
+    --glow:#7ff2d8;
+    --glow-dim:#35d6b0;
+    --plankton:#ffc46b;
+    --sting:#b79bff;
+    --sting-pale:#ece4ff;
+    --alarm:#ff7a6b;
+    --ink:#e8f4f6;
+    --ink-soft:rgba(232,244,246,.62);
+    --ink-faint:rgba(232,244,246,.34);
+    --ui: "Avenir Next", "Segoe UI", Inter, system-ui, -apple-system, sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;margin:0}
+  body{
+    background:var(--abyss);
+    color:var(--ink);
+    font-family:var(--ui);
+    overflow:hidden;
+    overscroll-behavior:none;
+    touch-action:none;
+    user-select:none;
+    -webkit-user-select:none;
+  }
+  #stage{
+    position:fixed;
+    inset:0;
+    display:grid;
+    place-items:stretch;
+  }
+  canvas{
+    display:block;
+    width:100%;
+    height:100%;
+    touch-action:none;
+    cursor:crosshair;
+  }
+
+  /* ---------- heads-up display ---------- */
+  #hud{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    padding:calc(10px + env(safe-area-inset-top)) 14px 14px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    font-variant-numeric:tabular-nums;
+  }
+  .row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+  .stat{line-height:1}
+  .stat b{
+    display:block;
+    font-size:clamp(22px,5.4vw,34px);
+    font-weight:600;
+    letter-spacing:.01em;
+  }
+  .stat span{
+    display:block;
+    margin-top:5px;
+    font-size:11px;
+    letter-spacing:.16em;
+    color:var(--ink-faint);
+  }
+  .right{text-align:right}
+  #mult{color:var(--plankton);transition:transform .12s ease}
+  #mult.pop{transform:scale(1.22)}
+  #wave{color:var(--glow)}
+
+  .meters{
+    position:absolute;
+    left:14px;
+    right:14px;
+    bottom:calc(14px + env(safe-area-inset-bottom));
+    display:flex;
+    flex-direction:column;
+    gap:9px;
+  }
+  .bar{
+    height:6px;
+    border-radius:99px;
+    background:rgba(232,244,246,.10);
+    overflow:hidden;
+  }
+  .bar i{
+    display:block;height:100%;width:100%;
+    transform-origin:left center;
+    border-radius:99px;
+    transition:background .3s ease;
+  }
+  #airFill{background:linear-gradient(90deg,var(--glow-dim),var(--glow))}
+  #airFill.low{background:linear-gradient(90deg,#ff5a48,var(--alarm))}
+  #lureFill{background:linear-gradient(90deg,#4a7fb5,#9fd9ff)}
+  #lureFill.spent{background:rgba(232,244,246,.22)}
+  .meterlabel{
+    display:flex;justify-content:space-between;
+    font-size:10px;letter-spacing:.18em;color:var(--ink-faint);
+    margin-bottom:-3px;
+  }
+  #lives{display:flex;gap:6px;justify-content:flex-end;margin-top:8px}
+  .pip{width:9px;height:9px;border-radius:50%;background:var(--glow);box-shadow:0 0 10px var(--glow-dim)}
+  .pip.out{background:rgba(232,244,246,.14);box-shadow:none}
+
+  #buttons{
+    position:absolute;
+    top:calc(10px + env(safe-area-inset-top));
+    left:50%;
+    transform:translateX(-50%);
+    display:flex;gap:8px;
+    pointer-events:auto;
+  }
+  button{
+    font:inherit;
+    font-size:12px;
+    letter-spacing:.06em;
+    color:var(--ink-soft);
+    background:rgba(10,28,43,.72);
+    border:1px solid rgba(127,242,216,.20);
+    padding:7px 12px;
+    border-radius:99px;
+    cursor:pointer;
+    backdrop-filter:blur(6px);
+    transition:color .15s,border-color .15s,background .15s;
+  }
+  button:hover,button:focus-visible{color:var(--glow);border-color:rgba(127,242,216,.55)}
+  button:focus-visible{outline:2px solid var(--glow);outline-offset:2px}
+
+  /* ---------- overlay panels ---------- */
+  #panel{
+    position:absolute;
+    inset:0;
+    display:grid;
+    place-items:center;
+    padding:24px;
+    background:radial-gradient(120% 90% at 50% 40%, rgba(5,13,22,.62), rgba(3,8,13,.94));
+    backdrop-filter:blur(3px);
+  }
+  #panel.hidden{display:none}
+  .card{
+    width:min(430px,100%);
+    text-align:left;
+  }
+  .card h1{
+    margin:0 0 2px;
+    font-size:clamp(40px,11vw,62px);
+    font-weight:300;
+    letter-spacing:.26em;
+    text-indent:.26em;
+    color:var(--glow);
+    text-shadow:0 0 34px rgba(53,214,176,.45);
+  }
+  .card .sub{
+    margin:0 0 22px;
+    font-size:13px;
+    line-height:1.5;
+    color:var(--ink-soft);
+    max-width:36ch;
+  }
+  .rules{margin:0 0 24px;padding:0;list-style:none;display:grid;gap:11px}
+  .rules li{
+    display:grid;
+    grid-template-columns:26px 1fr;
+    align-items:start;
+    gap:12px;
+    font-size:13.5px;
+    line-height:1.45;
+    color:var(--ink-soft);
+  }
+  .rules b{color:var(--ink);font-weight:600}
+  .dot{width:12px;height:12px;border-radius:50%;margin-top:4px;justify-self:center}
+  .dot.p{background:var(--plankton);box-shadow:0 0 14px rgba(255,196,107,.75)}
+  .dot.s{background:var(--sting);box-shadow:0 0 14px rgba(183,155,255,.7)}
+  .dot.l{background:transparent;border:1.5px solid var(--glow);box-shadow:0 0 12px rgba(127,242,216,.5)}
+  .play{
+    font-size:14px;
+    padding:13px 26px;
+    color:var(--abyss);
+    background:var(--glow);
+    border:none;
+    font-weight:600;
+    letter-spacing:.08em;
+  }
+  .play:hover{background:#a5fbe8;color:var(--abyss)}
+  .keys{margin-top:18px;font-size:11.5px;color:var(--ink-faint);line-height:1.7}
+  .score-line{display:flex;gap:34px;margin:4px 0 22px}
+  .score-line div b{display:block;font-size:34px;font-weight:600;line-height:1.1}
+  .score-line div span{font-size:11px;letter-spacing:.16em;color:var(--ink-faint)}
+  .verdict{color:var(--plankton);font-size:13px;margin:0 0 18px}
+  @media (max-height:520px){
+    .rules{gap:7px;margin-bottom:16px}
+    .card h1{font-size:34px}
+    .card .sub{margin-bottom:14px}
+  }
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="c"></canvas>
+
+  <div id="hud">
+    <div class="row">
+      <div class="stat"><b id="score">0</b><span>score</span></div>
+      <div id="buttons">
+        <button id="btnPause" type="button">Pause</button>
+        <button id="btnMute" type="button">Sound on</button>
+        <button id="btnRestart" type="button">Restart</button>
+      </div>
+      <div class="stat right">
+        <b id="mult">&times;1</b><span>chain</span>
+        <div id="lives"></div>
+      </div>
+    </div>
+
+    <div class="meters">
+      <div>
+        <div class="meterlabel"><span>light</span><span id="airTxt">30s</span></div>
+        <div class="bar"><i id="airFill"></i></div>
+      </div>
+      <div>
+        <div class="meterlabel"><span>lure charge</span><span id="waveTxt">depth 1</span></div>
+        <div class="bar"><i id="lureFill"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel">
+    <div class="card" id="card"></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+(function(){
+
+/* =========================================================
+   DRIFTLINE
+   You are a small light in a trench. Hold anywhere to cast a
+   lure; your body is pulled toward it. Everything else in the
+   water is pulled a little too, which is the whole game.
+   ========================================================= */
+
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d', {alpha:false});
+const panel = document.getElementById('panel');
+const card  = document.getElementById('card');
+
+const el = {
+  score:document.getElementById('score'),
+  mult:document.getElementById('mult'),
+  lives:document.getElementById('lives'),
+  airFill:document.getElementById('airFill'),
+  airTxt:document.getElementById('airTxt'),
+  lureFill:document.getElementById('lureFill'),
+  waveTxt:document.getElementById('waveTxt'),
+  btnMute:document.getElementById('btnMute'),
+  btnPause:document.getElementById('btnPause'),
+  btnRestart:document.getElementById('btnRestart')
+};
+
+/* ---------- tuning ---------- */
+const G            = 4.6e7;   // lure strength
+const A_MAX        = 2500;    // accel clamp near the lure
+const V_MAX        = 780;
+const LIGHT_MAX    = 45;      // seconds on the clock
+const LIGHT_START  = 30;
+const MOTE_LIGHT   = 1.25;    // seconds returned per plankton
+const HIT_LIGHT    = 3;       // seconds lost per sting
+const CHARGE_MAX   = 100;
+const CHARGE_DRAIN = 40;
+const CHARGE_REGEN = 27;
+
+let W=0,H=0,DPR=1;
+
+/* ---------- state ---------- */
+let state = 'title';           // title | play | pause | over
+let best = 0;
+const ship = {x:0,y:0,vx:0,vy:0,r:8,trail:[]};
+let motes=[], stings=[], parts=[], rings=[], texts=[], stars=[];
+let score=0, chain=0, chainT=0, light=LIGHT_START, lives=3, wave=1;
+let collected=0, moteTarget=4, charge=CHARGE_MAX, locked=false, sinceHold=0;
+let pulling=false, held=false, ptr={x:0,y:0}, invuln=0, shake=0, demoT=0;
+let tickAt=0, flash=0;
+
+/* ---------- audio (synthesised, no assets) ---------- */
+let actx=null, master=null, hum=null, humGain=null, muted=false;
+function audioOn(){
+  if(actx) return;
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if(!AC) return;
+  actx = new AC();
+  master = actx.createGain();
+  master.gain.value = muted?0:0.3;
+  master.connect(actx.destination);
+  hum = actx.createOscillator();
+  humGain = actx.createGain();
+  hum.type='sine'; hum.frequency.value=98;
+  humGain.gain.value=0;
+  hum.connect(humGain).connect(master);
+  hum.start();
+}
+function tone(freq,dur,type,vol,glide){
+  if(!actx||muted) return;
+  const t=actx.currentTime;
+  const o=actx.createOscillator(), g=actx.createGain();
+  o.type=type||'sine';
+  o.frequency.setValueAtTime(freq,t);
+  if(glide) o.frequency.exponentialRampToValueAtTime(Math.max(40,glide),t+dur);
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.exponentialRampToValueAtTime(vol||0.3,t+0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g).connect(master);
+  o.start(t); o.stop(t+dur+0.03);
+}
+function noise(dur,vol,freq){
+  if(!actx||muted) return;
+  const t=actx.currentTime, n=Math.floor(actx.sampleRate*dur);
+  const buf=actx.createBuffer(1,n,actx.sampleRate), d=buf.getChannelData(0);
+  for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*(1-i/n);
+  const src=actx.createBufferSource(); src.buffer=buf;
+  const f=actx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=freq||900;
+  const g=actx.createGain(); g.gain.value=vol||0.3;
+  src.connect(f).connect(g).connect(master);
+  src.start(t);
+}
+function setHum(on,amt){
+  if(!humGain||!actx) return;
+  const t=actx.currentTime;
+  humGain.gain.cancelScheduledValues(t);
+  humGain.gain.linearRampToValueAtTime(on&&!muted?0.05+0.05*amt:0.0001,t+0.09);
+  if(hum) hum.frequency.linearRampToValueAtTime(92+amt*46,t+0.12);
+}
+
+/* ---------- canvas sizing ---------- */
+function resize(){
+  const r=cv.getBoundingClientRect();
+  W=Math.max(240,r.width); H=Math.max(240,r.height);
+  DPR=Math.min(2,window.devicePixelRatio||1);
+  cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  buildStars();
+}
+function buildStars(){
+  stars=[];
+  const n=Math.round(W*H/9000);
+  for(let i=0;i<n;i++){
+    stars.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.3+.25,
+                a:Math.random()*.5+.1,p:Math.random()*6.28,s:Math.random()*.9+.3});
+  }
+}
+window.addEventListener('resize',resize);
+
+/* ---------- helpers ---------- */
+const rnd=(a,b)=>a+Math.random()*(b-a);
+function dist(a,b,c,d){return Math.hypot(a-c,b-d);}
+function burst(x,y,n,color,spd,life){
+  for(let i=0;i<n;i++){
+    const a=Math.random()*6.283, s=rnd(spd*0.25,spd);
+    parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,l:0,max:life||rnd(.35,.8),c:color,r:rnd(1,2.6)});
+  }
+}
+function ring(x,y,max,color,life){ rings.push({x,y,r:4,max,l:0,life:life||.55,c:color}); }
+function say(x,y,t,color){ texts.push({x,y,t,l:0,c:color}); }
+
+/* ---------- spawning ---------- */
+function spawnMote(){
+  let x,y,tries=0;
+  do{
+    x=rnd(46,W-46); y=rnd(70,H-90); tries++;
+  }while(tries<24 && (dist(x,y,ship.x,ship.y)<150 || stings.some(s=>dist(x,y,s.x,s.y)<90)));
+  const a=Math.random()*6.283, s=rnd(6,20);
+  motes.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,r:8,ph:Math.random()*6.283,born:0});
+}
+function spawnSting(){
+  let x,y,tries=0;
+  do{ x=rnd(60,W-60); y=rnd(80,H-100); tries++; }
+  while(tries<30 && dist(x,y,ship.x,ship.y)<260);
+  const a=Math.random()*6.283, s=rnd(22,34)+wave*3.4;
+  stings.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,r:rnd(17,23),rot:Math.random()*6.283,
+               spin:rnd(-1.1,1.1),ph:Math.random()*6.283,born:0});
+  ring(x,y,120,'183,155,255',.9);
+}
+
+function reset(full){
+  ship.x=W*0.5; ship.y=H*0.55; ship.vx=90; ship.vy=-40; ship.trail.length=0;
+  motes=[]; stings=[]; parts=[]; rings=[]; texts=[];
+  score=0; chain=0; chainT=0; light=LIGHT_START; lives=3; wave=1;
+  collected=0; moteTarget=4; charge=CHARGE_MAX; locked=false; sinceHold=0;
+  invuln=0; shake=0; flash=0; tickAt=99;
+  for(let i=0;i<moteTarget;i++) spawnMote();
+  if(full) demoT=0;
+}
+
+/* ---------- input ---------- */
+function pos(e){
+  const r=cv.getBoundingClientRect();
+  return {x:(e.clientX-r.left),y:(e.clientY-r.top)};
+}
+cv.addEventListener('pointerdown',e=>{
+  audioOn();
+  if(state!=='play') return;
+  const p=pos(e); ptr.x=p.x; ptr.y=p.y; held=true;
+  cv.setPointerCapture&&cv.setPointerCapture(e.pointerId);
+  e.preventDefault();
+},{passive:false});
+cv.addEventListener('pointermove',e=>{
+  const p=pos(e); ptr.x=p.x; ptr.y=p.y;
+},{passive:true});
+['pointerup','pointercancel','pointerleave'].forEach(ev=>
+  cv.addEventListener(ev,()=>{held=false;})
+);
+window.addEventListener('blur',()=>{held=false; if(state==='play') doPause();});
+
+window.addEventListener('keydown',e=>{
+  const k=e.key.toLowerCase();
+  if(k===' '||k==='enter'){
+    e.preventDefault();
+    if(state==='title'||state==='over') startGame();
+    else if(state==='pause') resume();
+  }
+  if(k==='m') toggleMute();
+  if(k==='r'){ if(state!=='title') startGame(); }
+  if(k==='p'||k==='escape'){ if(state==='play') doPause(); else if(state==='pause') resume(); }
+});
+
+el.btnMute.addEventListener('click',toggleMute);
+el.btnRestart.addEventListener('click',()=>{audioOn();startGame();});
+el.btnPause.addEventListener('click',()=>{
+  if(state==='play') doPause(); else if(state==='pause') resume();
+});
+
+function toggleMute(){
+  muted=!muted;
+  el.btnMute.textContent = muted?'Sound off':'Sound on';
+  if(master&&actx) master.gain.setTargetAtTime(muted?0:0.3,actx.currentTime,0.02);
+}
+
+/* ---------- screens ---------- */
+function showTitle(){
+  state='title'; setHum(false,0);
+  panel.classList.remove('hidden');
+  card.innerHTML=`
+    <h1>Driftline</h1>
+    <p class="sub">You are a light in a trench, and your light is running out. Everything down here follows a lure, including the things you would rather not meet.</p>
+    <ul class="rules">
+      <li><i class="dot l"></i><div><b>Hold anywhere</b> to cast your lure. You are pulled toward it; let go to coast on the arc you built.</div></li>
+      <li><i class="dot p"></i><div><b>Eat plankton</b> to buy back light and build a chain. Eating while coasting is worth half again as much.</div></li>
+      <li><i class="dot s"></i><div><b>Stingers</b> cost you light and a life. They drift toward your lure too, so a long pull drags them in with you.</div></li>
+    </ul>
+    <button class="play" id="go" type="button">Start diving</button>
+    <p class="keys">Space starts &middot; P pauses &middot; R restarts &middot; M mutes</p>`;
+  document.getElementById('go').addEventListener('click',()=>{audioOn();startGame();});
+  reset(true);
+}
+function startGame(){
+  audioOn();
+  reset(false);
+  state='play';
+  panel.classList.add('hidden');
+  el.btnPause.textContent='Pause';
+  tone(220,.12,'sine',.22,660);
+}
+function doPause(){
+  state='pause'; setHum(false,0);
+  el.btnPause.textContent='Resume';
+  panel.classList.remove('hidden');
+  card.innerHTML=`
+    <h1>Paused</h1>
+    <p class="sub">The water is holding still for you.</p>
+    <button class="play" id="go" type="button">Keep diving</button>
+    <p class="keys">P or Space resumes &middot; R restarts</p>`;
+  document.getElementById('go').addEventListener('click',resume);
+}
+function resume(){
+  state='play';
+  panel.classList.add('hidden');
+  el.btnPause.textContent='Pause';
+}
+function gameOver(reason){
+  state='over'; setHum(false,0); held=false;
+  best=Math.max(best,score);
+  burst(ship.x,ship.y,46,'127,242,216',420,1.1);
+  ring(ship.x,ship.y,260,'127,242,216',1.0);
+  shake=22;
+  if(actx&&!muted){
+    [392,311,262,196].forEach((f,i)=>setTimeout(()=>tone(f,.5,'sine',.28),i*140));
+    noise(.5,.25,500);
+  }
+  const verdict =
+    score>=6000 ? 'The trench remembers that one.' :
+    score>=3000 ? 'Deep enough to see the shape of it.' :
+    score>=1200 ? 'You are starting to read the current.' :
+                  'Short pulls. Let the arc do the work.';
+  panel.classList.remove('hidden');
+  card.innerHTML=`
+    <h1>Lights out</h1>
+    <p class="sub">${reason}</p>
+    <div class="score-line">
+      <div><b>${score.toLocaleString()}</b><span>score</span></div>
+      <div><b>${wave}</b><span>depth</span></div>
+      <div><b>${best.toLocaleString()}</b><span>best</span></div>
+    </div>
+    <p class="verdict">${verdict}</p>
+    <button class="play" id="go" type="button">Dive again</button>
+    <p class="keys">Space or R to dive again &middot; best score resets when the page does</p>`;
+  document.getElementById('go').addEventListener('click',startGame);
+}
+
+/* ---------- simulation ---------- */
+function update(dt){
+  const demo = (state==='title');
+  demoT+=dt;
+
+  // where the lure is, and whether it is lit
+  let lx,ly;
+  if(demo){
+    lx = W*0.5 + Math.cos(demoT*0.62)*W*0.27;
+    ly = H*0.52 + Math.sin(demoT*0.97)*H*0.24;
+    pulling = true;
+  }else{
+    lx=ptr.x; ly=ptr.y;
+    if(held && !locked && charge>0) pulling=true; else pulling=false;
+    if(pulling){
+      charge-=CHARGE_DRAIN*dt; sinceHold=0;
+      if(charge<=0){charge=0; locked=true; pulling=false; noise(.14,.12,380);}
+    }else{
+      sinceHold+=dt;
+      if(sinceHold>0.28) charge=Math.min(CHARGE_MAX,charge+CHARGE_REGEN*dt);
+      if(locked && charge>=26) locked=false;
+    }
+  }
+  setHum(pulling, Math.min(1,Math.hypot(ship.vx,ship.vy)/V_MAX));
+
+  // pull the swimmer, and pull the water with it
+  if(pulling){
+    const dx=lx-ship.x, dy=ly-ship.y;
+    let d=Math.hypot(dx,dy)||1;
+    const dc=Math.max(72,d);
+    const a=Math.min(A_MAX,G/(dc*dc));
+    ship.vx+=dx/d*a*dt; ship.vy+=dy/d*a*dt;
+    if(Math.random()<dt*34) parts.push({
+      x:lx+rnd(-9,9),y:ly+rnd(-9,9),vx:rnd(-14,14),vy:rnd(-14,14),
+      l:0,max:.5,c:'159,217,255',r:rnd(.8,1.8)
+    });
+    // plankton drift in a little, stingers drift in a lot slower
+    for(const m of motes) attract(m,lx,ly,0.30,dt);
+    for(const s of stings) attract(s,lx,ly,0.21,dt);
+  }
+
+  // integrate swimmer
+  const damp=Math.pow(0.9985,dt*60);
+  ship.vx*=damp; ship.vy*=damp;
+  const sp=Math.hypot(ship.vx,ship.vy);
+  if(sp>V_MAX){ ship.vx*=V_MAX/sp; ship.vy*=V_MAX/sp; }
+  ship.x+=ship.vx*dt; ship.y+=ship.vy*dt;
+  bounce(ship,ship.r,0.84,true);
+
+  ship.trail.push({x:ship.x,y:ship.y});
+  if(ship.trail.length>44) ship.trail.shift();
+
+  // drifting bodies
+  for(const m of motes){
+    m.born+=dt; m.ph+=dt*2.2;
+    m.x+=m.vx*dt; m.y+=m.vy*dt;
+    m.vx*=Math.pow(0.996,dt*60); m.vy*=Math.pow(0.996,dt*60);
+    bounce(m,m.r,1,false);
+  }
+  for(const s of stings){
+    s.born+=dt; s.rot+=s.spin*dt; s.ph+=dt*1.6;
+    s.x+=s.vx*dt; s.y+=s.vy*dt;
+    bounce(s,s.r,1,false);
+  }
+
+  if(!demo){
+    // clock
+    light-=dt;
+    const secs=Math.ceil(light);
+    if(light<=5.4 && secs!==tickAt && light>0){ tickAt=secs; tone(880,.09,'square',.12); }
+    if(light<=0){ light=0; gameOver('Your light gave out before the plankton did.'); return; }
+
+    if(invuln>0) invuln-=dt;
+    chainT-=dt;
+    if(chainT<=0 && chain>0){ chain=0; }
+  }
+
+  // eating
+  for(let i=motes.length-1;i>=0;i--){
+    const m=motes[i];
+    if(dist(m.x,m.y,ship.x,ship.y) < m.r+ship.r+4){
+      motes.splice(i,1);
+      if(demo){ burst(m.x,m.y,10,'255,196,107',150); ring(m.x,m.y,44,'255,196,107',.5); spawnMote(); continue; }
+      eat(m);
+    }
+  }
+  while(motes.length<moteTarget) spawnMote();
+
+  // stung
+  if(!demo && invuln<=0){
+    for(const s of stings){
+      if(dist(s.x,s.y,ship.x,ship.y) < s.r+ship.r){ sting(s); break; }
+    }
+  }
+
+  // effects
+  step(parts,dt,p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=Math.pow(0.94,dt*60);p.vy*=Math.pow(0.94,dt*60);});
+  step(rings,dt,r=>{r.r += (r.max-r.r)*Math.min(1,dt*7);},'life');
+  step(texts,dt,t=>{t.y-=34*dt;},'txt');
+  if(shake>0) shake=Math.max(0,shake-dt*46);
+  if(flash>0) flash=Math.max(0,flash-dt*3.2);
+}
+
+function step(arr,dt,fn,kind){
+  for(let i=arr.length-1;i>=0;i--){
+    const o=arr[i]; o.l+=dt; fn(o);
+    const max = kind==='life'?o.life : kind==='txt'?0.95 : o.max;
+    if(o.l>=max) arr.splice(i,1);
+  }
+}
+function attract(o,lx,ly,k,dt){
+  const dx=lx-o.x, dy=ly-o.y; let d=Math.hypot(dx,dy)||1;
+  const dc=Math.max(90,d);
+  const a=Math.min(560,G/(dc*dc))*k;
+  o.vx+=dx/d*a*dt; o.vy+=dy/d*a*dt;
+  const s=Math.hypot(o.vx,o.vy), cap=190;
+  if(s>cap){o.vx*=cap/s;o.vy*=cap/s;}
+}
+function bounce(o,r,e,isShip){
+  let hit=false;
+  if(o.x<r){o.x=r;o.vx=Math.abs(o.vx)*e;hit=true;}
+  if(o.x>W-r){o.x=W-r;o.vx=-Math.abs(o.vx)*e;hit=true;}
+  if(o.y<r){o.y=r;o.vy=Math.abs(o.vy)*e;hit=true;}
+  if(o.y>H-r){o.y=H-r;o.vy=-Math.abs(o.vy)*e;hit=true;}
+  if(hit&&isShip){
+    const v=Math.hypot(o.vx,o.vy);
+    if(v>200){ shake=Math.max(shake,Math.min(9,v/70)); noise(.09,.09,320); }
+  }
+}
+
+function eat(m){
+  chain++; chainT=3.1;
+  const mult=Math.min(9,1+Math.floor(chain/3));
+  const coasting=!pulling;
+  const pts=Math.round(10*mult*(coasting?1.5:1));
+  score+=pts;
+  light=Math.min(LIGHT_MAX,light+MOTE_LIGHT);
+  collected++;
+  burst(m.x,m.y,14,'255,196,107',210);
+  ring(m.x,m.y,52,'255,196,107',.5);
+  say(m.x,m.y-16,(coasting?'+'+pts+' drift':'+'+pts),coasting?'127,242,216':'255,196,107');
+  tone(392*Math.pow(1.0595,Math.min(24,chain*1.6)),.13,'triangle',.2);
+  if(coasting) tone(784*Math.pow(1.0595,Math.min(20,chain)),.09,'sine',.1);
+  el.mult.classList.add('pop');
+  setTimeout(()=>el.mult.classList.remove('pop'),120);
+  if(collected%10===0) deeper();
+}
+function deeper(){
+  wave++;
+  moteTarget=Math.min(8,4+Math.floor(wave/2));
+  if(stings.length<9) spawnSting();
+  flash=1;
+  say(W/2,H*0.34,'depth '+wave,'183,155,255');
+  tone(147,.5,'sine',.2,110);
+}
+function sting(s){
+  lives--; chain=0; invuln=1.7; shake=20; light=Math.max(0,light-HIT_LIGHT);
+  burst(ship.x,ship.y,26,'183,155,255',300,.9);
+  ring(ship.x,ship.y,150,'183,155,255',.7);
+  say(ship.x,ship.y-22,'-'+HIT_LIGHT+'s','183,155,255');
+  noise(.28,.34,700); tone(110,.35,'sawtooth',.16,60);
+  const dx=ship.x-s.x, dy=ship.y-s.y, d=Math.hypot(dx,dy)||1;
+  ship.vx = dx/d*300; ship.vy = dy/d*300;
+  if(lives<=0){ gameOver('A stinger found you in the dark.'); }
+  else if(light<=0){ gameOver('Your light gave out before the plankton did.'); }
+}
+
+/* ---------- rendering ---------- */
+function draw(t){
+  ctx.save();
+  if(shake>0) ctx.translate(rnd(-shake,shake)*.5, rnd(-shake,shake)*.5);
+
+  // water
+  const g=ctx.createRadialGradient(W*.5,H*.42,20,W*.5,H*.5,Math.max(W,H)*.78);
+  g.addColorStop(0,'#0b2033'); g.addColorStop(.55,'#071522'); g.addColorStop(1,'#03080e');
+  ctx.fillStyle=g; ctx.fillRect(-40,-40,W+80,H+80);
+
+  if(flash>0){
+    ctx.fillStyle='rgba(183,155,255,'+(flash*0.07)+')';
+    ctx.fillRect(-40,-40,W+80,H+80);
+  }
+
+  // marine snow
+  for(const s of stars){
+    const a=s.a*(0.55+0.45*Math.sin(t*s.s+s.p));
+    ctx.fillStyle='rgba(180,230,240,'+a.toFixed(3)+')';
+    ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,6.283); ctx.fill();
+  }
+
+  // trench walls
+  ctx.strokeStyle='rgba(127,242,216,.10)';
+  ctx.lineWidth=1;
+  ctx.strokeRect(1,1,W-2,H-2);
+
+  // expanding rings
+  for(const r of rings){
+    const a=(1-r.l/r.life);
+    ctx.strokeStyle='rgba('+r.c+','+(a*0.55).toFixed(3)+')';
+    ctx.lineWidth=2*a+0.4;
+    ctx.beginPath(); ctx.arc(r.x,r.y,r.r,0,6.283); ctx.stroke();
+  }
+
+  // plankton
+  for(const m of motes){
+    const pu=0.72+0.28*Math.sin(m.ph);
+    const born=Math.min(1,m.born*3);
+    ctx.save(); ctx.globalAlpha=born;
+    ctx.shadowBlur=18; ctx.shadowColor='rgba(255,196,107,.9)';
+    ctx.fillStyle='#ffc46b';
+    ctx.beginPath(); ctx.arc(m.x,m.y,4.2*pu+1.6,0,6.283); ctx.fill();
+    ctx.shadowBlur=0;
+    ctx.strokeStyle='rgba(255,196,107,'+(0.30*pu).toFixed(2)+')';
+    ctx.lineWidth=1;
+    ctx.beginPath(); ctx.arc(m.x,m.y,9+2*pu,0,6.283); ctx.stroke();
+    ctx.restore();
+  }
+
+  // stingers
+  for(const s of stings){
+    const born=Math.min(1,s.born*1.6), pu=0.75+0.25*Math.sin(s.ph*1.7);
+    ctx.save(); ctx.globalAlpha=born;
+    ctx.translate(s.x,s.y); ctx.rotate(s.rot);
+    ctx.shadowBlur=22; ctx.shadowColor='rgba(183,155,255,.8)';
+    ctx.strokeStyle='rgba(236,228,255,.92)'; ctx.lineWidth=2;
+    ctx.beginPath();
+    for(let i=0;i<7;i++){
+      const a=i/7*6.283, rr=s.r*(i%2?0.62:1)*pu;
+      const x=Math.cos(a)*rr, y=Math.sin(a)*rr;
+      i?ctx.lineTo(x,y):ctx.moveTo(x,y);
+    }
+    ctx.closePath(); ctx.stroke();
+    ctx.shadowBlur=0;
+    ctx.fillStyle='rgba(60,40,110,.55)'; ctx.fill();
+    ctx.fillStyle='rgba(236,228,255,.9)';
+    ctx.beginPath(); ctx.arc(0,0,2.4,0,6.283); ctx.fill();
+    // trailing filaments
+    ctx.strokeStyle='rgba(183,155,255,.30)'; ctx.lineWidth=1;
+    for(let i=0;i<3;i++){
+      const a=s.ph+i*2.1;
+      ctx.beginPath(); ctx.moveTo(0,0);
+      ctx.quadraticCurveTo(Math.cos(a)*s.r*1.4,Math.sin(a)*s.r*1.4,
+                           Math.cos(a+.5)*s.r*2.3,Math.sin(a+.5)*s.r*2.3);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // lure line
+  if(pulling){
+    const lx = (state==='title')
+      ? W*0.5+Math.cos(demoT*0.62)*W*0.27 : ptr.x;
+    const ly = (state==='title')
+      ? H*0.52+Math.sin(demoT*0.97)*H*0.24 : ptr.y;
+    ctx.save();
+    ctx.setLineDash([5,7]); ctx.lineDashOffset=-t*46;
+    ctx.strokeStyle='rgba(159,217,255,.42)'; ctx.lineWidth=1.2;
+    ctx.beginPath(); ctx.moveTo(ship.x,ship.y); ctx.lineTo(lx,ly); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.shadowBlur=26; ctx.shadowColor='rgba(159,217,255,.9)';
+    for(let i=0;i<3;i++){
+      const rr=7+i*8+Math.sin(t*3.4-i)*2.6;
+      ctx.strokeStyle='rgba(159,217,255,'+(0.5-i*0.13).toFixed(2)+')';
+      ctx.lineWidth=1.4;
+      ctx.beginPath(); ctx.arc(lx,ly,rr,0,6.283); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // swimmer trail
+  const tr=ship.trail;
+  for(let i=1;i<tr.length;i++){
+    const f=i/tr.length;
+    ctx.strokeStyle='rgba(53,214,176,'+(f*0.42).toFixed(3)+')';
+    ctx.lineWidth=f*6.5;
+    ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(tr[i-1].x,tr[i-1].y); ctx.lineTo(tr[i].x,tr[i].y); ctx.stroke();
+  }
+
+  // swimmer
+  const blink = invuln>0 && Math.floor(invuln*14)%2===0;
+  if(!blink){
+    const ang=Math.atan2(ship.vy,ship.vx);
+    ctx.save();
+    ctx.translate(ship.x,ship.y); ctx.rotate(ang);
+    ctx.shadowBlur=30; ctx.shadowColor='rgba(127,242,216,.95)';
+    ctx.fillStyle='#d9fff4';
+    ctx.beginPath();
+    ctx.moveTo(11,0); ctx.lineTo(-7,6.4); ctx.lineTo(-3.6,0); ctx.lineTo(-7,-6.4);
+    ctx.closePath(); ctx.fill();
+    ctx.shadowBlur=0;
+    ctx.restore();
+    ctx.fillStyle='rgba(127,242,216,'+(0.12+0.05*Math.sin(t*5)).toFixed(3)+')';
+    ctx.beginPath(); ctx.arc(ship.x,ship.y,22,0,6.283); ctx.fill();
+  }
+
+  // particles
+  for(const p of parts){
+    const a=1-p.l/p.max;
+    ctx.fillStyle='rgba('+p.c+','+(a*0.85).toFixed(3)+')';
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.r*a+0.4,0,6.283); ctx.fill();
+  }
+
+  // floating numbers
+  ctx.textAlign='center';
+  for(const x of texts){
+    const a=1-x.l/0.95;
+    ctx.fillStyle='rgba('+x.c+','+(a*0.95).toFixed(3)+')';
+    ctx.font='600 15px '+getComputedStyle(document.body).fontFamily;
+    ctx.fillText(x.t,x.x,x.y);
+  }
+
+  // vignette
+  const v=ctx.createRadialGradient(W*.5,H*.5,Math.min(W,H)*.32,W*.5,H*.5,Math.max(W,H)*.75);
+  v.addColorStop(0,'rgba(0,0,0,0)'); v.addColorStop(1,'rgba(0,0,0,.62)');
+  ctx.fillStyle=v; ctx.fillRect(-40,-40,W+80,H+80);
+
+  ctx.restore();
+}
+
+/* ---------- hud sync ---------- */
+let lastHud='';
+function hud(){
+  const mult=Math.min(9,1+Math.floor(chain/3));
+  const lightPct=Math.max(0,Math.min(1,light/LIGHT_MAX));
+  const chargePct=Math.max(0,charge/CHARGE_MAX);
+  const key=[score,mult,lives,wave,Math.ceil(light),Math.round(chargePct*40),locked].join('|');
+  if(key===lastHud) { el.airFill.style.transform='scaleX('+lightPct+')';
+                      el.lureFill.style.transform='scaleX('+chargePct+')'; return; }
+  lastHud=key;
+  el.score.textContent=score.toLocaleString();
+  el.mult.textContent='\u00d7'+mult;
+  el.airTxt.textContent=Math.ceil(light)+'s';
+  el.waveTxt.textContent='depth '+wave;
+  el.airFill.style.transform='scaleX('+lightPct+')';
+  el.lureFill.style.transform='scaleX('+chargePct+')';
+  el.airFill.classList.toggle('low',light<=8);
+  el.lureFill.classList.toggle('spent',locked);
+  if(el.lives.children.length!==3){
+    el.lives.innerHTML='<i class="pip"></i><i class="pip"></i><i class="pip"></i>';
+  }
+  [...el.lives.children].forEach((p,i)=>p.classList.toggle('out',i>=lives));
+}
+
+/* ---------- loop ---------- */
+let last=performance.now(), clock=0;
+function frame(now){
+  const dt=Math.min(0.034,(now-last)/1000); last=now; clock+=dt;
+  if(state==='play'||state==='title') update(dt);
+  draw(clock);
+  hud();
+  requestAnimationFrame(frame);
+}
+
+resize();
+showTitle();
+requestAnimationFrame(frame);
+
+})();
+</script>
+</body>
+</html>
