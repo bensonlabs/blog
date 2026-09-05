@@ -42,6 +42,13 @@ jobs:
       - name: Add shared navigation to generated game
         run: bash .github/scripts/fix-nav.sh
 
+      - name: Verify generated dungeon handoff
+        run: |
+          test -f projects/games/dungeon-crawler/index.html
+          test -d projects/games/dungeon-crawler/assets
+          grep -q 'bl-nav:canonical' projects/games/dungeon-crawler/index.html
+          grep -q 'nav-autohide' projects/games/dungeon-crawler/index.html
+
       - name: Setup Pages
         uses: actions/configure-pages@v6
 
@@ -51,8 +58,17 @@ jobs:
           source: ./
           destination: ./_site
 
+      - name: Inspect Pages artifact contents
+        run: |
+          test -d _site
+          du -sh _site
+          find _site -type l -print -quit | grep . && exit 1 || true
+          find _site -path '*/node_modules/*' -print -quit | grep . && exit 1 || true
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
+        with:
+          path: ./_site
 
   deploy:
     environment:
