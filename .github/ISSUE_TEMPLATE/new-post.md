@@ -21,4 +21,4 @@ categories: [tag1, tag2]
 3. Copy the entire content (frontmatter + content)
 4. Create a new file in `_posts/` folder named: `YYYY-MM-DD-your-title.md`
 5. Paste the content and commit
-6. Your post will be live in ~60 seconds!
+6. Push or merge the post into `master`. It goes live after the **Deploy Jekyll to GitHub Pages** workflow succeeds; check GitHub Actions for progress and errors.

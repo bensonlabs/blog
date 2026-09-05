@@ -8,7 +8,7 @@ An interactive, high-fidelity N-body gravity simulator built for the browser. Fe
 ## Key Features
 
 *   **Symplectic Euler Physics Engine**: Real-time gravitation calculation with numerical softening to ensure simulation stability even during close-body flybys.
-*   **Runge-Kutta 4 (RK4) Trajectory Forecasts**: Calculates and draws projected orbital paths in real-time, showing where planets will go before you launch them.
+*   **Euler Trajectory Forecasts**: Calculates and draws projected orbital paths in real-time, showing where planets will go before you launch them.
 *   **Procedural Web Audio Synthesizer**: Generates ambient space drones using low-pass filters and LFOs, and synthesizes dynamic chimes, sweep sounds, and explosions on cosmic events (collisions, merges, and singularities).
 *   **Interactive Spawner Lab**: Launch custom-mass asteroids, planets, stars, pulsars, or black holes.
 *   **Two Launch Modes**:
@@ -27,6 +27,8 @@ An interactive, high-fidelity N-body gravity simulator built for the browser. Fe
 *   **Right Click & Drag**: Pan the viewport camera.
 *   **Scroll Wheel**: Zoom in/out (centered directly on your mouse cursor).
 
+Desktop use is recommended. On narrow screens, the sidebars are hidden and there is currently no control to reopen them, so the full simulator settings are not accessible.
+
 ---
 
 ## Cosmos Presets
@@ -41,18 +43,18 @@ An interactive, high-fidelity N-body gravity simulator built for the browser. Fe
 
 ## Installation & Running Locally
 
-Since the project is built with vanilla HTML5, CSS3, and ES6 JavaScript, there are no dependencies or compile steps required.
+The simulator uses vanilla JavaScript modules, but `index.html` is a Jekyll content fragment with `layout: project`. Preview it through the blog's Jekyll build so its document shell, styles, and shared header are rendered.
 
-1.  Clone the repository or download the folder.
-2.  Start a local server in the project folder to enable JS module loading:
+1.  Clone the full blog repository. Install Ruby (the repository specifies its version in `.ruby-version`), Bundler, and Python 3.
+2.  From the repository root, install dependencies and start Jekyll:
     ```bash
-    # Python 3
-    python3 -m http.server 8000
-    
-    # Node.js
-    npx serve
+    bundle install
+    python3 .github/scripts/build_games_registry.py
+    bundle exec jekyll serve
     ```
-3.  Open `http://localhost:8000` in your web browser.
+3.  Open `http://localhost:4000/projects/gravitas/` in your web browser.
+
+A plain static server pointed at the source folder does not process the Jekyll front matter or layout.
 
 ---
 

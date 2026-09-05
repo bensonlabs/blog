@@ -30,7 +30,7 @@ The newest standalone iteration. It is available alongside v2 and v3 for direct 
 
 ## Version selection
 
-`index.html` is a lightweight selector page that presents both versions as cards and links directly to each `.html` file. Navigate to:
+`index.html` is a lightweight selector page that presents all three versions (v2, v3, and v4) as cards and links directly to each `.html` file. Navigate to:
 
 ```
 /projects/games/orbit-bloom/

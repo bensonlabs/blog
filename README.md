@@ -81,7 +81,7 @@ The site uses a custom **Obsidian dark theme** color palette for a consistent, m
 - **Text**: `#dcddde` (light gray - readable on dark)
 - **Muted**: `#888` (secondary text)
 
-All pages are fully responsive and optimized for mobile devices with touch-friendly interactions.
+The blog and project hubs use responsive layouts. Mobile controls and orientation requirements vary by game and project. Gravitas currently works best on desktop; its sidebars are hidden on narrow screens without a control to reopen them.
 
 ---
 
@@ -137,7 +137,7 @@ git commit -m "Add post: Fix Windows Update stuck on 0%"
 git push
 ```
 
-GitHub Actions will automatically build and deploy the site within ~60 seconds.
+Pushing to `master` triggers the **Deploy Jekyll to GitHub Pages** workflow. If you push a feature branch, merge it into `master` to publish. The site updates after the build and deployment succeed; check GitHub Actions for progress and errors.
 
 ---
 
@@ -256,14 +256,25 @@ open http://localhost:4000
 ```
 blog/
 ├── _config.yml          # Jekyll configuration
+├── _data/
+│   ├── navigation.yml   # Shared-header links
+│   └── games.json       # Ignored catalogue generated before Jekyll
+├── _includes/
+│   ├── nav.html         # Sole shared-header markup source
+│   └── blog-head.html   # Default blog head elements
 ├── _layouts/
-│   ├── default.html     # Base HTML layout
-│   └── post.html        # Blog post layout
+│   ├── base.html        # HTML document shell and shared header
+│   ├── default.html     # Blog container and footer; inherits base
+│   ├── post.html        # Blog post content; inherits default
+│   └── project.html     # Project content without a width wrapper; inherits base
 ├── _posts/              # All blog posts (Markdown)
 │   └── YYYY-MM-DD-title.md
 ├── assets/
-│   └── css/
-│       └── main.css     # Site styles (Obsidian dark theme)
+│   ├── css/
+│   │   ├── main.css     # Blog styles (Obsidian dark theme)
+│   │   └── header.css   # Shared-header styles
+│   └── js/
+│       └── header.js    # Shared-header mobile menu behavior
 ├── projects/
 │   ├── index.html       # Projects hub page
 │   ├── games/           # Interactive games hub

@@ -29,7 +29,7 @@ This blog uses **Jekyll** and is hosted on **GitHub Pages** at [bensonlabs.org](
    - Commit with message: `Add post: Your Post Title`
 
 4. **Site updates automatically**
-   - GitHub Pages builds Jekyll in ~60 seconds
+   - A push or merge into `master` triggers **Deploy Jekyll to GitHub Pages** in GitHub Actions. The site updates after the build and deployment succeed; check the workflow for progress and errors.
    - Your post appears at: `https://bensonlabs.org/your-post-title/`
    - RSS feed updates automatically at `/feed.xml`
 
@@ -68,7 +68,7 @@ This blog uses **Jekyll** and is hosted on **GitHub Pages** at [bensonlabs.org](
    git push origin master
    ```
 
-5. Site updates in ~60 seconds
+5. Check **Deploy Jekyll to GitHub Pages** in GitHub Actions. The site updates after the build and deployment succeed. If you work on a feature branch, push that branch and merge it into `master` to publish.
 
 ## Post Frontmatter Reference
 
