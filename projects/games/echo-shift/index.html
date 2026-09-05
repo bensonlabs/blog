@@ -77,6 +77,8 @@ function occupants(){return [{x:player.x,y:player.y},...echoes.map(e=>echoAt(e,e
 function update(dt){
  if(state!=='play'||deathLock)return;elapsed+=dt;if(elapsed>=LOOP){endLoop('Echo committed');return}
  let ix=(keys.right||keys.d?1:0)-(keys.left||keys.a?1:0),iy=(keys.down||keys.s?1:0)-(keys.up||keys.w?1:0);if(ix&&iy){ix*=.707;iy*=.707}const accel=1300,drag=Math.pow(.0006,dt);player.vx=(player.vx+ix*accel*dt)*drag;player.vy=(player.vy+iy*accel*dt)*drag;let cap=player.dash>0?520:235,sp=Math.hypot(player.vx,player.vy);if(sp>cap){player.vx*=cap/sp;player.vy*=cap/sp}if(sp>12)player.angle=Math.atan2(player.vy,player.vx);player.cool=Math.max(0,player.cool-dt);player.dash=Math.max(0,player.dash-dt);moveCircle(player,player.vx*dt,player.vy*dt);player.trail.push({x:player.x,y:player.y,life:.32});if(player.trail.length>24)player.trail.shift();for(const t of player.trail)t.life-=dt;
+ // Expired trail particles must not reach canvas.arc with a negative radius.
+ player.trail=player.trail.filter(t=>t.life>0);
  record.push({t:elapsed,x:player.x,y:player.y});if(record.length>1300)record.shift();
  for(const s of shards)if(s.on&&Math.hypot(player.x-s.x,player.y-s.y)<29){s.on=false;burst(s.x,s.y,'#ffd166',28,190);tone(520,.18,'triangle',.06,400);toast('Memory shard recovered')}
  const occ=occupants();pads.forEach(p=>p.on=occ.some(o=>Math.hypot(o.x-p.x,o.y-p.y)<p.r+10));if(pads.every(p=>p.on)&&!exit.open){seal+=dt;if(seal>=1.15){exit.open=true;burst(exit.x,exit.y,'#55f6ff',45,240);tone(180,.65,'sawtooth',.045,620);toast('Breach unlocked')}}else if(!exit.open)seal=Math.max(0,seal-dt*.7);
