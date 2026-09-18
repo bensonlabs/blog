@@ -1,0 +1,824 @@
+---
+layout: project
+title: Weight Room Watch
+head: |
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Weight Room Watch</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+  <style>
+  :root{color-scheme:light}
+  img{max-width:100%}
+
+  :root {
+    --ground:      #EDEEF1;
+    --surface:     #FFFFFF;
+    --surface-2:   #F5F6F8;
+    --line:        #D5D8DE;
+    --line-soft:   #E4E6EB;
+    --ink:         #14181F;
+    --ink-2:       #4B535F;
+    --ink-3:       #7A828F;
+
+    --plate-blue:  #1B5FA8;
+    --on-accent:   #FFFFFF;
+    --open:        #1F7A45;
+    --open-bg:     #E4F2E9;
+    --shut:        #B23127;
+    --shut-bg:     #FAE7E4;
+    --maybe:       #96650B;
+    --maybe-bg:    #FBF0DA;
+
+    --shadow: 0 1px 2px rgba(20,24,31,.06), 0 8px 24px -12px rgba(20,24,31,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:    #0E1116;
+      --surface:   #171B22;
+      --surface-2: #1E232C;
+      --line:      #2C323C;
+      --line-soft: #232932;
+      --ink:       #EDEFF3;
+      --ink-2:     #A3ABB8;
+      --ink-3:     #767E8B;
+
+      --plate-blue: #6BA6E8;
+      --on-accent: #0E1116;
+      --open:      #57C285;
+      --open-bg:   #14291D;
+      --shut:      #E8756A;
+      --shut-bg:   #2C1614;
+      --maybe:     #DCA843;
+      --maybe-bg:  #2A2110;
+
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.7);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:    #0E1116;
+    --surface:   #171B22;
+    --surface-2: #1E232C;
+    --line:      #2C323C;
+    --line-soft: #232932;
+    --ink:       #EDEFF3;
+    --ink-2:     #A3ABB8;
+    --ink-3:     #767E8B;
+
+    --plate-blue: #6BA6E8;
+    --on-accent: #0E1116;
+    --open:      #57C285;
+    --open-bg:   #14291D;
+    --shut:      #E8756A;
+    --shut-bg:   #2C1614;
+    --maybe:     #DCA843;
+    --maybe-bg:  #2A2110;
+
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.7);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 34rem;
+    margin: 0 auto;
+    padding: 22px 18px 56px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  /* ---------- masthead ---------- */
+  .masthead { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .masthead h1 {
+    font-family: "Saira Condensed", "Arial Narrow", sans-serif;
+    font-weight: 700;
+    font-size: 25px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    margin: 0;
+    color: var(--ink);
+  }
+  .clock {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12.5px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+
+  /* ---------- status ---------- */
+  .status {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .status-bar { height: 5px; background: var(--ink-3); }
+  .status.is-open   .status-bar { background: var(--open); }
+  .status.is-shut   .status-bar { background: var(--shut); }
+  .status.is-maybe  .status-bar { background: var(--maybe); }
+
+  .status-body { padding: 22px 20px 20px; display: flex; flex-direction: column; gap: 4px; }
+
+  .verdict {
+    font-family: "Saira Condensed", "Arial Narrow", sans-serif;
+    font-weight: 700;
+    font-size: clamp(46px, 15vw, 68px);
+    line-height: .92;
+    letter-spacing: .01em;
+    text-transform: uppercase;
+    text-wrap: balance;
+    margin: 0;
+    color: var(--ink-3);
+  }
+  .status.is-open  .verdict { color: var(--open); }
+  .status.is-shut  .verdict { color: var(--shut); }
+  .status.is-maybe .verdict { color: var(--maybe); }
+
+  .verdict-sub {
+    font-size: 15.5px;
+    color: var(--ink-2);
+    margin-top: 6px;
+  }
+  .verdict-sub strong { color: var(--ink); font-weight: 600; }
+
+  .nextline {
+    margin-top: 14px;
+    padding-top: 13px;
+    border-top: 1px solid var(--line-soft);
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 14px;
+    color: var(--ink-2);
+  }
+  .nextline .lab {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .nextline .val { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  /* ---------- section ---------- */
+  .section-head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+    margin-bottom: -4px;
+  }
+  .section-head h2 {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0;
+  }
+  .section-head .meta { font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+
+  /* ---------- timeline ---------- */
+  .rows {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 4px 68px 1fr auto;
+    align-items: center;
+    gap: 0 12px;
+    padding: 0;
+    border-top: 1px solid var(--line-soft);
+  }
+  .row:first-child { border-top: 0; }
+  .row .stripe { align-self: stretch; background: var(--line); }
+  .row.s-open  .stripe { background: var(--open); }
+  .row.s-shut  .stripe { background: var(--shut); }
+  .row.s-maybe .stripe { background: var(--maybe); }
+
+  .row .time {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11.5px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-3);
+    padding: 11px 0 11px 12px;
+    line-height: 1.35;
+  }
+  .row .what { padding: 11px 0; min-width: 0; }
+  .row .blk {
+    font-family: "Saira Condensed", "Arial Narrow", sans-serif;
+    font-weight: 600;
+    font-size: 19px;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+    color: var(--ink);
+    line-height: 1.15;
+  }
+  .row .why { font-size: 12.5px; color: var(--ink-3); }
+  .row .tag {
+    justify-self: end;
+    margin-right: 12px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    padding: 3px 7px;
+    border-radius: 3px;
+    white-space: nowrap;
+    background: var(--surface-2);
+    color: var(--ink-3);
+  }
+  .row.s-open  .tag { background: var(--open-bg);  color: var(--open); }
+  .row.s-shut  .tag { background: var(--shut-bg);  color: var(--shut); }
+  .row.s-maybe .tag { background: var(--maybe-bg); color: var(--maybe); }
+
+  .row.now { background: var(--surface-2); }
+  .row.now .time::before {
+    content: "NOW";
+    display: block;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: .14em;
+    color: var(--plate-blue);
+  }
+  .row.past { opacity: .42; }
+
+  /* ---------- cycle picker ---------- */
+  .picker {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    box-shadow: var(--shadow);
+    padding: 14px 12px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+  }
+  .chips { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; }
+  .chip {
+    font-family: "Saira Condensed", "Arial Narrow", sans-serif;
+    font-weight: 600;
+    font-size: 17px;
+    padding: 9px 0 8px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink-2);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background .12s, border-color .12s, color .12s;
+  }
+  .chip:hover { border-color: var(--plate-blue); color: var(--ink); }
+  .chip:focus-visible { outline: 2px solid var(--plate-blue); outline-offset: 2px; }
+  .chip[aria-pressed="true"] {
+    background: var(--plate-blue);
+    border-color: var(--plate-blue);
+    color: var(--on-accent);
+  }
+
+  .picker-foot {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    font-size: 12px; color: var(--ink-3);
+    border-top: 1px solid var(--line-soft);
+    padding-top: 11px;
+  }
+  .datepick { font-size: 12px; color: var(--ink-3); }
+  #datePick {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--ink);
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 5px 7px;
+  }
+  #datePick:focus-visible { outline: 2px solid var(--plate-blue); outline-offset: 1px; }
+
+  .backbtn {
+    align-self: flex-start;
+    margin-top: -8px;
+    background: none; border: 0; padding: 4px 0;
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 12.5px; color: var(--plate-blue);
+    cursor: pointer;
+  }
+  .backbtn:focus-visible { outline: 2px solid var(--plate-blue); outline-offset: 2px; }
+  .backbtn[hidden] { display: none; }
+
+  .fixline {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    font-size: 12px; color: var(--ink-3);
+    padding: 0 2px;
+    margin-top: -6px;
+  }
+  .fixpanel { display: inline-flex; align-items: center; gap: 7px; }
+  .fixpanel[hidden] { display: none; }
+  #fixSel {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px; color: var(--ink);
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 3px 5px;
+  }
+  #fixSel:focus-visible { outline: 2px solid var(--plate-blue); outline-offset: 1px; }
+
+  .previewnote {
+    display: flex; align-items: center; gap: 7px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.5px; font-weight: 600;
+    letter-spacing: .1em; text-transform: uppercase;
+    color: var(--plate-blue);
+  }
+  .reset {
+    background: none; border: 0; padding: 2px 0;
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 12px; color: var(--plate-blue);
+    cursor: pointer; text-decoration: underline; text-underline-offset: 2px;
+  }
+  .reset:focus-visible { outline: 2px solid var(--plate-blue); outline-offset: 2px; }
+  .reset[hidden] { display: none; }
+
+  /* ---------- footnotes ---------- */
+  .notes {
+    font-size: 12.5px;
+    color: var(--ink-3);
+    line-height: 1.6;
+    display: flex; flex-direction: column; gap: 7px;
+    padding: 0 2px;
+  }
+  .notes b { color: var(--ink-2); font-weight: 600; }
+  .expiry {
+    border-left: 2px solid var(--maybe);
+    background: var(--maybe-bg);
+    color: var(--maybe);
+    padding: 9px 12px;
+    border-radius: 0 3px 3px 0;
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+  </style>
+---
+
+<div class="wrap">
+
+  <header class="masthead">
+    <h1>Weight Room</h1>
+    <div class="clock" id="clock"></div>
+  </header>
+
+  <section class="status" id="status">
+    <div class="status-bar"></div>
+    <div class="status-body">
+      <p class="verdict" id="verdict">&nbsp;</p>
+      <p class="verdict-sub" id="verdictSub"></p>
+      <div class="nextline" id="nextline">
+        <span class="lab">Next open</span>
+        <span class="val" id="nextVal"></span>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-head">
+    <h2 id="rowsHead"></h2>
+    <span class="meta" id="dateMeta"></span>
+  </div>
+  <div class="rows" id="rows"></div>
+  <button class="backbtn" id="backToday" hidden>&larr; Back to today</button>
+
+  <div class="section-head">
+    <h2>Look ahead</h2>
+    <span class="meta">jump to the next Day&nbsp;N</span>
+  </div>
+  <div class="picker">
+    <div class="chips" id="chips"></div>
+    <div class="picker-foot">
+      <label class="datepick" for="datePick">Or pick a date</label>
+      <input type="date" id="datePick" min="2026-08-31" max="2027-06-30">
+    </div>
+  </div>
+
+  <div class="fixline">
+    <span id="fixNote"></span>
+    <button class="reset" id="fixBtn">Not right?</button>
+    <span class="fixpanel" id="fixPanel" hidden>
+      Today is
+      <select id="fixSel">
+        <option>1</option><option>2</option><option>3</option><option>4</option>
+        <option>5</option><option>6</option><option>7</option><option>8</option>
+      </select>
+      <button class="reset" id="fixSave">Save</button>
+      <button class="reset" id="fixClear" hidden>Reset</button>
+    </span>
+  </div>
+
+  <div class="expiry">Rotation confirmed through <b>Sept 29, 2026</b>. PE moves after that &mdash; update the open blocks then.</div>
+
+  <div class="notes">
+    <div><b>Open blocks:</b> F, G, H. PE has the room for A, B, D, E, plus WIN every day.</div>
+    <div><b>Flex</b> is open except Tuesdays and Fridays, when it&rsquo;s always booked.</div>
+    <div><b>Block C</b> isn&rsquo;t on either list &mdash; shown as unconfirmed until you check it.</div>
+  </div>
+
+</div>
+
+{% raw %}
+<script>
+(function () {
+  "use strict";
+
+  // Day of cycle -> blocks in periods 1..5 (from the 2026-27 MS rotation)
+  var ROTATION = {
+    1: ["A","B","C","D","E"],
+    2: ["F","G","H","A","B"],
+    3: ["C","D","E","F","G"],
+    4: ["H","A","B","C","D"],
+    5: ["E","F","G","H","A"],
+    6: ["B","C","D","E","F"],
+    7: ["G","H","A","B","C"],
+    8: ["D","E","F","G","H"]
+  };
+
+  var OPEN_BLOCKS = { F: 1, G: 1, H: 1 };
+  var PE_BLOCKS   = { A: 1, B: 1, D: 1, E: 1 };
+
+  // minutes from midnight
+  function m(h, min) { return h * 60 + min; }
+
+  // Fixed daily frame. period === null means it isn't a lettered block.
+  var FRAME = [
+    { period: 1,    start: m(8, 0),  end: m(8, 55) },
+    { period: null, start: m(9, 0),  end: m(9, 35),  name: "Community",  state: "shut", why: "Assembly / advisory", tag: "No lifting" },
+    { period: 2,    start: m(9, 40), end: m(10, 35) },
+    { period: 3,    start: m(10,35), end: m(11, 30) },
+    { period: null, start: m(11,30), end: m(12, 40), name: "Lunch / WIN", state: "shut", why: "PE in the room", tag: "PE class" },
+    { period: 4,    start: m(12,45), end: m(13, 40) },
+    { period: 5,    start: m(13,40), end: m(14, 35) },
+    { period: null, start: m(14,35), end: m(15, 15), name: "Flex",        state: "open", why: "No class scheduled", tag: "Open" }
+  ];
+
+  var ANCHOR = { iso: "2026-08-31", day: 5 };   // Mon Aug 31, 2026 = Day 5
+  var STORE_KEY = "wr.override.v1";
+
+  /* ---------- date helpers (local, date-only) ---------- */
+  function iso(d) {
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") +
+           "-" + String(d.getDate()).padStart(2, "0");
+  }
+  function fromIso(s) {
+    var p = s.split("-");
+    return new Date(+p[0], +p[1] - 1, +p[2]);
+  }
+  function isWeekday(d) { var w = d.getDay(); return w >= 1 && w <= 5; }
+
+  // weekdays strictly after a, up to and including b (negative if b precedes a)
+  function weekdaysBetween(a, b) {
+    var sign = 1, from = a, to = b;
+    if (b < a) { sign = -1; from = b; to = a; }
+    var n = 0, cur = new Date(from);
+    cur.setDate(cur.getDate() + 1);
+    while (cur <= to) {
+      if (isWeekday(cur)) n++;
+      cur.setDate(cur.getDate() + 1);
+    }
+    return sign * n;
+  }
+
+  function readOverride() {
+    try {
+      var raw = localStorage.getItem(STORE_KEY);
+      if (!raw) return null;
+      var o = JSON.parse(raw);
+      if (o && o.iso && o.day >= 1 && o.day <= 8) return o;
+    } catch (e) {}
+    return null;
+  }
+  function writeOverride(o) {
+    try { o ? localStorage.setItem(STORE_KEY, JSON.stringify(o)) : localStorage.removeItem(STORE_KEY); }
+    catch (e) {}
+  }
+
+  function anchorNow() { return readOverride() || ANCHOR; }
+
+  function cycleDayFor(date) {
+    if (!isWeekday(date)) return null;
+    var a = anchorNow();
+    var base = fromIso(a.iso);
+    // if the anchor itself fell on a weekend, roll it to the next weekday
+    while (!isWeekday(base)) base.setDate(base.getDate() + 1);
+    var n = weekdaysBetween(base, date);
+    return ((((a.day - 1 + n) % 8) + 8) % 8) + 1;
+  }
+
+  // Earliest school day on or after `from` whose cycle day is n
+  function nextDateWithCycleDay(n, from) {
+    var d = new Date(from), guard = 0;
+    while (guard++ < 24) {
+      if (cycleDayFor(d) === n) return d;
+      d.setDate(d.getDate() + 1);
+    }
+    return null;
+  }
+
+  function nextSchoolDay(date) {
+    var d = new Date(date);
+    do { d.setDate(d.getDate() + 1); } while (!isWeekday(d));
+    return d;
+  }
+
+  /* ---------- slot building ---------- */
+  // Flex is spoken for on Tuesdays and Fridays (calendar weekday, not cycle day)
+  var FLEX_CLOSED_DOW = { 2: 1, 5: 1 };
+
+  function slotsFor(day, dow) {
+    return FRAME.map(function (f) {
+      if (f.period === null) {
+        if (f.name === "Flex" && FLEX_CLOSED_DOW[dow]) {
+          return { start: f.start, end: f.end, name: "Flex",
+                   state: "shut", why: "Always booked on Tue & Fri", tag: "Booked" };
+        }
+        return { start: f.start, end: f.end, name: f.name, state: f.state, why: f.why, tag: f.tag };
+      }
+      var b = ROTATION[day][f.period - 1];
+      var state = OPEN_BLOCKS[b] ? "open" : (PE_BLOCKS[b] ? "shut" : "maybe");
+      return {
+        start: f.start, end: f.end,
+        name: "Block " + b,
+        state: state,
+        why: state === "open" ? "No class scheduled"
+           : state === "shut" ? "PE in the room"
+           : "Not on the PE or open list",
+        tag: state === "open" ? "Open" : state === "shut" ? "PE class" : "Unconfirmed"
+      };
+    });
+  }
+
+  /* ---------- formatting ---------- */
+  function clockOf(mins) {
+    var h = Math.floor(mins / 60), mm = mins % 60;
+    var ampm = h >= 12 ? "pm" : "am";
+    var hh = h % 12; if (hh === 0) hh = 12;
+    return hh + ":" + String(mm).padStart(2, "0") + ampm;
+  }
+  function dur(mins) {
+    if (mins < 60) return mins + " min";
+    var h = Math.floor(mins / 60), r = mins % 60;
+    return r ? h + "h " + r + "m" : h + "h";
+  }
+  var DOW = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  var MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+  /* ---------- next-open search ---------- */
+  function findNextOpen(today, nowMins, day) {
+    if (day) {
+      var s = slotsFor(day, today.getDay());
+      for (var i = 0; i < s.length; i++) {
+        if (s[i].state === "open" && s[i].start > nowMins) {
+          return { when: "today", slot: s[i], date: today };
+        }
+      }
+    }
+    var d = new Date(today), guard = 0;
+    while (guard++ < 20) {
+      d = nextSchoolDay(d);
+      var dd = cycleDayFor(d);
+      if (!dd) continue;
+      var ss = slotsFor(dd, d.getDay());
+      for (var j = 0; j < ss.length; j++) {
+        if (ss[j].state === "open") {
+          var label = (weekdaysBetween(today, d) === 1 && d - today <= 4 * 864e5) ? "tomorrow" : DOW[d.getDay()];
+          return { when: label, slot: ss[j], date: d };
+        }
+      }
+    }
+    return null;
+  }
+
+  /* ---------- render ---------- */
+  var els = {
+    clock: document.getElementById("clock"),
+    status: document.getElementById("status"),
+    verdict: document.getElementById("verdict"),
+    verdictSub: document.getElementById("verdictSub"),
+    nextline: document.getElementById("nextline"),
+    nextVal: document.getElementById("nextVal"),
+    rowsHead: document.getElementById("rowsHead"),
+    dateMeta: document.getElementById("dateMeta"),
+    rows: document.getElementById("rows"),
+    backToday: document.getElementById("backToday"),
+    chips: document.getElementById("chips"),
+    datePick: document.getElementById("datePick"),
+    fixNote: document.getElementById("fixNote"),
+    fixBtn: document.getElementById("fixBtn"),
+    fixPanel: document.getElementById("fixPanel"),
+    fixSel: document.getElementById("fixSel"),
+    fixSave: document.getElementById("fixSave"),
+    fixClear: document.getElementById("fixClear")
+  };
+
+  // null = showing today; otherwise an ISO date the timeline is previewing
+  var viewIso = null;
+
+  function render() {
+    var now = new Date();
+    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    var nowMins = now.getHours() * 60 + now.getMinutes();
+    var day = cycleDayFor(today);
+
+    els.clock.textContent = DOW[now.getDay()].slice(0, 3) + " " + MON[now.getMonth()] + " " +
+                            now.getDate() + " · " + clockOf(nowMins);
+    els.dateMeta.textContent = MON[now.getMonth()] + " " + now.getDate();
+
+    /* --- status card --- */
+    var cls = "status", verdict, sub = "";
+    var slots = day ? slotsFor(day, today.getDay()) : [];
+    var cur = null;
+    for (var i = 0; i < slots.length; i++) {
+      if (nowMins >= slots[i].start && nowMins < slots[i].end) { cur = slots[i]; break; }
+    }
+
+    if (!day) {
+      verdict = "No school";
+      sub = "It&rsquo;s the weekend &mdash; the rotation doesn&rsquo;t run.";
+    } else if (cur) {
+      if (cur.state === "open") {
+        cls += " is-open";
+        verdict = "Free now";
+        sub = "<strong>" + cur.name + "</strong> until " + clockOf(cur.end) +
+              " &mdash; " + dur(cur.end - nowMins) + " left.";
+      } else if (cur.state === "shut") {
+        cls += " is-shut";
+        verdict = "Taken";
+        sub = "<strong>" + cur.name + "</strong> &mdash; " + cur.why.toLowerCase() +
+              " until " + clockOf(cur.end) + ".";
+      } else {
+        cls += " is-maybe";
+        verdict = "Unconfirmed";
+        sub = "<strong>" + cur.name + "</strong> isn&rsquo;t on the PE list or the open list. Check before you count on it.";
+      }
+    } else if (nowMins < FRAME[0].start) {
+      cls += " is-open";
+      verdict = "Free now";
+      sub = "Before first period. Day " + day + " starts at " + clockOf(FRAME[0].start) + ".";
+    } else if (nowMins >= FRAME[FRAME.length - 1].end) {
+      cls += " is-open";
+      verdict = "Free now";
+      sub = "Classes are done for the day.";
+    } else {
+      cls += " is-open";
+      verdict = "Free now";
+      sub = "Passing period &mdash; no class in the room.";
+    }
+    els.status.className = cls;
+    els.verdict.textContent = verdict;
+    els.verdictSub.innerHTML = sub;
+
+    /* --- next open --- */
+    var nx = findNextOpen(today, nowMins, day);
+    if (cur && cur.state === "open") {
+      els.nextline.querySelector(".lab").textContent = "Then taken";
+      var after = null;
+      for (var k = 0; k < slots.length; k++) {
+        if (slots[k].start >= cur.end && slots[k].state !== "open") { after = slots[k]; break; }
+      }
+      els.nextVal.textContent = after
+        ? after.name + " at " + clockOf(after.start)
+        : "Nothing else scheduled today";
+    } else if (nx) {
+      els.nextline.querySelector(".lab").textContent = "Next open";
+      els.nextVal.textContent = nx.slot.name + " · " + nx.when + " " +
+        clockOf(nx.slot.start) + "–" + clockOf(nx.slot.end);
+    } else {
+      els.nextline.querySelector(".lab").textContent = "Next open";
+      els.nextVal.textContent = "—";
+    }
+
+    /* --- which date is the timeline showing? --- */
+    var viewDate, isToday;
+    if (viewIso) {
+      viewDate = fromIso(viewIso);
+      isToday = viewIso === iso(today);
+    } else if (day) {
+      viewDate = today; isToday = true;
+    } else {
+      viewDate = nextSchoolDay(today); isToday = false;   // weekend: preview the next school day
+    }
+    var viewDay = cycleDayFor(viewDate);
+    var viewSlots = viewDay ? slotsFor(viewDay, viewDate.getDay()) : [];
+
+    els.rowsHead.textContent = (isToday ? "Today" : DOW[viewDate.getDay()]) +
+                               " · Day " + (viewDay || "—");
+    els.dateMeta.textContent = MON[viewDate.getMonth()] + " " + viewDate.getDate();
+    els.backToday.hidden = isToday;
+
+    els.rows.innerHTML = "";
+    viewSlots.forEach(function (s) {
+      var row = document.createElement("div");
+      var isNow  = isToday && nowMins >= s.start && nowMins < s.end;
+      var isPast = isToday && nowMins >= s.end;
+      row.className = "row s-" + s.state + (isNow ? " now" : "") + (isPast ? " past" : "");
+      row.innerHTML =
+        '<div class="stripe"></div>' +
+        '<div class="time">' + clockOf(s.start) + "<br>" + clockOf(s.end) + "</div>" +
+        '<div class="what"><div class="blk">' + s.name + '</div>' +
+        '<div class="why">' + s.why + "</div></div>" +
+        '<div class="tag">' + s.tag + "</div>";
+      els.rows.appendChild(row);
+    });
+
+    /* --- look-ahead chips: tap Day N, jump to the next date that is Day N --- */
+    els.chips.innerHTML = "";
+    for (var n = 1; n <= 8; n++) {
+      (function (n) {
+        var target = nextDateWithCycleDay(n, today);
+        var b = document.createElement("button");
+        b.className = "chip";
+        b.type = "button";
+        b.textContent = n;
+        b.setAttribute("aria-pressed", n === viewDay ? "true" : "false");
+        b.title = target
+          ? "Day " + n + " · " + DOW[target.getDay()] + " " + MON[target.getMonth()] + " " + target.getDate()
+          : "Day " + n;
+        b.setAttribute("aria-label", b.title);
+        b.addEventListener("click", function () {
+          if (!target) return;
+          viewIso = iso(target);
+          els.datePick.value = viewIso;
+          render();
+        });
+        els.chips.appendChild(b);
+      })(n);
+    }
+    els.datePick.value = iso(viewDate);
+
+    /* --- drift correction --- */
+    var ov = readOverride();
+    els.fixNote.textContent = day
+      ? "Today is Day " + day + (ov ? ", set by hand." : ", counted from Aug 31.")
+      : "No school today.";
+    els.fixClear.hidden = !ov;
+  }
+
+  els.backToday.addEventListener("click", function () { viewIso = null; render(); });
+
+  els.datePick.addEventListener("change", function () {
+    if (!this.value) return;
+    var d = fromIso(this.value);
+    if (!isWeekday(d)) { d = nextSchoolDay(d); }   // weekends have no rotation
+    viewIso = iso(d);
+    render();
+  });
+
+  els.fixBtn.addEventListener("click", function () {
+    var open = !els.fixPanel.hidden;
+    els.fixPanel.hidden = open;
+    els.fixBtn.textContent = open ? "Not right?" : "Cancel";
+    if (!open) {
+      var t = new Date();
+      var d = cycleDayFor(new Date(t.getFullYear(), t.getMonth(), t.getDate()));
+      if (d) els.fixSel.value = String(d);
+    }
+  });
+  els.fixSave.addEventListener("click", function () {
+    var t = new Date();
+    var td = new Date(t.getFullYear(), t.getMonth(), t.getDate());
+    writeOverride({ iso: iso(td), day: +els.fixSel.value });
+    els.fixPanel.hidden = true;
+    els.fixBtn.textContent = "Not right?";
+    viewIso = null;
+    render();
+  });
+  els.fixClear.addEventListener("click", function () {
+    writeOverride(null);
+    els.fixPanel.hidden = true;
+    els.fixBtn.textContent = "Not right?";
+    viewIso = null;
+    render();
+  });
+
+  render();
+  setInterval(render, 30000);
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden) render();
+  });
+})();
+</script>
+{% endraw %}
