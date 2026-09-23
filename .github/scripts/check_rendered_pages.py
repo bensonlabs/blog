@@ -4,6 +4,12 @@ import argparse
 from html.parser import HTMLParser
 from pathlib import Path
 
+# Project folders that are intentionally static and must NOT carry the
+# shared site header/nav. Pages here are hand-authored standalone HTML.
+STANDALONE_STATIC_DIRS = {
+    ('projects', '2ndPaste'),
+}
+
 
 class Page(HTMLParser):
     def __init__(self, text):
@@ -41,12 +47,19 @@ def check(site):
         game_area = parts[:2] == ('projects', 'games') and len(parts) > 3
         source = Path(__file__).resolve().parents[2] / rel
         game = game_area and (len(parts) == 4 or source.is_file())
+        standalone_static = parts[:2] in STANDALONE_STATIC_DIRS
         # Generated Markdown documentation in game folders is not an entrypoint.
         # Never require a shared header anywhere inside a standalone game.
         if game_area and not game: continue
         if game:
             if any(token in text for token in ('bl-nav', 'nav-autohide')) or text.startswith('---\n'):
                 errors.append(f'{rel}: standalone game contains site-header machinery/front matter')
+            continue
+        if standalone_static:
+            # Intentionally static product pages: never require or allow the
+            # shared site header/nav here.
+            if any(token in text for token in ('bl-nav', 'nav-autohide')) or text.startswith('---\n'):
+                errors.append(f'{rel}: standalone static page contains site-header machinery/front matter')
             continue
         if page.redirect: continue
         checked += 1
@@ -62,7 +75,7 @@ def check(site):
             if href and href.startswith('/') and not (site / href.lstrip('/') / 'index.html').exists():
                 errors.append(f'{rel}: missing header link target {href}')
     if errors: raise SystemExit('\n'.join(errors))
-    print(f'Rendered checks passed: {checked} normal pages; standalone games need no header.')
+    print(f'Rendered checks passed: {checked} normal pages; standalone games/static pages need no header.')
 
 
 if __name__ == '__main__':
