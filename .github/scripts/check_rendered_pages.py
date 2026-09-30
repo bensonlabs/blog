@@ -7,7 +7,7 @@ from pathlib import Path
 # Project folders that are intentionally static and must NOT carry the
 # shared site header/nav. Pages here are hand-authored standalone HTML.
 STANDALONE_STATIC_DIRS = {
-    ('projects', '2ndPaste'),
+    ('projects', '2ndPaste', 'tracro'),
 }
 
 
