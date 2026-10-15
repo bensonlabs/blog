@@ -26,10 +26,10 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; irm https://raw.githubusercont
 
 ## Windows - HW Laptop Grader
 
-Run this in an elevated PowerShell window on a representative outgoing Windows 11 laptop with AC power and Internet access. It downloads the fixed `v0.1.0` grader distribution, collects a local assessment, and submits the result to the HW Google Sheet collector.
+Run this in an elevated PowerShell window on a representative outgoing Windows 11 laptop with AC power and Internet access. It downloads the fixed `v0.1.4` grader distribution, collects a local assessment, and submits the result to the HW Google Sheet collector.
 
 ```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; irm https://raw.githubusercontent.com/bensonlabs/bootstraps/hw-laptop-grader-v0.1.0/distributions/hw-laptop-grader/v0.1.0/scripts/bootstrap.ps1 -OutFile $env:TEMP\hw-laptop-grader-bootstrap.ps1; & $env:TEMP\hw-laptop-grader-bootstrap.ps1 -CollectorUrl 'https://script.google.com/macros/s/AKfycbxFY1EBk3hhVhqSmnTzHIJB0nuIcmvqEjxlDJYxO6RPQD6qg-_-EK3KKojiEW9Ne_N4/exec'
+Set-ExecutionPolicy Bypass -Scope Process -Force; irm https://raw.githubusercontent.com/bensonlabs/bootstraps/hw-laptop-grader-v0.1.4/distributions/hw-laptop-grader/v0.1.4/scripts/bootstrap.ps1 -OutFile $env:TEMP\hw-laptop-grader-bootstrap.ps1; & $env:TEMP\hw-laptop-grader-bootstrap.ps1 -CollectorUrl 'https://script.google.com/macros/s/AKfycbxFY1EBk3hhVhqSmnTzHIJB0nuIcmvqEjxlDJYxO6RPQD6qg-_-EK3KKojiEW9Ne_N4/exec'
 ```
 
 The grader writes JSON, CSV, and HTML results under `C:\ProgramData\HW-Laptop-Grader\Results`.
