@@ -23,6 +23,16 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; irm https://raw.githubusercont
 ```powershell
 Set-ExecutionPolicy Bypass -Scope Process -Force; irm https://raw.githubusercontent.com/bensonlabs/bootstraps/main/scripts/bootstrap_windows_tracker.ps1 -OutFile bootstrap_windows_tracker.ps1; .\bootstrap_windows_tracker.ps1
 ```
+
+## Windows - HW Laptop Grader
+
+Run this in an elevated PowerShell window on a representative outgoing Windows 11 laptop with AC power and Internet access. It collects a local assessment and submits the result to the HW Google Sheet collector.
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Invoke-RestMethod https://raw.githubusercontent.com/bensonlabs/hw_laptop_grader/main/scripts/bootstrap.ps1 -OutFile $env:TEMP\hw-laptop-grader-bootstrap.ps1; & $env:TEMP\hw-laptop-grader-bootstrap.ps1 -RepoRef main -CollectorUrl 'https://script.google.com/macros/s/AKfycbxFY1EBk3hhVhqSmnTzHIJB0nuIcmvqEjxlDJYxO6RPQD6qg-_-EK3KKojiEW9Ne_N4/exec'"
+```
+
+The grader writes JSON, CSV, and HTML results under `C:\ProgramData\HW-Laptop-Grader\Results`.
   
 ## macOS
 
