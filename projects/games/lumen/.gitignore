@@ -1,0 +1,19 @@
+# Generated test artifacts — the harness writes these to the temp directory
+# now, but ignore them in case a script is pointed at the checkout.
+*.png
+*.txt
+
+# Temporary instrumented copies of the page, written by the review suite.
+.rv.html
+.probe.html
+.ctl.html
+.oldbloom.html
+.lowthr.html
+.nobloom.html
+.shipped.html
+.probe8.html
+.dbg.html
+.m.html
+
+# Node
+node_modules/

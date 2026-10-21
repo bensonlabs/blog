@@ -1,0 +1,2406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- bl-game-meta
+title: LUMEN
+emoji: 💠
+order: 45
+description: Survive the neon arena against endless waves. Dash, nova-blast and overdrive through a WebGL2 world of instanced SDF shapes and a 46,000-particle GPU field. Made by minimax-m3.1-flash in Claude Code on mini-M4.
+-->
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; frame-ancestors 'none'">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>LUMEN — Neon Arena</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#04060d;
+    --cyan:#4de8ff;
+    --magenta:#ff4fd8;
+    --amber:#ffb547;
+    --lime:#7dff9b;
+    --danger:#ff4a5e;
+    --ink:#e8f6ff;
+    --dim:#7c93ad;
+    --glass:rgba(10,20,36,.55);
+    --edge:rgba(77,232,255,.22);
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --disp:"Chakra Petch",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden;background:var(--bg);}
+  body{
+    font-family:var(--disp);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    cursor:none;
+  }
+  #gl{display:block;width:100vw;height:100vh;position:fixed;inset:0;
+    touch-action:none;}
+
+  /* ---------- shared chrome ---------- */
+  .panel{
+    background:linear-gradient(180deg,rgba(12,24,44,.72),rgba(6,12,24,.62));
+    border:1px solid var(--edge);
+    border-radius:14px;
+    backdrop-filter:blur(14px) saturate(140%);
+    -webkit-backdrop-filter:blur(14px) saturate(140%);
+    box-shadow:0 10px 40px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  .lbl{
+    font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--dim);
+  }
+  .num{font-family:var(--mono);font-variant-numeric:tabular-nums;}
+
+  /* ---------- HUD ---------- */
+  #hud{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity .5s ease;}
+  #hud.on{opacity:1;}
+
+  #tl{position:absolute;top:18px;left:18px;padding:14px 18px 13px;min-width:230px;}
+  #score{font-size:40px;font-weight:700;line-height:.95;letter-spacing:-.01em;
+    background:linear-gradient(180deg,#ffffff,#7fd8ff 70%,#3ab7e8);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 0 30px rgba(77,232,255,.25);}
+  #waveRow{display:flex;align-items:baseline;gap:8px;margin-top:8px;}
+  #wave{font-family:var(--mono);font-size:15px;color:var(--cyan);}
+  #wsub{font-family:var(--mono);font-size:10px;color:var(--dim);}
+
+  .hpwrap{margin-top:12px;}
+  #hpbar{height:7px;border-radius:4px;background:rgba(255,255,255,.07);overflow:hidden;position:relative;
+    border:1px solid rgba(255,255,255,.06);}
+  #hpfill{height:100%;width:100%;border-radius:3px;
+    background:linear-gradient(90deg,#ff4a5e,#ffb547);
+    box-shadow:0 0 12px rgba(255,74,94,.6);transition:width .18s cubic-bezier(.2,.8,.3,1);}
+  #hpfill.low{background:linear-gradient(90deg,#ff4a5e,#ff7a5e);animation:pulse .7s infinite;}
+  @keyframes pulse{50%{opacity:.45}}
+
+  #wavebar{margin-top:7px;height:3px;border-radius:3px;background:rgba(255,255,255,.07);
+    overflow:hidden;border:1px solid rgba(255,255,255,.05);}
+  #wavefill{height:100%;width:0%;background:linear-gradient(90deg,#4de8ff,#b06bff);
+    box-shadow:0 0 8px rgba(77,232,255,.5);transition:width .25s ease;}
+
+  #tr{position:absolute;top:18px;right:18px;padding:12px 16px 11px;min-width:186px;}
+  #tr .row{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-top:6px;}
+  #tr .row:first-of-type{margin-top:2px;}
+  #tr b{font-family:var(--mono);font-size:13px;font-weight:700;}
+
+  #abilities{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);
+    display:flex;gap:10px;}
+  .ab{padding:9px 14px;display:flex;align-items:center;gap:9px;position:relative;overflow:hidden;
+    pointer-events:auto;cursor:pointer;}
+  .ab .key{font-family:var(--mono);font-size:10px;font-weight:700;width:19px;height:19px;
+    display:grid;place-items:center;border-radius:5px;background:rgba(77,232,255,.14);
+    border:1px solid rgba(77,232,255,.34);color:var(--cyan);}
+  .ab .nm{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:#b9d6ea;}
+  .ab .cool{position:absolute;left:0;bottom:0;height:2px;background:var(--cyan);width:0%;
+    box-shadow:0 0 8px var(--cyan);}
+  .ab.rdy .cool{width:100%;}
+  .ab .cd{position:absolute;inset:0;background:rgba(4,8,16,.72);display:grid;place-items:center;
+    font-family:var(--mono);font-size:16px;font-weight:700;color:var(--cyan);}
+  .ab.done .cd{display:none;}
+
+  #combo{position:absolute;bottom:96px;left:50%;transform:translateX(-50%);
+    font-family:var(--mono);font-size:13px;letter-spacing:.2em;color:var(--magenta);
+    text-shadow:0 0 18px rgba(255,79,216,.7);opacity:0;transition:opacity .2s;}
+
+  /* combo / score popups */
+  #pops{position:absolute;inset:0;overflow:hidden;}
+  .pop{position:absolute;font-family:var(--mono);font-size:13px;font-weight:700;
+    text-shadow:0 0 12px currentColor;animation:rise .95s ease-out forwards;white-space:nowrap;}
+  /* The popup's lifetime matches the animation exactly, so the fade-out is
+     the intended ending rather than the element being culled mid-fade. */
+  @keyframes rise{0%{opacity:0;transform:translate(-50%,6px) scale(.8)}
+    12%{opacity:1;transform:translate(-50%,-4px) scale(1)}
+    70%{opacity:1;transform:translate(-50%,-26px) scale(1)}
+    100%{opacity:0;transform:translate(-50%,-44px) scale(1)}}
+
+  /* ---------- reticle ---------- */
+  /* The canvas hides the system cursor, so the aim point needs its own mark. */
+  #reticle{position:absolute;left:0;top:0;width:34px;height:34px;margin:-17px 0 0 -17px;
+    pointer-events:none;opacity:0;transition:opacity .25s ease;will-change:transform;}
+  #reticle.on{opacity:1;}
+  #reticle i{position:absolute;background:var(--cyan);box-shadow:0 0 8px var(--cyan);}
+  #reticle i:nth-child(1){left:50%;top:0;width:1.5px;height:9px;margin-left:-.75px;}
+  #reticle i:nth-child(2){left:50%;bottom:0;width:1.5px;height:9px;margin-left:-.75px;}
+  #reticle i:nth-child(3){top:50%;left:0;height:1.5px;width:9px;margin-top:-.75px;}
+  #reticle i:nth-child(4){top:50%;right:0;height:1.5px;width:9px;margin-top:-.75px;}
+  #reticle b{position:absolute;left:50%;top:50%;width:3px;height:3px;margin:-1.5px 0 0 -1.5px;
+    border-radius:50%;background:#fff;box-shadow:0 0 10px var(--cyan);}
+  #reticle::after{content:'';position:absolute;inset:6px;border:1px solid rgba(120,240,255,.5);
+    border-radius:50%;animation:retr 1.6s ease-in-out infinite;}
+  @keyframes retr{0%,100%{transform:scale(1);opacity:.5}50%{transform:scale(.72);opacity:.9}}
+
+  /* ---------- virtual stick (touch) ---------- */
+  #stick{position:absolute;left:0;top:0;width:112px;height:112px;margin:-56px 0 0 -56px;
+    border-radius:50%;border:1.5px solid rgba(120,240,255,.28);pointer-events:none;
+    opacity:0;transition:opacity .18s ease;}
+  #stick.on{opacity:1;}
+  #stick i{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;
+    border-radius:50%;background:radial-gradient(circle,rgba(120,240,255,.34),rgba(120,240,255,.06) 70%);
+    border:1px solid rgba(120,240,255,.5);}
+
+  /* ---------- overlays ---------- */
+  .screen{position:fixed;inset:0;display:grid;place-items:center;z-index:20;
+    background:radial-gradient(ellipse at 50% 42%,rgba(8,16,32,.30),rgba(2,4,9,.72) 70%);
+    backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);
+    opacity:0;pointer-events:none;transition:opacity .45s ease;}
+  .screen.on{opacity:1;pointer-events:auto;}
+  .card{padding:40px 46px 34px;max-width:660px;text-align:center;}
+  /* On a touch device the card can exceed the viewport height; allow it to
+     scroll so the ENGAGE button is always reachable.
+
+     `touch-action` is NOT inherited in the CSS sense but it IS applied
+     through the hit-test chain: a descendant cannot re-enable panning once
+     an ancestor has set `touch-action:none`, because the browser unions the
+     effective touch-action of the whole ancestor chain and takes the
+     most-restrictive value. So the body cannot be `touch-action:none` if
+     any descendant ever needs to scroll — the menu card does.
+
+     The fix is to scope the block to the canvas instead of the body: the
+     canvas is the thing that must swallow touch (to steer and fire), and
+     the menu card lives in a sibling overlay, so it keeps its own
+     `touch-action:auto` and scrolls normally. */
+  .card.scrollable{max-height:calc(100vh - 32px);overflow-y:auto;-webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;touch-action:pan-y;}
+  /* The card needs pointer-events to be usable, but ONLY while its screen is
+     showing. `.screen` already sets `pointer-events:none` when hidden — but
+     that rule loses to the card's own `pointer-events:auto`, so the card
+     stayed live after the menu was dismissed and silently ate taps over
+     the middle of the play area (aim and fire were dead there on phones).
+     Scoping the card's pointer-events to the visible state fixes it. */
+  .screen.on .card.scrollable{pointer-events:auto;}
+  .title{font-size:76px;font-weight:700;line-height:.86;letter-spacing:.1em;
+    background:linear-gradient(180deg,#ffffff,#6fd7ff 55%,#b06bff);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 34px rgba(90,190,255,.35));}
+  .sub{margin-top:12px;font-family:var(--mono);font-size:11px;letter-spacing:.32em;
+    text-transform:uppercase;color:var(--dim);}
+  .keys{display:grid;grid-template-columns:repeat(2,1fr);gap:9px 26px;margin:26px 0 4px;text-align:left;}
+  .keys[hidden]{display:none;}
+  .k{display:flex;align-items:center;gap:10px;font-size:13px;color:#b4cee2;}
+  .k b{font-family:var(--mono);font-size:10.5px;font-weight:700;min-width:74px;text-align:center;
+    padding:4px 0;border-radius:5px;background:rgba(77,232,255,.1);
+    border:1px solid rgba(77,232,255,.26);color:var(--cyan);}
+  .btn{margin-top:26px;display:inline-block;padding:13px 34px;border-radius:11px;
+    font-family:var(--disp);font-size:14px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+    color:#04121c;background:linear-gradient(180deg,#8ff0ff,#31c9ef);cursor:pointer;
+    border:none;box-shadow:0 0 30px rgba(77,232,255,.42), 0 6px 18px rgba(0,0,0,.4);
+    transition:transform .12s, box-shadow .12s, filter .12s;}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 0 46px rgba(77,232,255,.65);filter:brightness(1.07);}
+  .btn:active{transform:translateY(1px);}
+  /* Same problem as the card: a button inside a hidden screen must not stay
+     clickable. `.screen` sets pointer-events:none when hidden, but a
+     descendant that sets its own `auto` overrides that. */
+  .screen.on .btn{pointer-events:auto;}
+  .hint{margin-top:14px;font-family:var(--mono);font-size:10px;color:#59738c;}
+  .hint b{color:var(--cyan);font-weight:400;}
+
+  #gameover .title{background:linear-gradient(180deg,#ffffff,#ff6b8a 60%,#ff4fd8);
+    -webkit-background-clip:text;background-clip:text;}
+  #final{display:flex;gap:30px;justify-content:center;margin:22px 0 4px;}
+  #final div{text-align:center;}
+  #final .v{font-family:var(--mono);font-size:30px;font-weight:700;color:#fff;}
+  #final .k{margin-top:3px;justify-content:center;font-size:10px;}
+
+  #hiscore{position:fixed;left:18px;bottom:20px;
+    font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.14em;
+    background:var(--glass);border:1px solid var(--edge);border-radius:10px;
+    padding:7px 12px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    z-index:5;}
+  #hiscore b{color:var(--amber);font-weight:700;}
+
+  /* ---------- loading ---------- */
+  #boot{position:fixed;inset:0;z-index:40;display:grid;place-items:center;background:var(--bg);
+    transition:opacity .6s ease;}
+  #boot.gone{opacity:0;pointer-events:none;}
+  #boot .b{font-family:var(--mono);font-size:10.5px;letter-spacing:.3em;color:var(--dim);
+    text-transform:uppercase;animation:blink 1.15s infinite;}
+  @keyframes blink{50%{opacity:.28}}
+
+  @media (max-width:720px){
+    .title{font-size:48px}
+    #tl{min-width:0;padding:11px 14px}
+    #score{font-size:30px}
+    .keys{grid-template-columns:1fr}
+    #tr{display:none}
+    /* The ability bar and the high-score chip both live along the bottom
+       edge, so on a narrow screen they collide. Stack them instead: the
+       abilities centre on the bottom, the high score moves to the top-left
+       under the score panel. */
+    #abilities{bottom:14px;gap:6px}
+    .ab{padding:7px 9px;gap:6px}
+    .ab .nm{font-size:9.5px;letter-spacing:.04em}
+    .ab .key{width:16px;height:16px;font-size:8.5px}
+    #hiscore{left:auto;right:14px;top:14px;bottom:auto;padding:5px 9px;font-size:9.5px}
+    #combo{bottom:64px}
+  }
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+
+<div id="hud">
+  <div id="tl" class="panel">
+    <div class="lbl">Score</div>
+    <div id="score" class="num">0</div>
+    <div id="waveRow"><span class="lbl">Wave</span><span id="wave" class="num">1</span><span id="wsub" class="num"></span></div>
+    <div id="wavebar"><div id="wavefill"></div></div>
+    <div class="hpwrap">
+      <div class="lbl" style="margin-bottom:5px">Integrity</div>
+      <div id="hpbar"><div id="hpfill"></div></div>
+    </div>
+  </div>
+
+  <div id="tr" class="panel">
+    <div class="lbl">Telemetry</div>
+    <div class="row"><span class="lbl">Entities</span><b id="tEnt">0</b></div>
+    <div class="row"><span class="lbl">Particles</span><b id="tPar">0</b></div>
+    <div class="row"><span class="lbl">FPS</span><b id="tFps">60</b></div>
+    <div class="row"><span class="lbl">Quality</span><b id="tQual">HIGH</b></div>
+    <div class="row"><span class="lbl">Draws</span><b id="tDrw">0</b></div>
+  </div>
+
+  <div id="abilities">
+    <div class="ab rdy" id="abDash" data-act="dash"><span class="key">SPC</span><span class="nm">Dash</span><div class="cool"></div><div class="cd"></div></div>
+    <div class="ab rdy" id="abNova" data-act="nova"><span class="key">R</span><span class="nm">Nova</span><div class="cool"></div><div class="cd"></div></div>
+    <div class="ab" id="abOver" data-act="over"><span class="key">F</span><span class="nm">Overdrive</span><div class="cool"></div><div class="cd"></div></div>
+  </div>
+  <div id="combo"></div>
+  <div id="pops"></div>
+  <div id="reticle"><i></i><i></i><i></i><i></i><b></b></div>
+  <div id="stick"><i></i></div>
+</div>
+
+<div class="screen on" id="menu">
+  <div class="card panel">
+    <div class="title">LUMEN</div>
+    <div class="sub">Neon Arena · GPU Particle Engine</div>
+    <div class="keys">
+      <div class="k"><b>W A S D</b> Move</div>
+      <div class="k"><b>MOUSE</b> Aim</div>
+      <div class="k"><b>CLICK</b> Fire</div>
+      <div class="k"><b>SPACE</b> Dash</div>
+      <div class="k"><b>R</b> Nova shockwave</div>
+      <div class="k"><b>F</b> Overdrive</div>
+      <div class="k"><b>ESC</b> Pause</div>
+      <div class="k"><b>G</b> Toggle debug</div>
+    </div>
+    <div class="keys" id="touchKeys" hidden>
+      <div class="k"><b>LEFT</b> Virtual stick</div>
+      <div class="k"><b>RIGHT</b> Aim &amp; fire</div>
+      <div class="k"><b>TAP</b> Ability chips below</div>
+    </div>
+    <button class="btn" id="playBtn">Engage</button>
+    <div class="hint">Best <b id="menuHi">0</b> · Press <b>ENTER</b></div>
+  </div>
+</div>
+
+<div class="screen" id="pause">
+  <div class="card panel" style="padding:34px 48px">
+    <div class="title" style="font-size:46px">PAUSED</div>
+    <div class="sub" style="margin-top:14px">Click to resume</div>
+  </div>
+</div>
+
+<div class="screen" id="gameover">
+  <div class="card panel">
+    <div class="title" style="font-size:56px">SIGNAL LOST</div>
+    <div class="sub" style="margin-top:14px" id="goSub">You were overrun</div>
+    <div id="final">
+      <div><div class="v num" id="fScore">0</div><div class="lbl k">Score</div></div>
+      <div><div class="v num" id="fWave">0</div><div class="lbl k">Wave</div></div>
+      <div><div class="v num" id="fTime">0</div><div class="lbl k">Time</div></div>
+      <div><div class="v num" id="fKill">0</div><div class="lbl k">Kills</div></div>
+    </div>
+    <button class="btn" id="againBtn">Retry</button>
+    <div class="hint">Press <b>ENTER</b> to respawn</div>
+  </div>
+</div>
+
+<div id="hiscore">HIGH SCORE <b id="hiVal">0</b></div>
+
+<div id="boot"><div class="b">Initialising renderer…</div></div>
+
+<script>
+"use strict";
+/* =========================================================================
+   LUMEN — single-file neon arena
+   Engine: WebGL2, instanced SDF rendering, GPU particle field,
+   HDR bright-pass -> dual-kawase-ish bloom -> composite.
+   ========================================================================= */
+
+/* ------------------------------ math ---------------------------------- */
+const TAU = Math.PI * 2;
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+const smooth = t => t * t * (3 - 2 * t);
+const damp = (a, b, l, dt) => lerp(a, b, 1 - Math.exp(-l * dt));
+const dist2 = (ax, ay, bx, by) => { const dx = ax - bx, dy = ay - by; return dx * dx + dy * dy; };
+
+// deterministic-ish PRNG (xorshift32)
+let _s = 0x9e3779b9 >>> 0;
+function rnd() {
+  _s ^= _s << 13; _s >>>= 0;
+  _s ^= _s >>> 17;
+  _s ^= _s << 5;  _s >>>= 0;
+  return _s / 4294967296;
+}
+const rr = (a, b) => a + rnd() * (b - a);
+const ri = (a, b) => Math.floor(rr(a, b + 1));
+const pick = arr => arr[(rnd() * arr.length) | 0];
+
+/* ------------------------------ input --------------------------------- */
+const Input = {
+  keys: Object.create(null),
+  pressed: Object.create(null),
+  mouse: { x: 0, y: 0, down: false, edge: false },
+  // Abilities triggered from the HUD buttons (touch). Kept separate from the
+  // keyboard's `pressed` map so a tap never collides with a key hold.
+  touchAbil: { dash: false, nova: false, over: false },
+  init(canvas) {
+    addEventListener('keydown', e => {
+      const k = e.key.toLowerCase();
+      if (!this.keys[k]) this.pressed[k] = true;
+      this.keys[k] = true;
+      if ([' ', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(k)) e.preventDefault();
+    });
+    addEventListener('keyup', e => { this.keys[e.key.toLowerCase()] = false; });
+    addEventListener('blur', () => { this.keys = Object.create(null); this.mouse.down = false; });
+    const pos = e => {
+      const r = canvas.getBoundingClientRect();
+      this.mouse.x = e.clientX - r.left;
+      this.mouse.y = e.clientY - r.top;
+    };
+    canvas.addEventListener('mousemove', pos);
+    canvas.addEventListener('mousedown', e => { pos(e); this.mouse.down = true; this.mouse.edge = true; });
+    addEventListener('mouseup', () => { this.mouse.down = false; });
+    canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+    /* ---- touch: left half is a virtual stick, right half aims + fires ---- */
+    const touch = { moveId: null, aimId: null, ox: 0, oy: 0, ax: 0, ay: 0, dx: 0, dy: 0 };
+    this.touch = touch;
+    const rect = () => canvas.getBoundingClientRect();
+    const tpos = e => { const r = rect(); return [e.clientX - r.left, e.clientY - r.top]; };
+
+    canvas.addEventListener('touchstart', e => {
+      e.preventDefault();
+      if (!S.touchMode) { S.touchMode = true; if (this.onTouch) this.onTouch(); }
+      for (const t of e.changedTouches) {
+        const [x, y] = tpos(t);
+        if (x < rect().width * 0.5 && touch.moveId === null) {
+          touch.moveId = t.identifier; touch.ox = x; touch.oy = y;
+          touch.dx = 0; touch.dy = 0;
+        } else if (touch.aimId === null) {
+          touch.aimId = t.identifier;
+          this.mouse.x = x; this.mouse.y = y;
+          this.mouse.down = true; this.mouse.edge = true;
+        }
+      }
+    }, { passive: false });
+
+    canvas.addEventListener('touchmove', e => {
+      e.preventDefault();
+      for (const t of e.changedTouches) {
+        const [x, y] = tpos(t);
+        if (t.identifier === touch.moveId) {
+          touch.dx = x - touch.ox; touch.dy = y - touch.oy;
+        } else if (t.identifier === touch.aimId) {
+          this.mouse.x = x; this.mouse.y = y;
+        }
+      }
+    }, { passive: false });
+
+    const endTouch = e => {
+      for (const t of e.changedTouches) {
+        if (t.identifier === touch.moveId) { touch.moveId = null; touch.dx = 0; touch.dy = 0; }
+        if (t.identifier === touch.aimId) { touch.aimId = null; this.mouse.down = false; }
+      }
+    };
+    canvas.addEventListener('touchend', endTouch);
+    canvas.addEventListener('touchcancel', endTouch);
+  },
+  hit(k) { if (this.pressed[k]) { this.pressed[k] = false; return true; } return false; },
+  // Consume a one-shot ability request raised by the HUD buttons.
+  hitAbil(name) { if (this.touchAbil[name]) { this.touchAbil[name] = false; return true; } return false; },
+  flush() {
+    this.pressed = Object.create(null);
+    this.mouse.edge = false;
+    this.touchAbil.dash = this.touchAbil.nova = this.touchAbil.over = false;
+  }
+};
+
+/* ------------------------------ audio --------------------------------- */
+// Fully procedural WebAudio: adaptive synth bed + SFX. No samples, no assets.
+const Audio_ = {
+  ctx: null, master: null, musicGain: null, sfxGain: null, comp: null,
+  started: false, intensity: 0, targetIntensity: 0, nextNote: 0, step: 0, timer: null,
+  scale: [0, 3, 5, 7, 10, 12, 15], // minor pentatonic-ish
+
+  ensure() {
+    if (this.ctx) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    this.ctx = new AC();
+    this.comp = this.ctx.createDynamicsCompressor();
+    this.comp.threshold.value = -14; this.comp.knee.value = 24;
+    this.comp.ratio.value = 8; this.comp.attack.value = 0.004; this.comp.release.value = 0.22;
+    this.master = this.ctx.createGain(); this.master.gain.value = 0.85;
+    this.musicGain = this.ctx.createGain(); this.musicGain.gain.value = 0.34;
+    this.sfxGain = this.ctx.createGain(); this.sfxGain.gain.value = 0.62;
+    // shared reverb-ish delay for space
+    this.delay = this.ctx.createDelay(1.0); this.delay.delayTime.value = 0.24;
+    this.fb = this.ctx.createGain(); this.fb.gain.value = 0.34;
+    this.wet = this.ctx.createGain(); this.wet.gain.value = 0.3;
+    this.filt = this.ctx.createBiquadFilter(); this.filt.type = 'lowpass';
+    this.filt.frequency.value = 1200; this.filt.Q.value = 0.7;
+    this.musicGain.connect(this.filt); this.filt.connect(this.comp);
+    this.filt.connect(this.delay); this.delay.connect(this.fb); this.fb.connect(this.delay);
+    this.delay.connect(this.wet); this.wet.connect(this.comp);
+    this.sfxGain.connect(this.comp);
+    this.comp.connect(this.master); this.master.connect(this.ctx.destination);
+  },
+
+  start() {
+    this.ensure();
+    if (!this.ctx) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    if (this.started) return;
+    this.started = true;
+    this.nextNote = this.ctx.currentTime + 0.1;
+    this.timer = setInterval(() => this.schedule(), 60);
+  },
+
+  // called each frame with 0..1 "heat" from gameplay
+  update(intensity, dt) {
+    this.targetIntensity = intensity;
+    this.intensity = damp(this.intensity, this.targetIntensity, 2.2, dt);
+    if (!this.ctx) return;
+    this.filt.frequency.setTargetAtTime(600 + this.intensity * 3600, this.ctx.currentTime, 0.15);
+    this.musicGain.gain.setTargetAtTime(0.26 + this.intensity * 0.2, this.ctx.currentTime, 0.2);
+  },
+
+  schedule() {
+    if (!this.ctx || this.ctx.state !== 'running') return;
+    const t = this.ctx.currentTime;
+    const bpm = 84 + this.intensity * 66;
+    const spb = 60 / bpm / 2; // eighth notes
+    while (this.nextNote < t + 0.4) {
+      this.playStep(this.nextNote, this.step);
+      this.step = (this.step + 1) % 16;
+      this.nextNote += spb;
+    }
+  },
+
+  playStep(t, step) {
+    const c = this.ctx;
+    const bar = Math.floor(step / 4) % 4;
+    const rootHz = 55 * Math.pow(2, (this.scale[bar] + 12) / 12);
+
+    // bass
+    if (step % 4 === 0) {
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = 'sawtooth'; o.frequency.value = rootHz;
+      const f = c.createBiquadFilter(); f.type = 'lowpass';
+      f.frequency.setValueAtTime(240 + this.intensity * 700, t);
+      f.frequency.exponentialRampToValueAtTime(120, t + 0.5);
+      f.Q.value = 6;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.32, t + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.46);
+      o.connect(f); f.connect(g); g.connect(this.musicGain);
+      o.start(t); o.stop(t + 0.5);
+      o.onended = () => { try { f.disconnect(); g.disconnect(); o.disconnect(); } catch(e) {} };
+    }
+    // arp
+    if (step % 2 === 1 || this.intensity > 0.45) {
+      const deg = this.scale[(step * 3 + bar) % this.scale.length];
+      const hz = rootHz * 4 * Math.pow(2, deg / 12);
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = 'triangle'; o.frequency.value = hz;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.055 + this.intensity * 0.075, t + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.0008, t + 0.24);
+      o.connect(g); g.connect(this.musicGain);
+      o.start(t); o.stop(t + 0.28);
+      o.onended = () => { try { g.disconnect(); o.disconnect(); } catch(e) {} };
+    }
+    // hats
+    if (step % 2 === 0 && this.intensity > 0.25) {
+      const len = 0.05;
+      const buf = c.createBuffer(1, c.sampleRate * len, c.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 6);
+      const src = c.createBufferSource(); src.buffer = buf;
+      const hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 7000;
+      const g = c.createGain(); g.gain.value = 0.05 * this.intensity;
+      src.connect(hp); hp.connect(g); g.connect(this.musicGain);
+      src.start(t);
+      src.onended = () => { try { hp.disconnect(); g.disconnect(); src.disconnect(); } catch(e) {} };
+    }
+  },
+
+  // ---- SFX ----
+  blip(freq, dur, type, vol, sweep) {
+    if (!this.ctx) return;
+    const c = this.ctx, t = c.currentTime;
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = type || 'square';
+    o.frequency.setValueAtTime(freq, t);
+    if (sweep) o.frequency.exponentialRampToValueAtTime(Math.max(20, sweep), t + dur);
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(vol == null ? 0.12 : vol, t + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.0005, t + dur);
+    o.connect(g); g.connect(this.sfxGain);
+    o.start(t); o.stop(t + dur + 0.02);
+    // Explicitly tear the node down, otherwise finished voices pile up in the
+    // audio graph and the main thread slowly grinds down.
+    o.onended = () => { try { g.disconnect(); o.disconnect(); } catch(e) {} };
+  },
+
+  noise(dur, vol, freq, q) {
+    if (!this.ctx) return;
+    const c = this.ctx, t = c.currentTime;
+    const len = Math.max(1, Math.floor(c.sampleRate * dur));
+    const buf = c.createBuffer(1, len, c.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.2);
+    const src = c.createBufferSource(); src.buffer = buf;
+    const bp = c.createBiquadFilter(); bp.type = 'bandpass';
+    bp.frequency.value = freq || 1200; bp.Q.value = q || 1;
+    const g = c.createGain(); g.gain.value = vol == null ? 0.2 : vol;
+    src.connect(bp); bp.connect(g); g.connect(this.sfxGain);
+    src.start(t);
+    src.onended = () => { try { bp.disconnect(); g.disconnect(); src.disconnect(); } catch(e) {} };
+  },
+
+  shoot() { this.blip(760, 0.07, 'square', 0.035, 300); },
+  hit()   { this.noise(0.09, 0.12, 1800, 1.4); this.blip(240, 0.06, 'sine', 0.05, 120); },
+  kill()  { this.blip(180, 0.22, 'sawtooth', 0.09, 60); this.noise(0.18, 0.14, 700, 0.8); },
+  hurt()  { this.blip(140, 0.3, 'sawtooth', 0.16, 55); this.noise(0.2, 0.2, 400, 0.7); },
+  dash()  { this.noise(0.26, 0.16, 2600, 0.6); this.blip(420, 0.2, 'sine', 0.06, 1500); },
+  nova()  { this.noise(0.7, 0.3, 500, 0.5); this.blip(90, 0.7, 'sine', 0.16, 40); },
+  overdrive() { this.blip(200, 0.5, 'sawtooth', 0.14, 1800); this.noise(0.5, 0.16, 1800, 0.4); },
+  wave()  { this.blip(330, 0.18, 'triangle', 0.08, 660); this.blip(495, 0.3, 'triangle', 0.06, 990); }
+};
+/* ========================== renderer ========================== */
+const cv = document.getElementById('gl');
+let gl = cv.getContext('webgl2', {
+  antialias: false, alpha: false, depth: false, stencil: false,
+  powerPreference: 'high-performance', preserveDrawingBuffer: false
+});
+if (!gl) {
+  document.getElementById('boot').innerHTML =
+    '<div class="b" style="color:#ff6b8a">WebGL2 unavailable — cannot start</div>';
+  throw new Error('no webgl2');
+}
+const extFloat = gl.getExtension('EXT_color_buffer_float');
+
+function compile(type, src) {
+  const s = gl.createShader(type);
+  gl.shaderSource(s, src); gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+    const log = gl.getShaderInfoLog(s);
+    console.error(log, src.split('\n').map((l, i) => (i + 1) + ': ' + l).join('\n'));
+    throw new Error('shader: ' + log);
+  }
+  return s;
+}
+function program(vs, fs) {
+  const p = gl.createProgram();
+  gl.attachShader(p, compile(gl.VERTEX_SHADER, vs));
+  gl.attachShader(p, compile(gl.FRAGMENT_SHADER, fs));
+  gl.linkProgram(p);
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error('link: ' + gl.getProgramInfoLog(p));
+  const o = {};
+  const n = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS);
+  for (let i = 0; i < n; i++) {
+    const inf = gl.getActiveUniform(p, i);
+    o[inf.name.replace('[0]', '')] = gl.getUniformLocation(p, inf.name);
+  }
+  // Proxy: unknown names resolve to null, which WebGL treats as a silent no-op.
+  // Without this, a uniform the compiler optimizes away would throw a TypeError.
+  const u = new Proxy(o, { get: (t, k) => (k in t ? t[k] : null) });
+  return { p, u };
+}
+
+/* --- shared GLSL chunks --- */
+const GLSL_HEAD = `#version 300 es
+precision highp float;
+precision highp int;
+`;
+const GLSL_COMMON = `
+const float TAU = 6.28318530718;
+float hash11(float p){ p = fract(p*0.1031); p *= p+33.33; p *= p+p; return fract(p); }
+float hash21(vec2 p){ vec3 p3 = fract(vec3(p.xyx)*0.1031); p3 += dot(p3, p3.yzx+33.33); return fract((p3.x+p3.y)*p3.z); }
+vec2 hash22(vec2 p){
+  vec3 p3 = fract(vec3(p.xyx)*vec3(0.1031,0.1030,0.0973));
+  p3 += dot(p3, p3.yzx+33.33);
+  return fract((p3.xx+p3.yz)*p3.zy);
+}
+`;
+
+/* ---------------- background program (arena floor) ---------------- */
+const bgProg = program(GLSL_HEAD + GLSL_COMMON + `
+layout(location=0) in vec2 aPos;
+out vec2 vUV;
+void main(){ vUV = aPos*0.5+0.5; gl_Position = vec4(aPos,0.0,1.0); }
+`, GLSL_HEAD + GLSL_COMMON + `
+in vec2 vUV;
+out vec4 o;
+uniform vec2 uRes;
+uniform vec4 uArena;   // cx, cy, halfW, halfH  (world)
+uniform vec2 uCam;     // world camera center
+uniform float uZoom;   // world->screen scale
+uniform float uTime;
+uniform float uHeat;   // 0..1 intensity
+
+// rounded-rect SDF in world space
+float rrect(vec2 p, vec2 b, float r){
+  vec2 q = abs(p)-b+r;
+  return min(max(q.x,q.y),0.0)+length(max(q,0.0))-r;
+}
+void main(){
+  vec2 px = vUV*uRes;
+  // world position of this pixel
+  vec2 world = uCam + (px - uRes*0.5)/uZoom;
+
+  vec3 col = vec3(0.006,0.010,0.022);
+
+  // deep radial gradient centered on camera
+  float dcam = length((px - uRes*0.5)/uRes.y);
+  col += vec3(0.010,0.022,0.042) * (1.0 - smoothstep(0.0,0.9,dcam));
+
+  // hex-ish grid (two rotated line fields)
+  vec2 g = world/140.0;
+  float lineA = abs(fract(g.x*0.866 + g.y*0.5) - 0.5);
+  float lineB = abs(fract(g.y*0.866 - g.x*0.5) - 0.5);
+  float grid = 1.0 - smoothstep(0.0, 0.028, min(lineA, lineB));
+  float gridFade = 1.0 - smoothstep(0.1, 0.85, dcam*1.15);
+  col += vec3(0.055,0.20,0.30) * grid * gridFade * (0.55 + uHeat*0.4);
+
+  // arena floor plate
+  float d = rrect(world - uArena.xy, uArena.zw, 90.0);
+  float inside = 1.0 - smoothstep(-4.0, 4.0, d);
+  col = mix(col, vec3(0.010,0.022,0.040), inside*0.9);
+  // faint inner sheen
+  col += vec3(0.008,0.030,0.048) * inside * (1.0-smoothstep(0.0,700.0,length(world-uArena.xy)));
+
+  // arena boundary — a crisp line with a soft outer glow
+  float wallCore = 1.0 - smoothstep(0.0, 2.5, abs(d));
+  float wallGlow = exp(-abs(d)/16.0);
+  vec3 wallCol = mix(vec3(0.18,0.60,0.85), vec3(1.0,0.32,0.52), uHeat);
+  col += wallCol * wallCore * 1.5;
+  col += wallCol * wallGlow * 0.18;
+
+  // slow scanning ring inside the arena
+  float scan = fract(uTime*0.08);
+  float rr = length(world-uArena.xy);
+  float sr = mix(uArena.z,uArena.w,0.55);
+  float band = exp(-pow((rr - sr*(0.35+scan*0.75))/26.0, 2.0));
+  col += vec3(0.06,0.26,0.38) * band * inside * 0.14;
+
+  // corner pips
+  for(int i=0;i<4;i++){
+    float sx = (i==0||i==3) ? -1.0 : 1.0;
+    float sy = (i<2) ? -1.0 : 1.0;
+    vec2 c = uArena.xy + vec2(sx*uArena.z, sy*uArena.w);
+    float pl = exp(-length(world-c)/26.0);
+    col += vec3(0.4,0.9,1.0)*pl*0.5*inside;
+  }
+
+  o = vec4(col, 1.0);
+}
+`);
+
+/* ---------------- instanced SDF entity program ---------------- */
+const entProg = program(GLSL_HEAD + GLSL_COMMON + `
+layout(location=0) in vec2 aCorner;
+layout(location=1) in vec4 iPosSize;  // x,y,size,rot
+layout(location=2) in vec4 iColor;    // r,g,b,a
+layout(location=3) in vec4 iShape;    // shapeId, p1, p2, seed
+uniform vec2 uRes;
+uniform vec2 uCam;
+uniform float uZoom;
+out vec2 vLocal;
+out vec4 vColor;
+out vec4 vShape;
+out float vRot;
+void main(){
+  float pad = 1.35; // room for glow
+  vec2 local = aCorner*2.0*pad;
+  float s = iPosSize.z;
+  float c = cos(iPosSize.w), sn = sin(iPosSize.w);
+  vec2 rot = vec2(local.x*c - local.y*sn, local.x*sn + local.y*c);
+  vec2 world = iPosSize.xy + rot*s;
+  vec2 screen = (world - uCam)*uZoom + uRes*0.5;
+  gl_Position = vec4(screen/uRes*2.0-1.0, 0.0, 1.0);
+  vLocal = local;
+  vColor = iColor;
+  vShape = iShape;
+  vRot = iPosSize.w;
+}
+`, GLSL_HEAD + GLSL_COMMON + `
+in vec2 vLocal;
+in vec4 vColor;
+in vec4 vShape;
+in float vRot;
+out vec4 o;
+
+vec2 rot2(vec2 p, float a){ float c=cos(a), s=sin(a); return vec2(p.x*c-p.y*s, p.x*s+p.y*c); }
+float sdCircle(vec2 p, float r){ return length(p)-r; }
+float sdRing(vec2 p, float r, float t){ return abs(length(p)-r)-t; }
+float sdTriangle(vec2 p, float r){
+  const float k = 1.7320508;
+  p.x = abs(p.x) - r;
+  p.y = p.y + r/k;
+  if(p.x + k*p.y > 0.0) p = vec2(p.x - k*p.y, -k*p.x - p.y)/2.0;
+  p.x -= clamp(p.x, -2.0*r, 0.0);
+  return -length(p)*sign(p.y);
+}
+float sdBox(vec2 p, vec2 b){ vec2 d = abs(p)-b; return min(max(d.x,d.y),0.0)+length(max(d,0.0)); }
+float sdHex(vec2 p, float r){
+  const vec3 k = vec3(-0.866025404,0.5,0.577350269);
+  p = abs(p);
+  p -= 2.0*min(dot(k.xy,p),0.0)*k.xy;
+  p -= vec2(clamp(p.x, -k.z*r, k.z*r), r);
+  return length(p)*sign(p.y);
+}
+float sdCapsuleX(vec2 p, float len, float r){
+  p.x -= clamp(p.x, -len*0.5, len*0.5);
+  return length(p)-r;
+}
+// 4-point star (sparkle), after iq's sdStar: n points, m controls the
+// sharpness of the inner corners (m=3 gives the classic sparkle).
+float sdStar(vec2 p, float r, float n, float m){
+  float an = 3.14159265/n;
+  float en = 3.14159265/m;
+  vec2 acs = vec2(cos(an), sin(an));
+  vec2 ecs = vec2(cos(en), sin(en));
+  // fold the angle into one sector
+  float bn = mod(atan(p.x,p.y), 2.0*an) - an;
+  float L = length(p);
+  vec2 q = vec2(L*cos(bn), L*abs(sin(bn)));
+  q -= r*acs;
+  // project onto the inner corner
+  float t = clamp(-dot(q,ecs), 0.0, r*acs.y/ecs.y);
+  q += ecs*t;
+  return length(q)*sign(q.x);
+}
+
+void main(){
+  int sh = int(vShape.x + 0.5);
+  float p1 = vShape.y, p2 = vShape.z;
+  vec2 p = vLocal;
+
+  float d = 0.0;
+  float core = 1.0;   // 0 = outline only
+  float glowK = 0.55; // glow tightness
+  float glowA = 0.85; // glow amplitude
+
+  if(sh==0){            // disc
+    d = sdCircle(p, 0.62);
+    core = 1.0; glowK = 0.9; glowA = 0.7;
+  } else if(sh==1){     // ring
+    d = sdRing(p, 0.68, 0.02 + p1*0.05);
+    core = 1.0; glowK = 2.2; glowA = 0.7;
+  } else if(sh==2){     // triangle / arrow — apex points along local +X
+    d = sdTriangle(rot2(p, -1.5707963), 0.66);
+    core = 1.0; glowK = 1.0; glowA = 0.8;
+  } else if(sh==3){     // diamond — true Euclidean distance
+    float k = abs(p.x)+abs(p.y)-0.66;
+    // convert the L1 metric to (approximately) Euclidean so fwidth and the
+    // glow falloff stay isotropic
+    d = k * 0.70710678;
+    core = 1.0; glowK = 1.3; glowA = 0.7;
+  } else if(sh==4){     // hexagon
+    d = sdHex(p, 0.62);
+    core = 1.0; glowK = 1.0; glowA = 0.8;
+  } else if(sh==5){     // capsule bullet
+    d = sdCapsuleX(p, 0.78, 0.14 + p1);
+    core = 1.0; glowK = 1.6; glowA = 0.95;
+  } else if(sh==6){     // spark (4-point star)
+    d = sdStar(p, 0.68, 4.0, 3.0);
+    core = 1.0; glowK = 1.4; glowA = 0.9;
+  } else if(sh==7){     // soft blob
+    d = sdCircle(p, 0.2);
+    core = 0.0; glowK = 0.85; glowA = 1.0;
+  } else if(sh==10){    // ship hull — arrow with notched tail
+    vec2 q = p;
+    float body = sdTriangle(rot2(q, -1.5707963), 0.72);
+    // cut a notch out of the back
+    float notch = sdBox(q - vec2(-0.42, 0.0), vec2(0.16, 0.26));
+    body = max(body, -notch);
+    d = body;
+    core = 1.0; glowK = 1.25; glowA = 0.75;
+  } else if(sh==8){     // meter FILL — p1 = fraction 0..1, grows from the left edge
+    float hw = 1.0;
+    float fw = max(0.0001, p1) * hw;
+    d = sdBox(p - vec2(-hw + fw, 0.0), vec2(fw, 0.17));
+    core = 1.0; glowK = 1.7; glowA = 0.8;
+  } else if(sh==9){     // meter TRACK (background bar)
+    d = sdBox(p, vec2(1.0, 0.26));
+    core = 1.0; glowK = 1.2; glowA = 0.35;
+  } else {              // square
+    d = sdBox(p, vec2(0.5));
+    core = 1.0; glowK=1.0; glowA=0.8;
+  }
+
+  float aa = fwidth(d)*1.2 + 0.001;
+  float inside = 1.0 - smoothstep(-aa, aa, d);
+  // tight, decaying halo — keeps the silhouette readable
+  float glow = exp(-max(d,0.0)*glowK*18.0) * (1.0 - inside*0.8);
+
+  float intensity = inside*core + glow*glowA*0.4;
+  vec3 col = vColor.rgb * intensity;
+  // hot white core for bright entities
+  col += vec3(1.0) * pow(inside*core, 8.0) * 0.16 * vColor.a;
+  float a = vColor.a * clamp(intensity, 0.0, 1.0);
+  o = vec4(col*a, a);
+}
+`);
+
+/* ---------------- GPU particle field ---------------- */
+const PARTC = 46000;
+const partProg = program(GLSL_HEAD + GLSL_COMMON + `
+layout(location=0) in vec4 aSeed; // angle, radius, speed, size
+uniform vec2 uRes; uniform vec2 uCam; uniform float uZoom;
+uniform float uTime; uniform float uHeat; uniform float uBurst;
+uniform vec2 uBurstPos;
+uniform float uDpr;
+out vec3 vCol;
+out float vAlpha;
+void main(){
+  float ang = aSeed.x * TAU;
+  float rad = aSeed.y;
+  float spd = aSeed.z;
+  float sz  = aSeed.w;
+
+  float r = mix(130.0, 900.0, pow(rad, 0.8));
+  float swirl = uTime * (0.045 + spd*0.13) * (1.0 - rad*0.55) + uHeat*1.2;
+  float a = ang + swirl;
+
+  // Scale the field to the visible extent. A fixed world radius thins out on
+  // a narrow (phone) viewport — the same 46k particles spread over a quarter
+  // of the screen area — so widen the radius as the viewport narrows.
+  float viewR = length(uRes) / uZoom * 0.62;
+  float rScale = clamp(viewR / 900.0, 0.62, 1.55);
+  r *= rScale;
+
+  vec2 p = vec2(cos(a), sin(a)) * r * vec2(1.0, 0.68);
+  // breathing
+  p *= 1.0 + 0.055*sin(uTime*0.42 + aSeed.x*TAU*3.0);
+  // Vertical drift. The per-particle offset must be spread across the WHOLE
+  // 1600-unit wrap window, otherwise every particle shares the same phase and
+  // the entire field slides into one band of the screen. (aSeed.x*100 only
+  // covered 6% of the window, which parked the whole field in the lower half.)
+  float driftSeed = hash11(aSeed.x*13.71 + aSeed.y*7.13 + aSeed.z*3.37);
+  p.y += mod(uTime*(6.0+spd*22.0) + driftSeed*1600.0, 1600.0) - 800.0;
+  p.x += sin(uTime*0.3 + aSeed.w*6.0)*24.0;
+
+  // nova burst pushes particles outward
+  vec2 dir = p - uBurstPos;
+  float dl = max(length(dir), 1.0);
+  p += (dir/dl) * uBurst * 210.0 * exp(-dl/700.0);
+
+  vec2 screen = (p - uCam)*uZoom + uRes*0.5;
+  gl_Position = vec4(screen/uRes*2.0-1.0, 0.0, 1.0);
+
+  // gl_PointSize is in DEVICE pixels, so on a 2x display every particle would
+  // render at half its CSS size — the field would look sparse on exactly the
+  // devices that need it most. Scale by DPR to keep it visually constant.
+  float ps = (1.4 + sz*3.8) * (1.0 + uBurst*1.2) * uDpr;
+  gl_PointSize = clamp(ps, 1.0, 28.0);
+
+  // palette: cool cyan for the bulk, magenta only for the outermost ring
+  vec3 c1 = vec3(0.20,0.85,1.00);
+  vec3 c2 = vec3(1.00,0.28,0.78);
+  float t = smoothstep(0.62, 1.0, rad) * (0.7 + 0.3*sin(aSeed.x*40.0));
+  vCol = mix(c1, c2, t) * (0.70 + uHeat*0.45);
+
+  // Density falloff: keep the middle of the screen clear so gameplay reads,
+  // and fade out at the far edges. This is a *background* element, not a fog.
+  // The falloff is measured in NORMALISED screen space, not aspect-corrected
+  // space: on a tall phone viewport the corrected radius never reaches the
+  // outer band, so the whole field collapsed into the empty centre.
+  vec2 nd = (screen/uRes - 0.5) * 2.0;   // -1..1 on each axis
+  float len = length(nd);
+  float ring = smoothstep(0.10, 0.42, len) * (1.0 - smoothstep(0.82, 1.30, len));
+  // Brightness budget. The field is drawn additively, so each particle adds
+  // its colour straight onto the frame. At the old value (0.03) the whole
+  // 46k-particle field moved the mean frame by 0.7/255 — invisible. These
+  // numbers make it read as a starfield without turning into fog.
+  vAlpha = (0.075 + 0.055*uHeat + uBurst*0.30) * ring * (0.28 + sz*0.72);
+}
+`, GLSL_HEAD + GLSL_COMMON + `
+in vec3 vCol; in float vAlpha;
+out vec4 o;
+void main(){
+  vec2 pc = gl_PointCoord - 0.5;
+  float d = length(pc);
+  float a = smoothstep(0.5, 0.02, d);
+  a *= a;
+  // Additive: the field is light, not a surface. Alpha is left at 0 so the
+  // pass cannot attenuate the background behind it.
+  o = vec4(vCol*a*vAlpha, 0.0);
+}
+`);
+/* ====================== buffers & framebuffers ====================== */
+function buf(data, target, usage) {
+  const b = gl.createBuffer();
+  gl.bindBuffer(target, b);
+  gl.bufferData(target, data, usage || gl.STATIC_DRAW);
+  return b;
+}
+
+// fullscreen triangle
+const fsVao = gl.createVertexArray();
+gl.bindVertexArray(fsVao);
+buf(new Float32Array([-1,-1, 3,-1, -1,3]), gl.ARRAY_BUFFER);
+gl.enableVertexAttribArray(0);
+gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+gl.bindVertexArray(null);
+
+// entity quad + instance buffer
+const MAX_ENT = 4096;
+const entVao = gl.createVertexArray();
+gl.bindVertexArray(entVao);
+buf(new Float32Array([-0.5,-0.5, 0.5,-0.5, 0.5,0.5, -0.5,-0.5, 0.5,0.5, -0.5,0.5]), gl.ARRAY_BUFFER);
+gl.enableVertexAttribArray(0);
+gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+const entInstBuf = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, entInstBuf);
+gl.bufferData(gl.ARRAY_BUFFER, MAX_ENT*12*4, gl.DYNAMIC_DRAW);
+const STRIDE = 12*4;
+gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,4,gl.FLOAT,false,STRIDE,0);  gl.vertexAttribDivisor(1,1);
+gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,4,gl.FLOAT,false,STRIDE,16); gl.vertexAttribDivisor(2,1);
+gl.enableVertexAttribArray(3); gl.vertexAttribPointer(3,4,gl.FLOAT,false,STRIDE,32); gl.vertexAttribDivisor(3,1);
+gl.bindVertexArray(null);
+
+const entData = new Float32Array(MAX_ENT*12);
+
+// particle seed buffer
+const partVao = gl.createVertexArray();
+gl.bindVertexArray(partVao);
+const seeds = new Float32Array(PARTC*4);
+for (let i=0;i<PARTC;i++){
+  seeds[i*4+0] = rnd();
+  seeds[i*4+1] = Math.pow(rnd(), 0.7);
+  seeds[i*4+2] = rnd();
+  seeds[i*4+3] = rnd();
+}
+buf(seeds, gl.ARRAY_BUFFER);
+gl.enableVertexAttribArray(0);
+gl.vertexAttribPointer(0,4,gl.FLOAT,false,0,0);
+gl.bindVertexArray(null);
+
+/* ---------- render targets ---------- */
+const RT = { w:0, h:0, scene:null, sceneTex:null, depthless:null, bloomA:null, bloomB:null, bloomATex:null, bloomBTex:null, w:0, h:0, bw:0, bh:0 };
+
+function mkTex(w, h, internal, format, type) {
+  const t = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, t);
+  gl.texImage2D(gl.TEXTURE_2D, 0, internal, w, h, 0, format, type, null);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  return t;
+}
+function mkFbo(tex) {
+  const f = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, f);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+  return f;
+}
+function resizeTargets(w, h) {
+  const bw = Math.max(2, Math.floor(w/4)), bh = Math.max(2, Math.floor(h/4));
+  if (RT.w === w && RT.h === h) return;
+  [RT.scene, RT.bloomA, RT.bloomB].forEach(f => f && gl.deleteFramebuffer(f));
+  [RT.sceneTex, RT.bloomATex, RT.bloomBTex].forEach(t => t && gl.deleteTexture(t));
+
+  const useFloat = !!extFloat;
+  const internal = useFloat ? gl.RGBA16F : gl.RGBA8;
+  const type = useFloat ? gl.HALF_FLOAT : gl.UNSIGNED_BYTE;
+
+  RT.sceneTex = mkTex(w,h,internal,gl.RGBA,type); RT.scene = mkFbo(RT.sceneTex);
+  RT.bloomATex = mkTex(bw,bh,internal,gl.RGBA,type); RT.bloomA = mkFbo(RT.bloomATex);
+  RT.bloomBTex = mkTex(bw,bh,internal,gl.RGBA,type); RT.bloomB = mkFbo(RT.bloomBTex);
+  RT.w=w; RT.h=h; RT.bw=bw; RT.bh=bh;
+}
+
+/* ---------- post programs ---------- */
+const fsPostVS = GLSL_HEAD + `
+layout(location=0) in vec2 aPos;
+out vec2 vUV;
+void main(){ vUV = aPos*0.5+0.5; gl_Position = vec4(aPos,0.0,1.0); }
+`;
+
+const brightProg = program(fsPostVS, GLSL_HEAD + GLSL_COMMON + `
+in vec2 vUV; out vec4 o;
+uniform sampler2D uTex; uniform float uThresh; uniform float uKnee;
+void main(){
+  vec3 c = texture(uTex, vUV).rgb;
+  float l = dot(c, vec3(0.2126,0.7152,0.0722));
+  float k = smoothstep(uThresh, uThresh+uKnee, l);
+  o = vec4(c*k, 1.0);
+}
+`);
+
+const blurProg = program(fsPostVS, GLSL_HEAD + `
+in vec2 vUV; out vec4 o;
+uniform sampler2D uTex; uniform vec2 uDir; uniform vec2 uTexel;
+void main(){
+  // 9-tap gaussian using linear-sampling offsets
+  vec2 o1 = uDir*uTexel*1.3846153846;
+  vec2 o2 = uDir*uTexel*3.2307692308;
+  vec3 c = texture(uTex, vUV).rgb*0.2270270270;
+  c += texture(uTex, vUV+o1).rgb*0.3162162162;
+  c += texture(uTex, vUV-o1).rgb*0.3162162162;
+  c += texture(uTex, vUV+o2).rgb*0.0702702703;
+  c += texture(uTex, vUV-o2).rgb*0.0702702703;
+  o = vec4(c,1.0);
+}
+`);
+
+const compositeProg = program(fsPostVS, GLSL_HEAD + GLSL_COMMON + `
+in vec2 vUV; out vec4 o;
+uniform sampler2D uScene; uniform sampler2D uBloom;
+uniform vec2 uRes; uniform float uTime; uniform float uHeat; uniform float uShake;
+uniform float uFlash; uniform vec3 uFlashCol;
+uniform vec2 uFlashPos; uniform float uFlashRad;
+uniform float uVig; uniform float uAberr; uniform float uGrain; uniform float uHurt;
+uniform float uOverdrive;
+
+float hash(vec2 p){ return fract(sin(dot(p, vec2(12.9898,78.233)))*43758.5453); }
+
+void main(){
+  vec2 uv = vUV;
+  vec2 cen = uv - 0.5;
+  float r2 = dot(cen,cen);
+
+  // chromatic aberration (radial, stronger at edges & when hit)
+  float ab = (0.0009 + uHurt*0.0035 + uOverdrive*0.0012) * (0.3 + r2*2.2) * uAberr;
+  vec2 dir = normalize(cen + 1e-6);
+  vec3 col;
+  col.r = texture(uScene, uv - dir*ab).r;
+  col.g = texture(uScene, uv).g;
+  col.b = texture(uScene, uv + dir*ab).b;
+
+  // bloom
+  vec3 bloom = texture(uBloom, uv).rgb;
+  col += bloom * (0.34 + uOverdrive*0.40);
+
+  // overdrive grade — a tint, not a wash
+  if(uOverdrive > 0.001){
+    float lum = dot(col, vec3(0.299,0.587,0.114));
+    col = mix(col, vec3(lum)*vec3(1.15,0.92,1.30), uOverdrive*0.55);
+    col += vec3(0.012,0.004,0.022)*uOverdrive;
+  }
+
+  // hit flash — a localized pulse centred on the player. It must never lift
+  // the whole frame: an additive full-screen flash over a near-black
+  // background tonemaps into a magenta wash that swallows the arena.
+  if(uFlash > 0.001){
+    vec2 fd = (vUV - uFlashPos) * vec2(uRes.x/uRes.y, 1.0);
+    float ft = length(fd) / max(uFlashRad, 1e-3);
+    col += uFlashCol * (uFlash * exp(-ft*ft*2.2) * 0.75);
+  }
+
+  // damage rim — a narrow red edge vignette, small enough to tint the frame
+  // rather than flood it
+  if(uHurt > 0.001){
+    float rim = smoothstep(0.14, 0.40, r2);
+    col += vec3(0.048, 0.004, 0.010) * rim * uHurt;
+  }
+
+  // vignette
+  float vig = smoothstep(0.95, 0.22, r2*1.6);
+  col *= mix(1.0, vig, uVig);
+
+  // film grain
+  float g = hash(uv*uRes + fract(uTime)*137.0) - 0.5;
+  col += g * uGrain * (0.6 + (1.0-dot(col,vec3(0.33)))*0.9);
+
+  // subtle scanlines
+  col *= 1.0 - 0.022*sin(uv.y*uRes.y*1.6 + uTime*6.0);
+
+  // tone map (ACES-ish)
+  col = (col*(2.51*col+0.03))/(col*(2.43*col+0.59)+0.14);
+  col = pow(max(col, 0.0), vec3(0.4545));
+
+  o = vec4(col, 1.0);
+}
+`);
+/* ============================ game ============================ */
+const ARENA = { cx: 0, cy: 0, hw: 1150, hh: 720 };
+
+const S = {
+  mode: 'menu',            // menu | play | pause | over
+  touchMode: false,        // set once a touch is seen; hides the mouse reticle
+  t: 0, dt: 0, time: 0,
+  score: 0, wave: 0, kills: 0,
+  shake: 0, flash: 0, flashCol: [1,1,1], hurt: 0,
+  flashRad: 0.35,                        // flash radius, in screen-height units
+
+  heat: 0, overdrive: 0, overdriveT: 0,
+  cam: { x: 0, y: 0 }, zoom: 1, targetZoom: 1, dpr: 1,
+  burst: 0, burstPos: [0,0],
+  debug: false,
+  hiscore: 0,
+  waveTimer: 0, waveActive: false, spawnQueue: [], spawnTimer: 0,
+  combo: 0, comboT: 0,
+  // quality: 'high' | 'med' | 'low' — scales particles, bloom passes and DPR
+  quality: 'high', partCount: PARTC, bloomPasses: 2, dprCap: 2, autoQuality: true
+};
+try { S.hiscore = parseInt(localStorage.getItem('lumen.hi') || '0', 10) || 0; } catch(e) {}
+
+const COL = {
+  player:   [0.32, 0.95, 1.00],
+  enemy:    [1.00, 0.32, 0.42],
+  enemy2:   [1.00, 0.62, 0.20],
+  enemy3:   [0.70, 0.40, 1.00],
+  bullet:   [0.55, 1.00, 0.85],
+  ebullet:  [1.00, 0.45, 0.70],
+  nova:     [0.65, 0.80, 1.00],
+  shield:   [0.45, 1.00, 0.70],
+  pickup:   [1.00, 0.85, 0.35]
+};
+
+let player = null;
+const enemies = [];
+const bullets = [];
+const ebullets = [];
+const pickups = [];
+const fx = [];        // expanding rings, sparks
+const floats = [];    // damage/score popups
+
+// Anchor a flash to the player so the pulse radiates from the thing that
+// caused it, instead of washing the entire frame. Every flash in the game
+// originates at the player, so the position is resolved per frame in draw().
+function setFlashRadius(r) {
+  S.flashRad = r;
+}
+
+function resetGame() {
+  enemies.length = 0; bullets.length = 0; ebullets.length = 0;
+  pickups.length = 0; fx.length = 0; floats.length = 0;
+  S.score = 0; S.wave = 0; S.kills = 0; S.time = 0;
+  S.shake = 0; S.flash = 0; S.hurt = 0; S.heat = 0;
+  S.overdrive = 0; S.overdriveT = 0; S.burst = 0;
+  S.combo = 0; S.comboT = 0;
+  S.cam.x = 0; S.cam.y = 0; S.targetZoom = 1;
+  player = {
+    x: 0, y: 0, vx: 0, vy: 0,
+    hp: 100, maxhp: 100, r: 22,
+    aim: 0, fireCd: 0, dashCd: 0, dashT: 0, novaCd: 0,
+    ifr: 0, hurtFlash: 0, dashDir: [1,0], trail: [],
+    shield: 0, overdriveCd: 0
+  };
+  S.wave = 0;
+  startWave(1);
+}
+
+/* ------------------------------ waves ------------------------------ */
+const WAVE_DEFS = [
+  { n: 5,  type: 'grunt',  spd: 150, hp: 26,  col: 'enemy' },
+  { n: 8,  type: 'grunt',  spd: 162, hp: 26,  col: 'enemy' },
+  { n: 9,  type: 'swarm',  spd: 235, hp: 14,  col: 'enemy2' },
+  { n: 12, type: 'grunt',  spd: 172, hp: 30,  col: 'enemy' },
+  { n: 11, type: 'swarm',  spd: 248, hp: 16,  col: 'enemy2' },
+  { n: 10, type: 'turret', spd: 105, hp: 52,  col: 'enemy3' },
+  { n: 14, type: 'grunt',  spd: 180, hp: 32,  col: 'enemy' },
+  { n: 16, type: 'swarm',  spd: 258, hp: 18,  col: 'enemy2' },
+  { n: 14, type: 'turret', spd: 112, hp: 58,  col: 'enemy3' },
+  { n: 20, type: 'grunt',  spd: 188, hp: 34,  col: 'enemy' }
+];
+function waveDef(w) {
+  // Clamp on BOTH ends. w=0 happens in the menu (no wave started yet), and
+  // WAVE_DEFS[w-1] would index -1 and return undefined.
+  const base = WAVE_DEFS[Math.max(0, Math.min(w-1, WAVE_DEFS.length-1))];
+  const scale = 1 + Math.max(0, w - WAVE_DEFS.length) * 0.18;
+  return { ...base, n: base.n + Math.floor(Math.max(0, w-WAVE_DEFS.length)*1.2), spd: base.spd*scale, hp: base.hp*scale };
+}
+function startWave(w) {
+  S.wave = w;
+  S.waveActive = true;
+  S.waveTimer = 0;
+  S.spawnQueue = [];
+  const d = waveDef(w);
+  for (let i=0;i<d.n;i++) S.spawnQueue.push(d.type);
+  // shuffle
+  for (let i=S.spawnQueue.length-1;i>0;i--){ const j=(rnd()*(i+1))|0; const t=S.spawnQueue[i]; S.spawnQueue[i]=S.spawnQueue[j]; S.spawnQueue[j]=t; }
+  S.spawnTimer = 0.6;
+  Audio_.wave();
+  showWaveBanner(w);
+}
+let waveBannerTimer = 0;
+function showWaveBanner(w) {
+  const el = document.getElementById('wsub');
+  el.textContent = '— incoming';
+  // Cancel the previous wave's timer. Without this, wave 1's timer fired
+  // while wave 2's banner was on screen and wiped it early.
+  clearTimeout(waveBannerTimer);
+  waveBannerTimer = setTimeout(()=>{ el.textContent=''; }, 2200);
+}
+function spawnEnemy(type) {
+  const d = waveDef(S.wave);
+  // spawn at arena edge, away from player
+  let x, y, tries = 0;
+  // Spawn on a ring around the player (not the arena edge) so combat starts fast.
+  const ring = 620;
+  const limX = ARENA.hw - 40, limY = ARENA.hh - 40;
+  do {
+    const a = rnd()*TAU;
+    x = player.x + Math.cos(a)*ring*rr(0.85,1.25);
+    y = player.y + Math.sin(a)*ring*rr(0.85,1.25);
+    tries++;
+  } while ((Math.abs(x) > limX || Math.abs(y) > limY) && tries < 40);
+  // Fall back to the arena edge if the ring never landed inside.
+  if (Math.abs(x) > limX || Math.abs(y) > limY) {
+    x = clamp(x, -limX, limX); y = clamp(y, -limY, limY);
+    // Clamping collapses the spawn distance: against a wall, the clamped
+    // point can land a few units from the player, so the enemy materialises
+    // inside them. Push it back out along the direction it came from, and
+    // if there is no room, mirror the point through the player instead.
+    const dx = x - player.x, dy = y - player.y;
+    const d = Math.hypot(dx, dy);
+    const minD = player.r + 90;
+    if (d < minD) {
+      if (d > 0.001) {
+        x = player.x + (dx / d) * minD;
+        y = player.y + (dy / d) * minD;
+      } else {
+        x = -player.x; y = -player.y;
+      }
+      // Re-clamp after the push, and if that still lands too close (a
+      // corner), try the opposite side of the arena.
+      x = clamp(x, -limX, limX); y = clamp(y, -limY, limY);
+      if (Math.hypot(x - player.x, y - player.y) < minD) {
+        x = clamp(-player.x, -limX, limX);
+        y = clamp(-player.y, -limY, limY);
+      }
+    }
+  }
+
+  const e = {
+    x, y, vx: 0, vy: 0, r: type==='turret'? 30 : (type==='swarm'? 16 : 21),
+    hp: d.hp * (type==='swarm'?0.55:1), maxhp: d.hp * (type==='swarm'?0.55:1),
+    spd: d.spd * (type==='swarm'? 1.12 : 1),
+    type, col: COL[d.col], hit: 0, fireCd: rr(0.6,2.4), rot: 0, seed: rnd()*10,
+    shoot: type==='turret' ? 1.35 : (type==='grunt' ? 2.2 : 0),
+    wob: rnd()*TAU
+  };
+  enemies.push(e);
+  fx.push({ kind:'spawn', x, y, r: 4, max: e.r*3.2, life: 1, t: 0, col: e.col, w: 0.1 });
+  return e;
+}
+
+/* ------------------------------ player ------------------------------ */
+function updatePlayer(dt) {
+  const p = player;
+  if (!p) return;
+
+  // Movement. Screen Y grows downward but world Y grows upward, so "up"
+  // (W / arrow-up) is +Y in world space.
+  let ix = 0, iy = 0;
+  if (Input.keys['a'] || Input.keys['arrowleft']) ix -= 1;
+  if (Input.keys['d'] || Input.keys['arrowright']) ix += 1;
+  if (Input.keys['w'] || Input.keys['arrowup']) iy += 1;
+  if (Input.keys['s'] || Input.keys['arrowdown']) iy -= 1;
+
+  // virtual stick (touch)
+  if (Input.touch && Input.touch.moveId !== null) {
+    const tx = Input.touch.dx, ty = Input.touch.dy;
+    const mag = Math.hypot(tx, ty);
+    if (mag > 8) {
+      const k = Math.min(1, mag / 60) / mag;
+      ix += tx * k;
+      iy -= ty * k;   // screen down -> world down
+    }
+  }
+  const len = Math.hypot(ix,iy);
+  if (len > 0) { ix/=len; iy/=len; }
+
+  const accel = 2600, maxv = 430;
+  p.vx += ix*accel*dt; p.vy += iy*accel*dt;
+  // friction
+  const fr = Math.exp(-6.2*dt);
+  p.vx *= fr; p.vy *= fr;
+  const sp = Math.hypot(p.vx,p.vy);
+  if (sp > maxv) { p.vx = p.vx/sp*maxv; p.vy = p.vy/sp*maxv; }
+
+  // dash
+  p.dashCd = Math.max(0, p.dashCd - dt);
+  p.dashT = Math.max(0, p.dashT - dt);
+  if (p.dashCd <= 0 && (Input.hit(' ') || Input.hit('shift') || Input.hitAbil('dash'))) {
+    let dx = ix, dy = iy;
+    if (!len) { dx = Math.cos(p.aim); dy = Math.sin(p.aim); }
+    p.dashDir = [dx,dy];
+    p.dashT = 0.16; p.dashCd = 0.85; p.ifr = Math.max(p.ifr, 0.30);
+    p.vx = dx*1350; p.vy = dy*1350;
+    Audio_.dash();
+    S.shake = Math.max(S.shake, 5);
+    for (let i=0;i<10;i++) fx.push({kind:'spark', x:p.x, y:p.y, vx:-dx*rr(40,240), vy:-dy*rr(40,240), life:0.5, t:0, col:COL.player, size:rr(1.5,3.5)});
+  }
+
+  p.x += p.vx*dt; p.y += p.vy*dt;
+
+  // arena bounds
+  const bx = ARENA.hw - 26, by = ARENA.hh - 26;
+  if (p.x < -bx) { p.x = -bx; p.vx *= -0.3; }
+  if (p.x >  bx) { p.x =  bx; p.vx *= -0.3; }
+  if (p.y < -by) { p.y = -by; p.vy *= -0.3; }
+  if (p.y >  by) { p.y =  by; p.vy *= -0.3; }
+
+  // Aim toward the mouse. Screen Y grows downward but world Y grows upward,
+  // so the screen offset must be negated on the Y axis to land on the same
+  // world point the shader draws.
+  const wx = S.cam.x + (Input.mouse.x - cv.clientWidth/2)/S.zoom;
+  const wy = S.cam.y - (Input.mouse.y - cv.clientHeight/2)/S.zoom;
+  p.aim = Math.atan2(wy - p.y, wx - p.x);
+
+  // fire
+  p.fireCd = Math.max(0, p.fireCd - dt);
+  const overdriveRate = S.overdrive > 0 ? 0.055 : 0.105;
+  if (Input.mouse.down && p.fireCd <= 0) {
+    p.fireCd = overdriveRate;
+    const spread = S.overdrive > 0 ? 0.045 : 0.02;
+    const a = p.aim + rr(-spread, spread);
+    const spd = 1250 * (S.overdrive>0?1.18:1);
+    bullets.push({ x: p.x + Math.cos(a)*20, y: p.y + Math.sin(a)*20, vx: Math.cos(a)*spd, vy: Math.sin(a)*spd, r: 4, life: 1.1, dmg: S.overdrive>0?17:12 });
+    Audio_.shoot();
+    S.shake = Math.max(S.shake, 1.2);
+    fx.push({kind:'muzzle', x:p.x+Math.cos(a)*22, y:p.y+Math.sin(a)*22, rot:a, life:0.12, t:0, col:[1,1,1], size:9});
+  }
+
+  // nova
+  p.novaCd = Math.max(0, p.novaCd - dt);
+  if (p.novaCd <= 0 && (Input.hit('r') || Input.hitAbil('nova'))) {
+    p.novaCd = 6.5;
+    const R = 430;
+    S.burst = 1.0; S.burstPos = [p.x, p.y];
+    S.shake = Math.max(S.shake, 26);
+    S.flash = 0.35; S.flashCol = [0.7,0.9,1.0];
+    setFlashRadius(0.42);
+    Audio_.nova();
+    fx.push({kind:'nova', x:p.x, y:p.y, r: 10, max: R, life: 0.75, t: 0, col: COL.nova, w: 3.5});
+    for (let i=0;i<40;i++){
+      const a = rnd()*TAU;
+      fx.push({kind:'spark', x:p.x, y:p.y, vx:Math.cos(a)*rr(200,700), vy:Math.sin(a)*rr(200,700), life:0.8, t:0, col:COL.nova, size:rr(2,5)});
+    }
+    let hitAny = false;
+    for (const e of enemies) {
+      if (e.dead) continue;
+      const d = Math.hypot(e.x-p.x, e.y-p.y);
+      if (d < R + e.r) { damageEnemy(e, 60); hitAny = true; }
+    }
+    for (const b of ebullets) if (dist2(b.x,b.y,p.x,p.y) < R*R) b.life = 0;
+    if (hitAny) S.score += 25;
+  }
+
+  // overdrive
+  p.overdriveCd = Math.max(0, (p.overdriveCd||0) - dt);
+  if (S.overdrive <= 0 && p.overdriveCd <= 0 && (Input.hit('f') || Input.hitAbil('over'))) {
+    S.overdrive = 1; S.overdriveT = 6.0; p.overdriveCd = 14;
+    Audio_.overdrive();
+    S.flash = 0.25; S.flashCol = [1.0,0.5,1.0];
+    setFlashRadius(0.42);
+    fx.push({kind:'ring', x:p.x, y:p.y, r:8, max:180, life:0.6, t:0, col:[1,0.5,1], w:2});
+  }
+  if (S.overdrive > 0) {
+    S.overdriveT -= dt;
+    if (S.overdriveT <= 0) { S.overdrive = 0; }
+  }
+
+  // iframes
+  p.ifr = Math.max(0, p.ifr - dt);
+  p.hurtFlash = Math.max(0, p.hurtFlash - dt*3.2);
+
+  // trail
+  p.trail.unshift([p.x, p.y]);
+  if (p.trail.length > 14) p.trail.pop();
+}
+/* ------------------------------ enemies ------------------------------ */
+function updateEnemies(dt) {
+  for (let i=enemies.length-1;i>=0;i--) {
+    const e = enemies[i];
+    if (e.dead) { enemies.splice(i,1); continue; }
+    e.hit = Math.max(0, e.hit - dt*4);
+    e.wob += dt*3.2;
+
+    let tx = player.x, ty = player.y;
+    if (e.type === 'turret') {
+      // keep distance, strafe
+      const d = Math.hypot(player.x-e.x, player.y-e.y);
+      const want = 420;
+      const nx = (e.x-player.x)/(d||1), ny = (e.y-player.y)/(d||1);
+      const move = d > want+60 ? 1 : (d < want-60 ? -0.8 : 0);
+      const px = -ny, py = nx;
+      const strafe = Math.sin(e.wob*0.55)*0.9;
+      tx = e.x + (nx*move + px*strafe) * 200;
+      ty = e.y + (ny*move + py*strafe) * 200;
+    } else if (e.type === 'swarm') {
+      // orbit while approaching
+      const d = Math.hypot(player.x-e.x, player.y-e.y)||1;
+      const nx = (player.x-e.x)/d, ny = (player.y-e.y)/d;
+      const px = -ny, py = nx;
+      const orb = Math.sin(e.wob*0.9 + e.seed)*0.85;
+      tx = e.x + (nx*0.85 + px*orb)*240;
+      ty = e.y + (ny*0.85 + py*orb)*240;
+    }
+
+    const dx = tx-e.x, dy = ty-e.y;
+    const dl = Math.hypot(dx,dy)||1;
+    const acc = e.type==='turret' ? 420 : 900;
+    e.vx += (dx/dl)*acc*dt; e.vy += (dy/dl)*acc*dt;
+    const fr = Math.exp(-3.4*dt);
+    e.vx *= fr; e.vy *= fr;
+    const sp = Math.hypot(e.vx,e.vy);
+    if (sp > e.spd) { e.vx = e.vx/sp*e.spd; e.vy = e.vy/sp*e.spd; }
+    e.x += e.vx*dt; e.y += e.vy*dt;
+    e.rot = Math.atan2(e.vy, e.vx);
+
+    // separation from other enemies
+    for (let j=enemies.length-1;j>=0;j--) {
+      if (j===i) continue;
+      const o = enemies[j];
+      if (o.dead) continue;
+      const ddx = e.x-o.x, ddy = e.y-o.y;
+      const d2 = ddx*ddx+ddy*ddy;
+      const minD = e.r+o.r+6;
+      if (d2 < minD*minD && d2 > 0.01) {
+        const d = Math.sqrt(d2);
+        const push = (minD-d)/d * 620 * dt;
+        e.x += ddx/d*push; e.y += ddy/d*push;
+      }
+    }
+
+    // bounds
+    const bx = ARENA.hw-e.r, by = ARENA.hh-e.r;
+    e.x = clamp(e.x,-bx,bx); e.y = clamp(e.y,-by,by);
+
+    // shooting
+    if (e.shoot > 0) {
+      e.fireCd -= dt;
+      if (e.fireCd <= 0) {
+        e.fireCd = e.shoot * rr(0.8,1.25);
+        const a = Math.atan2(player.y-e.y, player.x-e.x);
+        const n = e.type==='turret' ? 3 : 1;
+        const spread = e.type==='turret' ? 0.22 : 0.03;
+        for (let k=0;k<n;k++){
+          const aa = a + (k-(n-1)/2)*spread;
+          ebullets.push({ x:e.x+Math.cos(aa)*e.r, y:e.y+Math.sin(aa)*e.r, vx:Math.cos(aa)*430, vy:Math.sin(aa)*430, r:6, life:4.2, dmg: 9 });
+        }
+        fx.push({kind:'muzzle', x:e.x+Math.cos(a)*e.r, y:e.y+Math.sin(a)*e.r, rot:a, life:0.12, t:0, col:COL.ebullet, size:8});
+      }
+    }
+
+    // contact damage
+    if (player && player.ifr <= 0 && dist2(e.x,e.y,player.x,player.y) < (e.r+player.r-6)*(e.r+player.r-6)) {
+      damagePlayer(e.type==='turret'?16:11);
+      e.vx = -e.vx*0.5; e.vy = -e.vy*0.5;
+    }
+  }
+}
+
+/* ------------------------------ damage ------------------------------ */
+function damageEnemy(e, dmg) {
+  e.hp -= dmg; e.hit = 1;
+  if (e.hp <= 0 && !e.dead) {
+    e.dead = true;
+    S.kills++;
+    // combo: kills within 2.4s of each other stack a multiplier
+    S.comboT = 2.4;
+    S.combo = Math.min(20, (S.combo || 0) + 1);
+    const mult = 1 + (S.combo - 1) * 0.25;
+    const base = e.type==='turret' ? 120 : (e.type==='swarm' ? 40 : 65);
+    const gained = Math.round(base * mult);
+    S.score += gained;
+    if (S.combo > 1) floatText(e.x, e.y - 24, 'x' + mult.toFixed(2) + '  +' + gained, '#ff8ae4');
+    Audio_.kill();
+    S.shake = Math.max(S.shake, 4);
+    for (let i=0;i<14;i++){
+      const a = rnd()*TAU;
+      fx.push({kind:'spark', x:e.x, y:e.y, vx:Math.cos(a)*rr(60,340), vy:Math.sin(a)*rr(60,340), life:0.55, t:0, col:e.col, size:rr(1.5,4)});
+    }
+    fx.push({kind:'ring', x:e.x, y:e.y, r:e.r*0.6, max:e.r*4.5, life:0.4, t:0, col:e.col, w:1.6});
+    // drops
+    if (rnd() < 0.13) pickups.push({x:e.x, y:e.y, vx:rr(-60,60), vy:rr(-60,60), type: rnd()<0.5?'hp':'shield', life:12, r:12});
+  } else {
+    Audio_.hit();
+  }
+}
+
+function damagePlayer(dmg) {
+  const p = player;
+  if (!p || p.ifr > 0) return;
+  p.hp -= dmg;
+  p.ifr = 0.62;
+  p.hurtFlash = 1;
+  S.shake = Math.max(S.shake, 14);
+  S.flash = 0.28; S.flashCol = [1.0,0.18,0.28];
+  S.hurt = 1;
+  setFlashRadius(0.30);
+  Audio_.hurt();
+  floatText(p.x, p.y-30, '-'+dmg, '#ff5a6e');
+  if (p.hp <= 0) { p.hp = 0; gameOver(); }
+}
+
+function gameOver() {
+  S.mode = 'over';
+  document.getElementById('fScore').textContent = S.score.toLocaleString();
+  document.getElementById('fWave').textContent = S.wave;
+  document.getElementById('fTime').textContent = Math.floor(S.time)+'s';
+  document.getElementById('fKill').textContent = S.kills;
+  document.getElementById('goSub').textContent = S.wave >= 8 ? 'Overrun by the swarm' : 'Signal lost on wave '+S.wave;
+  if (S.score > S.hiscore) {
+    S.hiscore = S.score;
+    try { localStorage.setItem('lumen.hi', String(S.hiscore)); } catch(e){}
+    document.getElementById('goSub').textContent = '★ NEW HIGH SCORE ★';
+  }
+  document.getElementById('hiVal').textContent = S.hiscore.toLocaleString();
+  show('gameover');
+  document.getElementById('hud').classList.remove('on');
+  S.shake = 34;
+  S.flash = 0.5; S.flashCol = [1,0.3,0.4];
+  if (player) setFlashRadius(0.55);
+  Audio_.nova();
+}
+
+/* --------------------------- projectiles --------------------------- */
+function updateBullets(dt) {
+  for (let i=bullets.length-1;i>=0;i--) {
+    const b = bullets[i];
+    b.life -= dt;
+    b.x += b.vx*dt; b.y += b.vy*dt;
+    if (b.life <= 0 || Math.abs(b.x)>ARENA.hw+60 || Math.abs(b.y)>ARENA.hh+60) { bullets.splice(i,1); continue; }
+    let hit = false;
+    for (const e of enemies) {
+      if (e.dead) continue;
+      if (dist2(b.x,b.y,e.x,e.y) < (e.r+b.r)*(e.r+b.r)) {
+        damageEnemy(e, b.dmg);
+        hit = true;
+        break;
+      }
+    }
+    if (hit) {
+      fx.push({kind:'spark', x:b.x, y:b.y, vx:rr(-90,90), vy:rr(-90,90), life:0.22, t:0, col:COL.bullet, size:rr(1,2.6)});
+      bullets.splice(i,1);
+    }
+  }
+  for (let i=ebullets.length-1;i>=0;i--) {
+    const b = ebullets[i];
+    b.life -= dt;
+    b.x += b.vx*dt; b.y += b.vy*dt;
+    if (b.life <= 0 || Math.abs(b.x)>ARENA.hw+60 || Math.abs(b.y)>ARENA.hh+60) { ebullets.splice(i,1); continue; }
+    if (player && dist2(b.x,b.y,player.x,player.y) < (b.r+player.r-4)*(b.r+player.r-4)) {
+      damagePlayer(b.dmg);
+      ebullets.splice(i,1);
+    }
+  }
+}
+
+/* ------------------------------ pickups ------------------------------ */
+function updatePickups(dt) {
+  for (let i=pickups.length-1;i>=0;i--) {
+    const p = pickups[i];
+    p.life -= dt;
+    p.x += p.vx*dt; p.y += p.vy*dt;
+    p.vx *= Math.exp(-2.2*dt); p.vy *= Math.exp(-2.2*dt);
+    if (p.life <= 0) { pickups.splice(i,1); continue; }
+    if (player && dist2(p.x,p.y,player.x,player.y) < (p.r+player.r)*(p.r+player.r)) {
+      if (p.type==='hp') { player.hp = Math.min(player.maxhp, player.hp+26); floatText(p.x,p.y-18,'+26 HP','#7dff9b'); }
+      else { player.shield = 3.0; floatText(p.x,p.y-18,'SHIELD','#4de8ff'); }
+      S.score += 15;
+      Audio_.blip(900, 0.12, 'sine', 0.09, 1400);
+      fx.push({kind:'ring', x:p.x, y:p.y, r:4, max:60, life:0.35, t:0, col: p.type==='hp'?COL.pickup:COL.shield, w:1.2});
+      pickups.splice(i,1);
+    }
+  }
+}
+
+/* ------------------------------- fx ------------------------------- */
+function updateFx(dt) {
+  for (let i=fx.length-1;i>=0;i--) {
+    const f = fx[i];
+    f.t += dt;
+    if (f.kind==='spark') {
+      f.x += f.vx*dt; f.y += f.vy*dt;
+      const dr = Math.exp(-3.2*dt);
+      f.vx *= dr; f.vy *= dr;
+    }
+    if (f.t >= f.life) fx.splice(i,1);
+  }
+  for (let i=floats.length-1;i>=0;i--) {
+    floats[i].t += dt;
+    if (floats[i].t >= floats[i].life) floats.splice(i,1);
+  }
+}
+
+function floatText(x, y, txt, color) {
+  floats.push({x, y, txt, color, t:0, life:0.95});
+}
+
+/* ------------------------- wave progression ------------------------- */
+function updateWaves(dt) {
+  // phase 1: still spawning this wave
+  if (S.spawnQueue.length > 0) {
+    S.spawnTimer -= dt;
+    if (S.spawnTimer <= 0) {
+      spawnEnemy(S.spawnQueue.pop());
+      S.spawnTimer = Math.max(0.16, 0.85 - S.wave*0.03);
+    }
+    return;
+  }
+  // phase 2: all spawned — wait until the field is actually clear
+  if (S.waveActive) {
+    if (enemies.length === 0) {
+      S.waveActive = false;
+      S.waveTimer = 2.6;
+      const bonus = 250 * S.wave;
+      S.score += bonus;
+      floatText(player ? player.x : 0, (player ? player.y : 0) - 70,
+        'WAVE ' + S.wave + ' CLEAR  +' + bonus, '#7dff9b');
+      Audio_.blip(660, 0.2, 'triangle', 0.09, 990);
+      setTimeout(() => Audio_.blip(990, 0.3, 'triangle', 0.07, 1320), 130);
+    }
+    return;
+  }
+  // phase 3: intermission, then the next wave
+  if (S.waveTimer > 0) {
+    S.waveTimer -= dt;
+    if (S.waveTimer <= 0) startWave(S.wave + 1);
+  }
+}
+/* ========================== rendering ========================== */
+let entCount = 0;
+function pushEnt(x, y, size, rot, col, alpha, shape, p1, p2, seed) {
+  if (entCount >= MAX_ENT) return;
+  const o = entCount*12;
+  entData[o]   = x; entData[o+1] = y; entData[o+2] = size; entData[o+3] = rot;
+  entData[o+4] = col[0]; entData[o+5] = col[1]; entData[o+6] = col[2]; entData[o+7] = alpha;
+  entData[o+8] = shape; entData[o+9] = p1||0; entData[o+10] = p2||0; entData[o+11] = seed||0;
+  entCount++;
+}
+
+function buildEntities() {
+  entCount = 0;
+
+  // ---- player ----
+  if (player) {
+    const p = player;
+    // dash trail
+    for (let i=0;i<p.trail.length;i++) {
+      const t = i/p.trail.length;
+      const a = (1-t)*0.30;
+      if (a < 0.01) continue;
+      pushEnt(p.trail[i][0], p.trail[i][1], p.r*1.7*(1-t*0.55), 0, COL.player, a*0.5, 7, 0,0,0);
+    }
+    // shield bubble
+    if (p.shield > 0) {
+      const sa = 0.25 + 0.15*Math.sin(S.time*7);
+      pushEnt(p.x, p.y, p.r*2.3 + Math.sin(S.time*4)*2, S.time*1.2, COL.shield, sa*Math.min(1,p.shield), 1, 0.35, 0, 0);
+    }
+    const hurt = p.hurtFlash;
+    const col = hurt>0 ? [1, 0.35+0.3*(1-hurt), 0.4] : COL.player;
+    const alpha = p.ifr>0 ? 0.5 + 0.4*Math.sin(S.time*40) : 1;
+
+    // engine flame (behind the ship, opposite the aim)
+    const ex = p.x - Math.cos(p.aim)*p.r*1.15, ey = p.y - Math.sin(p.aim)*p.r*1.15;
+    const flameLen = 10 + Math.sin(S.time*38)*3 + (p.dashT>0?16:0);
+    pushEnt(ex, ey, flameLen, p.aim, [0.4,0.95,1.0], 0.55*alpha, 5, 0.08, 0, 0);
+
+    // hull
+    pushEnt(p.x, p.y, p.r*1.75, p.aim, col, alpha, 10, 0,0,0);
+    // canopy
+    pushEnt(p.x + Math.cos(p.aim)*p.r*0.28, p.y + Math.sin(p.aim)*p.r*0.28, p.r*0.62, p.aim, [0.02,0.08,0.14], 0.9, 0, 0,0,0);
+    // bright core dot
+    pushEnt(p.x + Math.cos(p.aim)*p.r*0.1, p.y + Math.sin(p.aim)*p.r*0.1, p.r*0.5, 0, [0.75,1,1], 0.95, 0, 0,0,0);
+    // barrel
+    pushEnt(p.x + Math.cos(p.aim)*p.r*1.35, p.y + Math.sin(p.aim)*p.r*1.35, 10, p.aim, [0.6,0.9,1], 0.9, 5, 0.01,0,0);
+  }
+
+  // ---- enemies ----
+  for (const e of enemies) {
+    const c = e.hit > 0 ? [1,1,1] : e.col;
+    if (e.type==='swarm') {
+      // small diamond with a hot centre
+      pushEnt(e.x, e.y, e.r*1.9, e.rot, c, 0.95, 3, 0,0,0);
+      pushEnt(e.x, e.y, e.r*0.75, -e.rot*1.3, [1,0.85,0.7], 0.75, 0, 0,0,0);
+    } else if (e.type==='turret') {
+      pushEnt(e.x, e.y, e.r*1.6, e.rot, c, 1, 4, 0,0,0);
+      pushEnt(e.x, e.y, e.r*0.95, e.rot*2.1, [0.12,0.05,0.16], 0.85, 0, 0,0,0);
+      pushEnt(e.x, e.y, e.r*0.5, e.rot, [1,0.6,0.9], 0.9, 0, 0,0,0);
+      pushEnt(e.x + Math.cos(e.rot)*e.r*0.9, e.y + Math.sin(e.rot)*e.r*0.9, 10, e.rot, [1,0.5,0.8], 0.9, 5, 0.02,0,0);
+    } else {
+      // grunt: hexagon body with a dark core
+      pushEnt(e.x, e.y, e.r*1.7, e.rot, c, 1, 4, 0,0,0);
+      pushEnt(e.x, e.y, e.r*0.85, e.rot*2, [0.14,0.02,0.06], 0.8, 0, 0,0,0);
+      pushEnt(e.x, e.y, e.r*0.42, 0, [1,0.75,0.6], 0.85, 0, 0,0,0);
+    }
+    // hp bar above enemy: track + fill
+    const hpf = clamp(e.hp/e.maxhp, 0, 1);
+    if (hpf < 0.999) {
+      const bw = e.r*1.5;
+      // world +Y is up, so the bar goes above the enemy at +Y
+      pushEnt(e.x, e.y + e.r*2.4, bw, 0, [0.12,0.14,0.18], 0.6, 9, 0,0,0);
+      pushEnt(e.x, e.y + e.r*2.4, bw, 0, hpf>0.5?COL.shield:(hpf>0.25?COL.pickup:COL.enemy), 0.95, 8, hpf, 0,0);
+    }
+  }
+
+  // ---- bullets ----
+  for (const b of bullets) {
+    const a = Math.atan2(b.vy,b.vx);
+    pushEnt(b.x, b.y, b.r*4.2, a, COL.bullet, 0.95, 5, b.r/14, 0,0);
+    pushEnt(b.x, b.y, b.r*1.3, a, [0.85,1,0.95], 0.55, 0, 0,0,0);
+  }
+  for (const b of ebullets) {
+    const a = Math.atan2(b.vy,b.vx);
+    pushEnt(b.x, b.y, b.r*3.4, a, COL.ebullet, 0.95, 3, 0,0,0);
+    pushEnt(b.x, b.y, b.r*1.2, a, [1,0.8,0.88], 0.45, 0, 0,0,0);
+  }
+
+  // ---- pickups ----
+  for (const p of pickups) {
+    const bob = Math.sin(S.time*4 + p.x*0.02)*3;
+    const blink = p.life < 3 ? (Math.sin(S.time*14)>0?1:0.25) : 1;
+    const c = p.type==='hp'?COL.pickup:COL.shield;
+    pushEnt(p.x, p.y+bob, 16, S.time*1.6, c, 0.9*blink, 6, 0,0,0);
+    pushEnt(p.x, p.y+bob, 8, -S.time*1.2, [1,1,1], 0.6*blink, 0, 0,0,0);
+  }
+
+  // ---- fx ----
+  for (const f of fx) {
+    const t = clamp(f.t/f.life, 0, 1);
+    if (f.kind==='spark') {
+      pushEnt(f.x, f.y, f.size*2.6, 0, f.col, (1-t)*0.95, 7, 0,0,0);
+    } else if (f.kind==='ring') {
+      const r = lerp(f.r, f.max, t);
+      pushEnt(f.x, f.y, r, 0, f.col, (1-t)*0.8, 1, 0.28, 0,0);
+    } else if (f.kind==='nova') {
+      // thin shockwave ring, fading as it expands
+      const r = lerp(f.r, f.max, Math.sqrt(t));
+      const th = 0.02 + (1-t)*0.10;
+      pushEnt(f.x, f.y, r, 0, f.col, (1-t)*(1-t)*0.9, 1, th, 0,0);
+    } else if (f.kind==='spawn') {
+      const r = lerp(f.max, f.r, t);
+      pushEnt(f.x, f.y, r, 0, f.col, (1-t)*0.9, 1, 0.35, 0,0);
+    } else if (f.kind==='muzzle') {
+      pushEnt(f.x, f.y, f.size*2.2, f.rot, f.col, (1-t)*0.9, 2, 0,0,0);
+    }
+  }
+}
+
+function draw() {
+  // Count the real draw calls for this frame. The HUD used to display a
+  // hardcoded 6, which was never true — the scene is 14 calls on the low
+  // tier and 18 on high. Wrap the two entry points once rather than
+  // touching all nine call sites.
+  drawCalls = 0;
+  const W = cv.width, H = cv.height;
+  gl.bindFramebuffer(gl.FRAMEBUFFER, RT.scene);
+  gl.viewport(0,0,W,H);
+  gl.disable(gl.BLEND);
+  gl.clearColor(0.008,0.013,0.028,1);
+  gl.clear(gl.COLOR_BUFFER_BIT);
+
+  const camU = [S.cam.x, S.cam.y];
+  // S.zoom is CSS-px per world unit; the GL viewport is device px, so scale it.
+  const z = S.zoom * S.dpr;
+
+  // background
+  gl.useProgram(bgProg.p);
+  gl.uniform2f(bgProg.u.uRes, W, H);
+  gl.uniform4f(bgProg.u.uArena, ARENA.cx, ARENA.cy, ARENA.hw, ARENA.hh);
+  gl.uniform2f(bgProg.u.uCam, camU[0], camU[1]);
+  gl.uniform1f(bgProg.u.uZoom, z);
+  gl.uniform1f(bgProg.u.uTime, S.time);
+  gl.uniform1f(bgProg.u.uHeat, S.heat);
+  gl.bindVertexArray(fsVao);
+  gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+  // particles
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.ONE, gl.ONE);   // additive: the field is emitted light
+  gl.useProgram(partProg.p);
+  gl.uniform2f(partProg.u.uRes, W, H);
+  gl.uniform2f(partProg.u.uCam, camU[0], camU[1]);
+  gl.uniform1f(partProg.u.uZoom, z);
+  gl.uniform1f(partProg.u.uTime, S.time);
+  gl.uniform1f(partProg.u.uHeat, S.heat);
+  gl.uniform1f(partProg.u.uBurst, S.burst);
+  gl.uniform2f(partProg.u.uBurstPos, S.burstPos[0], S.burstPos[1]);
+  gl.uniform1f(partProg.u.uDpr, S.dpr || 1);
+  gl.bindVertexArray(partVao);
+  gl.drawArrays(gl.POINTS, 0, S.partCount);
+
+  // entities
+  // Back to premultiplied-alpha blending: the particle field is additive
+  // light, but entities are surfaces whose alpha must attenuate the
+  // background behind them.
+  gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+  buildEntities();
+  gl.useProgram(entProg.p);
+  gl.uniform2f(entProg.u.uRes, W, H);
+  gl.uniform2f(entProg.u.uCam, camU[0], camU[1]);
+  gl.uniform1f(entProg.u.uZoom, z);
+  gl.bindVertexArray(entVao);
+  gl.bindBuffer(gl.ARRAY_BUFFER, entInstBuf);
+  gl.bufferSubData(gl.ARRAY_BUFFER, 0, entData, 0, entCount*12);
+  gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, entCount);
+  gl.bindVertexArray(null);
+
+  // ---------------- post ----------------
+  gl.disable(gl.BLEND);
+
+  // bright pass
+  gl.bindFramebuffer(gl.FRAMEBUFFER, RT.bloomA);
+  gl.viewport(0,0,RT.bw,RT.bh);
+  gl.useProgram(brightProg.p);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, RT.sceneTex);
+  gl.uniform1i(brightProg.u.uTex, 0);
+  // Bright-pass threshold.
+  //
+  // This was 1.05, which was wrong on both render paths:
+  //
+  //  - Without EXT_color_buffer_float the scene target is RGBA8, where every
+  //    channel is clamped at 1.0. A threshold of 1.05 could therefore NEVER
+  //    be reached — the bright pass output pure black and the entire bloom
+  //    chain was dead on those devices.
+  //  - Even with the float target, the scene peaks at ~1.02-1.09, so only
+  //    about 0.001% of pixels ever cleared 1.05. Bloom was effectively
+  //    invisible even where it "worked".
+  //
+  // The measured luminance distribution of the scene:
+  //    particle field wash    0.00 - 0.10   (~93% of pixels)
+  //    entity cores           0.75 - 0.85   (~3.4% of pixels)
+  // So 0.78 sits cleanly above the particle wash and below the entity cores:
+  // the field stays out of the bloom (no full-screen haze) while the
+  // entities actually glow. It is also safely under 1.0, so the same value
+  // works on the 8-bit fallback.
+  gl.uniform1f(brightProg.u.uThresh, 0.78);
+  gl.uniform1f(brightProg.u.uKnee, 0.26);
+  gl.bindVertexArray(fsVao);
+  gl.drawArrays(gl.TRIANGLES,0,3);
+
+  // blur h
+  gl.bindFramebuffer(gl.FRAMEBUFFER, RT.bloomB);
+  gl.viewport(0,0,RT.bw,RT.bh);
+  gl.useProgram(blurProg.p);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, RT.bloomATex);
+  gl.uniform1i(blurProg.u.uTex, 0);
+  gl.uniform2f(blurProg.u.uDir, 1, 0);
+  gl.uniform2f(blurProg.u.uTexel, 1/RT.bw, 1/RT.bh);
+  gl.drawArrays(gl.TRIANGLES,0,3);
+
+  // blur v
+  gl.bindFramebuffer(gl.FRAMEBUFFER, RT.bloomA);
+  gl.viewport(0,0,RT.bw,RT.bh);
+  gl.bindTexture(gl.TEXTURE_2D, RT.bloomBTex);
+  gl.uniform2f(blurProg.u.uDir, 0, 1);
+  gl.drawArrays(gl.TRIANGLES,0,3);
+
+  // second, wider blur pass for a soft halo (high quality only)
+  if (S.bloomPasses > 1) {
+    gl.bindFramebuffer(gl.FRAMEBUFFER, RT.bloomB);
+    gl.bindTexture(gl.TEXTURE_2D, RT.bloomATex);
+    gl.uniform2f(blurProg.u.uDir, 2.2, 0);
+    gl.drawArrays(gl.TRIANGLES,0,3);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, RT.bloomA);
+    gl.bindTexture(gl.TEXTURE_2D, RT.bloomBTex);
+    gl.uniform2f(blurProg.u.uDir, 0, 2.2);
+    gl.drawArrays(gl.TRIANGLES,0,3);
+  }
+
+  // composite
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.viewport(0,0,W,H);
+  gl.useProgram(compositeProg.p);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, RT.sceneTex);
+  gl.uniform1i(compositeProg.u.uScene, 0);
+  gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, RT.bloomATex);
+  gl.uniform1i(compositeProg.u.uBloom, 1);
+  gl.uniform2f(compositeProg.u.uRes, W, H);
+  gl.uniform1f(compositeProg.u.uTime, S.time);
+  gl.uniform1f(compositeProg.u.uHeat, S.heat);
+  gl.uniform1f(compositeProg.u.uFlash, S.flash);
+  gl.uniform3f(compositeProg.u.uFlashCol, S.flashCol[0], S.flashCol[1], S.flashCol[2]);
+  // Flash origin tracks the player in screen UV. It is resolved here, at draw
+  // time, because the camera keeps moving while the flash decays.
+  // vUV is y-up like GL, so the world offset maps straight across.
+  if (player) {
+    const fpx = (player.x - camU[0]) * z + W * 0.5;
+    const fpy = (player.y - camU[1]) * z + H * 0.5;
+    gl.uniform2f(compositeProg.u.uFlashPos, fpx / W, fpy / H);
+  } else {
+    gl.uniform2f(compositeProg.u.uFlashPos, 0.5, 0.5);
+  }
+  gl.uniform1f(compositeProg.u.uFlashRad, S.flashRad);
+  gl.uniform1f(compositeProg.u.uVig, 0.85);
+  gl.uniform1f(compositeProg.u.uAberr, 1.0);
+  gl.uniform1f(compositeProg.u.uGrain, 0.016);
+  gl.uniform1f(compositeProg.u.uHurt, S.hurt);
+  gl.uniform1f(compositeProg.u.uOverdrive, S.overdrive);
+  gl.drawArrays(gl.TRIANGLES,0,3);
+  gl.bindVertexArray(null);
+}
+/* ========================== main loop ========================== */
+/* ---- adaptive quality ---- */
+const QUALITY = {
+  high: { parts: PARTC,     bloom: 2, dprCap: 2.0 },
+  med:  { parts: Math.floor(PARTC*0.45), bloom: 1, dprCap: 1.5 },
+  low:  { parts: Math.floor(PARTC*0.12), bloom: 1, dprCap: 1.0 }
+};
+let qCooldown = 3.0;
+
+function applyQuality(name) {
+  if (S.quality === name) return;
+  S.quality = name;
+  const q = QUALITY[name];
+  S.partCount = q.parts;
+  S.bloomPasses = q.bloom;
+  S.dprCap = q.dprCap;
+  forceResize = true;
+  if (HUD.tQual) HUD.tQual.textContent = name.toUpperCase();
+}
+
+function autoQuality(fps, dt) {
+  if (S.autoQuality === false) return;
+  qCooldown -= dt;
+  if (qCooldown > 0) return;
+  // Only drop quality after a sustained shortfall, and only if we're
+  // meaningfully below target. A single stutter must not change the tier.
+  if (fps < 48 && S.quality === 'high') { applyQuality('med'); qCooldown = 5; }
+  else if (fps < 40 && S.quality === 'med') { applyQuality('low'); qCooldown = 8; }
+  else if (fps > 56 && S.quality === 'low') { applyQuality('med'); qCooldown = 8; }
+  else if (fps > 57 && S.quality === 'med') { applyQuality('high'); qCooldown = 12; }
+  else qCooldown = 2;
+}
+
+let forceResize = false;
+function resize() {
+  const dpr = Math.min(devicePixelRatio || 1, S.dprCap || 2);
+  const w = Math.max(1, Math.floor(innerWidth * dpr));
+  const h = Math.max(1, Math.floor(innerHeight * dpr));
+  S.dpr = dpr;
+  if (forceResize || cv.width !== w || cv.height !== h) {
+    forceResize = false;
+    cv.width = w; cv.height = h;
+    cv.style.width = innerWidth + 'px';
+    cv.style.height = innerHeight + 'px';
+    resizeTargets(w, h);
+  }
+}
+addEventListener('resize', resize);
+
+let last = performance.now();
+let fpsAcc = 0, fpsFrames = 0, fpsShown = 60;
+
+// Real GL draw calls in the last frame. The HUD's "Draws" field used to
+// show a hardcoded 6, which was simply wrong: the frame issues 14 draw
+// calls on the low quality tier and 18 on high. The count is taken by
+// wrapping the two entry points once, so it cannot drift out of sync with
+// the code the way a hardcoded number does.
+let drawCalls = 0;
+let drawCallsShown = 0;
+{
+  const rawDraw = gl.drawArrays.bind(gl);
+  const rawDrawInst = gl.drawArraysInstanced.bind(gl);
+  gl.drawArrays = function(mode, first, count) {
+    drawCalls++;
+    return rawDraw(mode, first, count);
+  };
+  gl.drawArraysInstanced = function(mode, first, count, inst) {
+    drawCalls++;
+    return rawDrawInst(mode, first, count, inst);
+  };
+}
+
+function frame(now) {
+  requestAnimationFrame(frame);
+  let dt = (now - last) / 1000;
+  last = now;
+  // Measure the REAL frame time before clamping. The clamp exists to stop a
+  // tab switch from teleporting the simulation, but if the clamped value is
+  // what gets accumulated, a frame that really took 125ms is counted as
+  // 50ms and the counter can never report below 20fps — it would also feed
+  // autoQuality a floor of 20, blinding the adaptive quality system exactly
+  // when it needs to act.
+  const rawDt = dt;
+  if (dt > 0.05) dt = 0.05;      // clamp after tab switch
+  if (dt <= 0) dt = 1/60;
+  S.t += dt;
+
+  resize();
+
+  fpsAcc += rawDt; fpsFrames++;
+  if (fpsAcc > 0.4) {
+    fpsShown = Math.round(fpsFrames/fpsAcc);
+    fpsAcc = 0; fpsFrames = 0;
+    // Let the first couple of seconds settle before judging performance —
+    // shader compilation and font loading can skew the opening frames.
+    if (S.t > 3) autoQuality(fpsShown, 0.4);
+  }
+
+  if (S.mode === 'play') {
+    S.time += dt;
+    updatePlayer(dt);
+    updateEnemies(dt);
+    updateBullets(dt);
+    updatePickups(dt);
+    updateWaves(dt);
+    updateFx(dt);
+
+    // combo decay (kills close together build multiplier)
+    if (S.comboT > 0) {
+      S.comboT -= dt;
+      if (S.comboT <= 0) S.combo = 0;
+    }
+
+    // heat = how "hot" the moment is -> drives music + visuals
+    const threat = Math.min(1, enemies.length / 22);
+    const density = Math.min(1, (bullets.length + ebullets.length) / 60);
+    S.heat = damp(S.heat, clamp(threat*0.55 + density*0.35 + (S.overdrive>0?0.5:0), 0, 1), 2.4, dt);
+
+    // camera: follow player with lookahead, shake
+    const lookX = Math.cos(player.aim)*70, lookY = Math.sin(player.aim)*70;
+    S.cam.x = damp(S.cam.x, player.x + lookX, 7, dt);
+    S.cam.y = damp(S.cam.y, player.y + lookY, 7, dt);
+    S.targetZoom = 1 + S.heat*0.09 + (player.dashT>0?0.05:0);
+    S.zoom = damp(S.zoom, S.targetZoom, 3, dt);
+
+    S.shake = Math.max(0, S.shake - dt*42);
+    S.flash = Math.max(0, S.flash - dt*2.4);
+    S.hurt = Math.max(0, S.hurt - dt*2.2);
+    S.burst = Math.max(0, S.burst - dt*1.6);
+    if (player.shield > 0) player.shield = Math.max(0, player.shield - dt);
+
+    // score popups
+  } else {
+    // idle: slow drift in menu, still render the field
+    S.time += dt*0.35;
+    S.heat = damp(S.heat, 0.22, 1.4, dt);
+    S.cam.x = damp(S.cam.x, Math.sin(S.time*0.13)*260, 1.2, dt);
+    S.cam.y = damp(S.cam.y, Math.cos(S.time*0.11)*160, 1.2, dt);
+    S.zoom = damp(S.zoom, 1.06, 1.2, dt);
+    S.shake = Math.max(0, S.shake - dt*42);
+    S.flash = Math.max(0, S.flash - dt*2.4);
+    S.hurt = Math.max(0, S.hurt - dt*2.2);
+    S.burst = Math.max(0, S.burst - dt*1.6);
+    updateFx(dt);
+  }
+
+  // The HUD is visible during play, pause AND game-over, so it has to be
+  // updated every frame. Leaving this inside the play branch froze the
+  // FPS/entity counters and stalled the score popups the moment the game
+  // was paused or ended.
+  //
+  // It is wrapped because a throw here would abort the rest of the frame —
+  // including the score popups and the debug overlay — and a HUD glitch
+  // should never be able to take the game down.
+  try { updateHud(); }
+  catch (e) { if (!S._hudErrLogged) { S._hudErrLogged = 1; console.error('HUD update failed:', e); } }
+
+  // apply shake to camera at draw time
+  const sh = S.shake;
+  const shx = sh ? rr(-sh,sh) : 0, shy = sh ? rr(-sh,sh) : 0;
+
+  const savedCamX = S.cam.x, savedCamY = S.cam.y;
+  S.cam.x += shx; S.cam.y += shy;
+  draw();
+  S.cam.x = savedCamX; S.cam.y = savedCamY;
+  // Publish the count for the HUD. The HUD is updated earlier in the frame
+  // (before draw), so it displays the previous frame's total — one frame of
+  // latency, which is irrelevant for a debug counter.
+  drawCallsShown = drawCalls;
+
+  Audio_.update(S.heat, dt);
+  updateAimUI();
+  Input.flush();
+}
+
+// Aim-point UI: the canvas hides the system cursor, so the game draws its own
+// reticle (mouse) and virtual stick (touch). Runs every frame, including
+// while paused, so the cursor never reappears over a frozen game.
+function updateAimUI() {
+  if (HUD.reticle) {
+    const showRet = (S.mode === 'play' || S.mode === 'pause') && !S.touchMode;
+    HUD.reticle.classList.toggle('on', showRet);
+    if (showRet) {
+      HUD.reticle.style.transform = 'translate(' + Input.mouse.x + 'px,' + Input.mouse.y + 'px)';
+    }
+  }
+  if (HUD.stick) {
+    const t = Input.touch;
+    const active = !!(t && t.moveId !== null && S.mode === 'play');
+    HUD.stick.classList.toggle('on', active);
+    if (active) {
+      const cl = Math.hypot(t.dx, t.dy), max = 44;
+      const k = cl > max ? max/cl : 1;
+      HUD.stick.style.transform = 'translate(' + t.ox + 'px,' + t.oy + 'px)';
+      const knob = HUD.stick.firstElementChild;
+      if (knob) knob.style.transform = 'translate(' + (t.dx*k) + 'px,' + (t.dy*k) + 'px)';
+    }
+  }
+}
+
+/* ------------------------------ HUD ------------------------------ */
+const el = id => document.getElementById(id);
+// Cache HUD nodes once; a missing node should never throw mid-frame.
+const HUD = {};
+for (const id of ['score','wave','wsub','wavefill','hpfill','tEnt','tPar','tFps','tDrw','tQual',
+                  'combo','pops','abDash','abNova','abOver','menuHi','hiVal','fScore',
+                  'fWave','fTime','fKill','goSub','boot','menu','pause','gameover','hud',
+                  'playBtn','againBtn','reticle','stick','touchKeys']) {
+  HUD[id] = document.getElementById(id);
+}
+
+// The ability chips double as touch buttons, so a phone player can reach
+// dash / nova / overdrive — the keyboard shortcuts are otherwise unreachable
+// without a keyboard. The chips are pointer-events:none inside #hud, so they
+// need their own listeners.
+for (const [id, act] of [['abDash','dash'], ['abNova','nova'], ['abOver','over']]) {
+  const node = HUD[id];
+  if (!node) continue;
+  const fire = e => {
+    e.preventDefault();
+    e.stopPropagation();
+    S.touchMode = true;
+    Input.touchAbil[act] = true;
+  };
+  node.addEventListener('pointerdown', fire);
+  // stop the canvas from also treating the tap as an aim/fire input
+  node.addEventListener('touchstart', e => { e.stopPropagation(); }, { passive: false });
+}
+let lastScoreShown = -1, lastHp = -1;
+
+function setTxt(node, v){ if (node) node.textContent = v; }
+
+function updateHud() {
+  if (S.score !== lastScoreShown) {
+    setTxt(HUD.score, S.score.toLocaleString());
+    lastScoreShown = S.score;
+  }
+  setTxt(HUD.wave, S.wave);
+  // wave progress: how much of this wave is left
+  const wd = waveDef(S.wave);
+  const total = wd ? wd.n : 1;
+  const left = enemies.length + S.spawnQueue.length;
+  if (HUD.wavefill) HUD.wavefill.style.width = clamp((1 - left/Math.max(1,total)) * 100, 0, 100) + '%';
+  if (player && HUD.hpfill) {
+    const hp = Math.max(0, Math.round(player.hp));
+    if (hp !== lastHp) {
+      HUD.hpfill.style.width = (hp/player.maxhp*100) + '%';
+      HUD.hpfill.classList.toggle('low', hp/player.maxhp < 0.3);
+      lastHp = hp;
+    }
+  }
+  setTxt(HUD.tEnt, enemies.length + bullets.length + ebullets.length);
+  setTxt(HUD.tPar, S.partCount.toLocaleString());
+  setTxt(HUD.tFps, fpsShown);
+  setTxt(HUD.tDrw, drawCallsShown);
+
+  // combo meter
+  const cEl = HUD.combo;
+  if (cEl) {
+    if (S.combo > 1) {
+      const mult = 1 + (S.combo - 1) * 0.25;
+      cEl.style.opacity = '1';
+      cEl.textContent = 'COMBO ' + S.combo + '   x' + mult.toFixed(2);
+      cEl.style.color = S.combo >= 8 ? '#ffb547' : '#ff4fd8';
+    } else {
+      cEl.style.opacity = '0';
+    }
+  }
+
+  // ability cooldowns
+  const setCd = (node, rem, total) => {
+    if (!node) return;
+    const bar = node.querySelector('.cool');
+    const cd = node.querySelector('.cd');
+    if (rem <= 0) { if (bar) bar.style.width='100%'; if (cd) cd.textContent=''; }
+    else { if (bar) bar.style.width = (100*(1-rem/total)) + '%'; if (cd) cd.textContent = rem.toFixed(1); }
+  };
+  setCd(HUD.abDash, player?player.dashCd:0, 0.85);
+  setCd(HUD.abNova, player?player.novaCd:0, 6.5);
+  setCd(HUD.abOver, player?(player.overdriveCd||0):0, 14);
+
+  // Floating score text — bounded pool, swept in one place (no per-popup
+  // timers). The DOM node is created when the float is first seen and the
+  // float itself is retired by updateFx on its own lifetime, so the two
+  // lifetimes are independent: the node fades out on its own timer, the
+  // float stops being drawn once it expires.
+  const pops = HUD.pops;
+  if (pops) {
+    for (const f of floats) {
+      if (f._drawn) continue;
+      f._drawn = true;
+      const d = document.createElement('div');
+      d.className = 'pop';
+      d.textContent = f.txt;
+      d.style.color = f.color;
+      // world -> screen. Screen Y grows downward, world Y grows upward.
+      const sx = (f.x - S.cam.x)*S.zoom + cv.clientWidth/2;
+      const sy = cv.clientHeight/2 - (f.y - S.cam.y)*S.zoom;
+      d.style.left = sx + 'px'; d.style.top = sy + 'px';
+      d._born = performance.now();
+      pops.appendChild(d);
+    }
+    while (pops.childElementCount > 28) pops.removeChild(pops.firstChild);
+    const now = performance.now();
+    for (const d of Array.from(pops.children)) {
+      if (now - (d._born || 0) > 1000) d.remove();
+    }
+  }
+  if (S.debug) updateDebug();
+}
+
+/* --------------------------- debug overlay --------------------------- */
+let dbgCanvas = null, dbgCtx = null;
+function updateDebug() {
+  if (!dbgCanvas) {
+    dbgCanvas = document.createElement('canvas');
+    dbgCanvas.id = 'dbg';
+    Object.assign(dbgCanvas.style, {
+      position: 'fixed', inset: '0', width: '100%', height: '100%',
+      pointerEvents: 'none', zIndex: '10', display: 'none'
+    });
+    document.body.appendChild(dbgCanvas);
+  }
+  if (!S.debug) { dbgCanvas.style.display = 'none'; return; }
+  dbgCanvas.style.display = 'block';
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  const w = innerWidth, h = innerHeight;
+  if (dbgCanvas.width !== w*dpr || dbgCanvas.height !== h*dpr) {
+    dbgCanvas.width = w*dpr; dbgCanvas.height = h*dpr;
+  }
+  const c = dbgCtx = dbgCanvas.getContext('2d');
+  c.setTransform(dpr,0,0,dpr,0,0);
+  c.clearRect(0,0,w,h);
+  // world -> debug canvas. Canvas Y grows downward, world Y grows upward.
+  const toS = (x,y) => [(x - S.cam.x)*S.zoom + w/2, h/2 - (y - S.cam.y)*S.zoom];
+
+  // arena bounds
+  c.strokeStyle = 'rgba(120,255,180,.55)'; c.lineWidth = 1;
+  const [ax,ay] = toS(-ARENA.hw, -ARENA.hh);
+  c.strokeRect(ax, ay, ARENA.hw*2*S.zoom, ARENA.hh*2*S.zoom);
+
+  // entity radii
+  c.strokeStyle = 'rgba(255,120,200,.6)';
+  for (const e of enemies) {
+    const [ex,ey] = toS(e.x,e.y);
+    c.beginPath(); c.arc(ex,ey,e.r*S.zoom,0,Math.PI*2); c.stroke();
+  }
+  // bullets
+  c.fillStyle = 'rgba(255,240,120,.9)';
+  for (const b of bullets) { const [bx,by]=toS(b.x,b.y); c.fillRect(bx-1.5,by-1.5,3,3); }
+  c.fillStyle = 'rgba(255,110,140,.9)';
+  for (const b of ebullets) { const [bx,by]=toS(b.x,b.y); c.fillRect(bx-1.5,by-1.5,3,3); }
+  // player
+  if (player) {
+    const [px,py] = toS(player.x,player.y);
+    c.strokeStyle = 'rgba(120,240,255,.95)'; c.lineWidth = 1.5;
+    c.beginPath(); c.arc(px,py,player.r*S.zoom,0,Math.PI*2); c.stroke();
+    c.strokeStyle = 'rgba(120,240,255,.45)';
+    c.beginPath(); c.moveTo(px,py);
+    c.lineTo(px+Math.cos(player.aim)*120, py-Math.sin(player.aim)*120); c.stroke();
+    c.strokeStyle = 'rgba(255,200,80,.75)';
+    c.beginPath(); c.moveTo(px,py);
+    c.lineTo(px+player.vx*0.12, py-player.vy*0.12); c.stroke();
+  }
+  c.font = '11px ui-monospace, monospace';
+  c.fillStyle = 'rgba(140,255,200,.95)';
+  c.fillText('DEBUG · ' + S.quality.toUpperCase() + ' · parts ' + S.partCount.toLocaleString() +
+             ' · ents ' + entCount + ' · zoom ' + S.zoom.toFixed(2), 14, h - 14);
+}
+
+/* --------------------------- screens --------------------------- */
+function show(id) {
+  ['menu','pause','gameover'].forEach(s => { if (HUD[s]) HUD[s].classList.toggle('on', s===id); });
+}
+function startGame() {
+  Audio_.start();
+  resetGame();
+  lastScoreShown = -1; lastHp = -1;
+  show(null);
+  if (HUD.hud) HUD.hud.classList.add('on');
+  S.mode = 'play';
+}
+function togglePause() {
+  if (S.mode === 'play') { S.mode = 'pause'; show('pause'); }
+  else if (S.mode === 'pause') { S.mode = 'play'; show(null); }
+}
+HUD.playBtn.addEventListener('click', startGame);
+HUD.againBtn.addEventListener('click', startGame);
+HUD.pause.addEventListener('click', ()=>{ if (S.mode==='pause') { S.mode='play'; show(null); } });
+cv.addEventListener('mousedown', ()=>{ if (S.mode==='pause') { S.mode='play'; show(null); } });
+
+addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if (k === 'enter') {
+    if (S.mode === 'menu' || S.mode === 'over') startGame();
+  }
+  if (k === 'escape' || k === 'p') {
+    if (S.mode === 'play' || S.mode === 'pause') togglePause();
+  }
+  if (k === 'g') {
+    S.debug = !S.debug;
+  }
+  // F is Overdrive, not "start the game". Starting on F was a free
+  // overdrive: this listener runs BEFORE Input's (registered later, at
+  // Input.init), so the F keypress was consumed here to start the game and
+  // then recorded by Input as a live press — the very next frame granted
+  // overdrive for free. The menu starts on ENTER (or the button) only.
+});
+
+/* --------------------------- boot --------------------------- */
+// Expose a small debug handle — handy for tuning and for automated checks.
+window.LUMEN = { S, get player(){ return player; }, enemies, bullets, ebullets, pickups, fx, floats,
+                 startGame, Input, Audio: Audio_, gl, PARTC, get entities(){ return entCount; },
+                 applyQuality, autoQuality, QUALITY, showWaveBanner,
+                 get drawCalls(){ return drawCallsShown; } };
+
+HUD.menuHi.textContent = S.hiscore.toLocaleString();
+HUD.hiVal.textContent = S.hiscore.toLocaleString();
+HUD.tQual.textContent = 'HIGH';
+Input.init(cv);
+
+// Show the touch control legend only on devices that actually have a
+// touchscreen — the keyboard list is still accurate for desktop, and a
+// phone player needs to know the two halves of the screen do different
+// jobs. Several signals are checked because no single one is reliable
+// across mobile browsers (some omit ontouchstart, some report a fine
+// pointer even on a hybrid laptop).
+function updateControlLegend() {
+  const touch = ('ontouchstart' in window)
+    || (navigator.maxTouchPoints || 0) > 0
+    || matchMedia('(hover: none) and (pointer: coarse)').matches
+    || S.touchMode;   // a touch has actually been seen
+  if (HUD.touchKeys) HUD.touchKeys.hidden = !touch;
+  const kb = document.querySelector('#menu .keys:not(#touchKeys)');
+  if (kb) kb.hidden = touch;
+  // The card is taller than a phone screen once the legend grows; let it
+  // scroll rather than clipping the ENGAGE button off the bottom.
+  const card = document.querySelector('#menu .card');
+  if (card) card.classList.toggle('scrollable', touch);
+}
+updateControlLegend();
+// A first touch is the most reliable touch signal there is, so flip the
+// legend over the moment one arrives. This listens on the document, not the
+// canvas, so tapping ENGAGE on the menu also counts — otherwise a phone
+// player would only discover the touch controls after the menu is gone.
+Input.onTouch = updateControlLegend;
+addEventListener('touchstart', () => {
+  if (!S.touchMode) { S.touchMode = true; updateControlLegend(); }
+}, { passive: true, once: false });
+resize();
+requestAnimationFrame(frame);
+setTimeout(()=>{ HUD.boot.classList.add('gone'); }, 380);
+
+</script>
+</body>
+</html>
