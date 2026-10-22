@@ -163,7 +163,14 @@ node quality_check.mjs # adaptive quality demotes and recovers
 node mobile_check.mjs  # mobile layout screenshots
 node scroll_check.mjs  # touch-scrolling the menu card on a short viewport
 node shots.mjs         # screenshot capture
+node live_check.mjs    # drives the DEPLOYED site, not the local file
 ```
+
+`live_check.mjs` is the odd one out: every other script drives the local
+`file://` copy, but this one drives `https://bensonlabs.org/projects/games/lumen/`
+so it proves the published build boots and plays. It exits non-zero if the
+deployed game fails to start, never scores, or logs any console error. Set
+`LUMEN_LIVE_URL` to point it at a different deployment.
 
 A Chromium build is required. The harness looks in the Playwright cache and
 falls back to a system Chrome; set `LUMEN_CHROME` to point at a specific
