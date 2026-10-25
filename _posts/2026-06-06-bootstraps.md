@@ -6,7 +6,7 @@ author: Justin Benson
 categories: [windows, macos, fedora, ubuntu, wsl, wsl2, dev, ai]
 ---
 
-# bootstraps for windows, macOS, Fedora KDE Plasma
+# bootstraps for Windows, macOS, Fedora, and Ubuntu
 
 ## Windows - AI dev env
 
@@ -16,7 +16,7 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; irm https://raw.githubusercont
 **Notes:**
 1. Needs to run in an elevated PowerShell window (right-click → Run as Administrator). The script installs system-level software, so it'll fail partway through without admin
   rights. 
-2. Run the Ubuntu bootstrap script in the WSL Ubuntu app or WSL2 terminal.
+2. By default, the Windows script presents a checklist and generates the post-reboot WSL2 Ubuntu provisioner. Use `-All` for an unattended run, `-SkipWsl` to omit WSL provisioning, or `-NoReboot` to prevent the final reboot.
 
 ## Windows - Loaner checkout app VM
 
@@ -36,17 +36,23 @@ The grader writes JSON, CSV, and HTML results under `C:\ProgramData\HW-Laptop-Gr
   
 ## macOS
 
+The macOS script presents a checklist by default and targets macOS 27 or newer. Use `--all` for an unattended run.
+
 ```zsh
 bash <(curl -fsSL https://raw.githubusercontent.com/bensonlabs/bootstraps/main/scripts/bootstrap_macOS.sh)
 ```
 
 ## Fedora
 
+The Fedora script presents a checklist by default, installs VS Code and Microsoft Edge from their official RPM repositories, and creates a Snapper snapshot on supported Btrfs systems. Use `--all` for an unattended run.
+
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/bensonlabs/bootstraps/main/scripts/bootstrap_fedora.sh)
 ```
 
 ## Ubuntu
+
+The Ubuntu script presents a checklist by default and creates a Snapper snapshot on supported Btrfs systems. Use `--all` for an unattended run.
 
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/bensonlabs/bootstraps/main/scripts/bootstrap_ubuntu.sh)
