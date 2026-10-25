@@ -16,7 +16,7 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; irm https://raw.githubusercont
 **Notes:**
 1. Needs to run in an elevated PowerShell window (right-click → Run as Administrator). The script installs system-level software, so it'll fail partway through without admin
   rights. 
-2. By default, the Windows script presents a checklist and generates the post-reboot WSL2 Ubuntu provisioner. Use `-All` for an unattended run, `-SkipWsl` to omit WSL provisioning, or `-NoReboot` to prevent the final reboot.
+2. By default, the Windows script presents a checklist with WSL disabled. Use `-All` for an unattended run without WSL, `-IncludeWsl` to opt in to WSL provisioning, `-SkipWsl` to force it off, or `-NoReboot` to prevent the final reboot.
 
 ## Windows - Loaner checkout app VM
 
