@@ -7,7 +7,7 @@ import html
 import re
 from pathlib import Path
 
-DOCUMENT_PART = re.compile(r"<(?P<tag>head|body)\\b[^>]*>(?P<content>.*?)</(?P=tag)>", re.IGNORECASE | re.DOTALL)
+DOCUMENT_PART = re.compile(r"<(?P<tag>head|body)\b[^>]*>(?P<content>.*?)</(?P=tag)>", re.IGNORECASE | re.DOTALL)
 TITLE = re.compile(r"<title[^>]*>(?P<title>.*?)</title>", re.IGNORECASE | re.DOTALL)
 
 
