@@ -31,10 +31,7 @@ jobs:
           path: .workouts-source
 
       - name: Stage Justin's workout page
-        run: |
-          rm -rf projects/workouts
-          mkdir -p projects/workouts
-          cp .workouts-source/justin/index.html projects/workouts/index.html
+        run: python3 .github/scripts/stage_workout.py .workouts-source/justin/index.html projects/workouts/index.html
 
       - name: Setup Node
         uses: actions/setup-node@v7
