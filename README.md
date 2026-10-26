@@ -59,12 +59,9 @@ Full-stack todo app backed by Neon Postgres. Source: [bensonlabs/database-demo](
 Owner-only work context tracker for resuming interrupted work. Phase 1 is deployed and smoke-tested at [context-console.onrender.com](https://context-console.onrender.com), backed by Supabase project `buvlsrccvrnnbxtwiozn`. Source: [bensonlabs/context-console](https://github.com/bensonlabs/context-console).
 
 ### **Workouts** (`/projects/workouts/`)
-12-week mesocycle strength training program with detailed day-by-day breakdowns including:
-- Strength progressions (Hypertrophy, Strength, Peaking phases)
-- Olympic lifting skill work
-- MetCon conditioning
-- Accessory volume and core training
-- Mobile-friendly collapsible sections
+Justin’s 12-week mesocycle strength-training plan with phase-based strength progressions, Olympic-lifting skill work, MetCon conditioning, accessory volume, and a mobile-friendly day-by-day interface.
+
+The canonical source lives in [bensonlabs/workouts](https://github.com/bensonlabs/workouts), not this repository. The Pages workflow checks out `workouts/justin/index.html`, converts it into the site’s `project` layout, and publishes it at [bensonlabs.org/projects/workouts/](https://bensonlabs.org/projects/workouts/). Carlos has a separate source file in that repository and will be published at `/projects/workouts/carlos/` when his plan is ready.
 
 ---
 
@@ -188,8 +185,12 @@ Normal project pages use `layout: project` (which inherits `base`) and contain
 only body content after front matter. Preserve their original head elements in
 the YAML `head: |` literal (metadata, CSP, fonts, styles, scripts), and any body
 attributes in `body_attributes`. The project layout adds no content-width wrapper.
-Never put a complete HTML document inside a layout. Keep Workouts' Liquid raw
-blocks and JavaScript template placeholders intact.
+Never put a complete HTML document inside a layout. Workout plans are authored as
+standalone documents in [bensonlabs/workouts](https://github.com/bensonlabs/workouts).
+During Pages deployment, `.github/scripts/stage_workout.py` extracts Justin's
+head and body, then generates the layout-backed source at
+`projects/workouts/index.html`. Keep the workout source's Liquid raw blocks and
+JavaScript template placeholders intact.
 
 Games at `projects/games/<slug>/` are complete standalone documents without front
 matter, a site header, copied snippets, canonical markers, or auto-hide code.
@@ -286,7 +287,7 @@ blog/
 │   ├── gravitas/        # N-body gravity simulator
 │   ├── to-do-app/       # Neon Postgres todo app
 │   ├── context-console/  # Owner-only work context tracker
-│   └── workouts/        # 12-week training program
+│   └── workouts/        # Created during Pages build from bensonlabs/workouts
 ├── about.md             # About page
 ├── index.html           # Blog homepage (post list)
 ├── CNAME                # Custom domain (bensonlabs.org)
