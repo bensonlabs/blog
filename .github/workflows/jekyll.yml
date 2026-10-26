@@ -33,7 +33,7 @@ jobs:
       - name: Stage workout pages
         run: |
           python3 .github/scripts/stage_workout.py .workouts-source/justin/index.html projects/workouts/index.html
-          python3 .github/scripts/stage_workout.py .workouts-source/carlos/index.html projects/workouts/carlos/index.html
+          python3 .github/scripts/stage_workout.py .workouts-source/cl/index.html projects/workouts/cl/index.html
 
       - name: Setup Node
         uses: actions/setup-node@v7

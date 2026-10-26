@@ -61,7 +61,7 @@ Owner-only work context tracker for resuming interrupted work. Phase 1 is deploy
 ### **Workouts** (`/projects/workouts/`)
 Justin’s 12-week mesocycle strength-training plan with phase-based strength progressions, Olympic-lifting skill work, MetCon conditioning, accessory volume, and a mobile-friendly day-by-day interface.
 
-The canonical source lives in [bensonlabs/workouts](https://github.com/bensonlabs/workouts), not this repository. The Pages workflow checks out `workouts/justin/index.html`, converts it into the site’s `project` layout, and publishes it at [bensonlabs.org/projects/workouts/](https://bensonlabs.org/projects/workouts/). Carlos’s separate plan is also published at [bensonlabs.org/projects/workouts/carlos/](https://bensonlabs.org/projects/workouts/carlos/).
+The canonical source lives in [bensonlabs/workouts](https://github.com/bensonlabs/workouts), not this repository. The Pages workflow checks out `workouts/justin/index.html`, converts it into the site’s `project` layout, and publishes it at [bensonlabs.org/projects/workouts/](https://bensonlabs.org/projects/workouts/). The separate [CL · 12-Week Strength Restart](https://bensonlabs.org/projects/workouts/cl/) is published at `/projects/workouts/cl/`.
 
 ---
 
@@ -187,10 +187,10 @@ the YAML `head: |` literal (metadata, CSP, fonts, styles, scripts), and any body
 attributes in `body_attributes`. The project layout adds no content-width wrapper.
 Never put a complete HTML document inside a layout. Workout plans are authored as
 standalone documents in [bensonlabs/workouts](https://github.com/bensonlabs/workouts).
-During Pages deployment, `.github/scripts/stage_workout.py` extracts Justin's
-head and body, then generates the layout-backed source at
-`projects/workouts/index.html`. Keep the workout source's Liquid raw blocks and
-JavaScript template placeholders intact.
+During Pages deployment, `.github/scripts/stage_workout.py` extracts each plan's
+head and body, then generates layout-backed sources at
+`projects/workouts/index.html` and `projects/workouts/cl/index.html`. Keep the
+workout source's Liquid raw blocks and JavaScript template placeholders intact.
 
 Games at `projects/games/<slug>/` are complete standalone documents without front
 matter, a site header, copied snippets, canonical markers, or auto-hide code.
