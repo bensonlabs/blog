@@ -61,7 +61,7 @@ Owner-only work context tracker for resuming interrupted work. Phase 1 is deploy
 ### **Workouts** (`/projects/workouts/`)
 Justin’s 12-week mesocycle strength-training plan with phase-based strength progressions, Olympic-lifting skill work, MetCon conditioning, accessory volume, and a mobile-friendly day-by-day interface.
 
-The canonical source lives in [bensonlabs/workouts](https://github.com/bensonlabs/workouts), not this repository. The Pages workflow checks out `workouts/justin/index.html`, converts it into the site’s `project` layout, and publishes it at [bensonlabs.org/projects/workouts/](https://bensonlabs.org/projects/workouts/). Carlos has a separate source file in that repository and will be published at `/projects/workouts/carlos/` when his plan is ready.
+The canonical source lives in [bensonlabs/workouts](https://github.com/bensonlabs/workouts), not this repository. The Pages workflow checks out `workouts/justin/index.html`, converts it into the site’s `project` layout, and publishes it at [bensonlabs.org/projects/workouts/](https://bensonlabs.org/projects/workouts/). Carlos’s separate plan is also published at [bensonlabs.org/projects/workouts/carlos/](https://bensonlabs.org/projects/workouts/carlos/).
 
 ---
 
