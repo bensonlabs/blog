@@ -34,6 +34,16 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; irm https://raw.githubusercont
 
 The grader writes JSON, CSV, and HTML results under `C:\ProgramData\HW-Laptop-Grader\Results`.
   
+## Windows - Offline Testing Laptop Provisioner
+
+Run this in an elevated Windows PowerShell window while the standalone Windows testing laptop is still online. It installs LibreOffice and applies machine-wide Writer defaults for Arial and DOCX, with the default save folder set to the user's Desktop. Requires winget.
+
+```powershell
+Set-ExecutionPolicy Bypass -Scope Process -Force; irm https://raw.githubusercontent.com/bensonlabs/hw-testing-laptop-provisioner/main/scripts/provision.ps1 -OutFile $env:TEMP\hw-testing-laptop-provision.ps1 -ErrorAction Stop; & $env:TEMP\hw-testing-laptop-provision.ps1
+```
+
+After the checks pass, validate Arial, default DOCX saving, and the Desktop save location in the testing account, then manually disable the wireless radio in BIOS before handoff. Existing user preferences can override the machine-wide defaults.
+
 ## macOS
 
 The macOS script presents a checklist by default and targets macOS 27 or newer. Use `--all` for an unattended run.
