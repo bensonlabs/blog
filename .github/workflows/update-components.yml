@@ -1,8 +1,20 @@
 name: Update components
-# Pins a component's new release and deploys, after the whole site builds and passes its checks.
-# The games and projects repos' Release workflows start it right after publishing (gh workflow
-# run, with their BLOG_DISPATCH_TOKEN). It also runs daily, so a release whose request didn't
-# arrive still goes live, and by hand from the Actions tab ("Run workflow") for any component.
+# Pins new releases of the site's components and deploys them, after the whole site builds and
+# passes its checks. The games and projects repos' Release workflows start it right after
+# publishing (gh workflow run, with their BLOG_DISPATCH_TOKEN). It also runs daily, so a release
+# whose request didn't arrive still goes live and a deploy that failed is tried again. It can be
+# run by hand from the Actions tab ("Run workflow") for any component.
+#
+# Four jobs, so each holds only the permissions it needs and a run with nothing new skips the
+# Jekyll build:
+#   look    reads master as it is now, looks for newer releases, and checks the live site
+#           (read-only).
+#   pin     builds and checks the whole site with the new pins, then commits and pushes them
+#           (contents: write; skipped when nothing is new).
+#   deploy  runs the deploy workflow (jekyll.yml) inside this run, so a failed deploy turns this
+#           run red. It also runs when the live site isn't serving master, to repair a failed
+#           deploy.
+#   report  turns the run red when a component couldn't be updated, after the others were.
 on:
   workflow_dispatch:
     inputs:
@@ -14,55 +26,152 @@ on:
         default: latest
   schedule:
     - cron: "17 13 * * *"
-permissions:
-  contents: write
-  actions: write
+permissions: {}
 concurrency:
   group: update-components
   cancel-in-progress: false
+defaults:
+  run:
+    shell: bash
 jobs:
-  update:
+  look:
+    name: Look for new releases
+    # Pins go to master only; a run started on another branch does nothing.
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      changed: ${{ steps.look.outputs.changed }}
+      failed: ${{ steps.look.outputs.failed }}
+      manifest: ${{ steps.look.outputs.manifest }}
+      message: ${{ steps.look.outputs.message }}
+      head: ${{ steps.live.outputs.head }}
+      redeploy: ${{ steps.live.outputs.redeploy }}
     steps:
+      # master as it is now, not as it was when this run was queued: a run that waited behind
+      # another one sees that run's pin.
       - uses: actions/checkout@v7
-      - name: Pin the new release
+        with:
+          ref: ${{ github.ref }}
+          persist-credentials: false
+      - name: Look for new releases
+        id: look
         env:
           COMPONENT: ${{ inputs.component || 'all' }}
           VERSION: ${{ inputs.version || 'latest' }}
           GH_TOKEN: ${{ github.token }}
-        run: python3 .github/scripts/components.py update "$COMPONENT" "$VERSION"
-      - name: Anything new?
-        id: changed
         run: |
+          # A component that fails doesn't stop the others; the report job turns the run red.
+          status=0
+          python3 .github/scripts/components.py update "$COMPONENT" "$VERSION" || status=$?
+          if [ "$status" -ne 0 ]; then echo "failed=true" >> "$GITHUB_OUTPUT"; fi
           if git diff --quiet -- _data/components.json; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"; echo "Already up to date; nothing to deploy."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No new release to pin."
           else
-            echo "changed=true" >> "$GITHUB_OUTPUT"; git diff -- _data/components.json
+            git diff -- _data/components.json
+            delimiter="END_$(openssl rand -hex 12)"
+            {
+              echo "changed=true"
+              echo "manifest<<$delimiter"; cat _data/components.json; echo "$delimiter"
+              echo "message<<$delimiter"; cat .components-cache/commit-message.txt; echo "$delimiter"
+            } >> "$GITHUB_OUTPUT"
           fi
+      - name: Is the live site serving master?
+        id: live
+        run: |
+          head=$(git rev-parse HEAD)
+          echo "head=$head" >> "$GITHUB_OUTPUT"
+          # The deploy workflow publishes the commit it built as /deployed-commit.txt.
+          live=$(curl -fsS --max-time 30 "https://bensonlabs.org/deployed-commit.txt?run=$GITHUB_RUN_ID" | tr -d '[:space:]') || live=""
+          if [ "$live" = "$head" ]; then
+            echo "redeploy=false" >> "$GITHUB_OUTPUT"
+            echo "The live site serves master ($head)."
+          else
+            echo "redeploy=true" >> "$GITHUB_OUTPUT"
+            echo "::warning title=Live site behind master::The live site serves ${live:-an unknown commit}; master is $head. Deploying master."
+          fi
+
+  pin:
+    name: Check the site and pin
+    needs: look
+    if: needs.look.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    outputs:
+      commit: ${{ steps.push.outputs.commit }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.look.outputs.head }}
+          persist-credentials: false
+      - name: Use the new pins
+        env:
+          MANIFEST: ${{ needs.look.outputs.manifest }}
+          MESSAGE: ${{ needs.look.outputs.message }}
+        run: |
+          printf '%s\n' "$MANIFEST" > _data/components.json
+          mkdir -p .components-cache
+          printf '%s\n' "$MESSAGE" > .components-cache/commit-message.txt
+          git diff -- _data/components.json
       - name: Test the site scripts
-        if: steps.changed.outputs.changed == 'true'
         run: python3 -m unittest discover -s .github/scripts -p 'test_*.py'
       - name: Put the components in place
-        if: steps.changed.outputs.changed == 'true'
         run: python3 .github/scripts/components.py assemble
       - name: Build the site
-        if: steps.changed.outputs.changed == 'true'
         uses: actions/jekyll-build-pages@v1
         with:
           source: ./
           destination: ./_site
       - name: Check the rendered pages
-        if: steps.changed.outputs.changed == 'true'
         run: bash .github/scripts/check-nav.sh _site
-      - name: Commit the pin and deploy
-        if: steps.changed.outputs.changed == 'true'
+      - name: Commit and push the pin
+        id: push
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -F .components-cache/commit-message.txt -- _data/components.json
-          git push
-          gh workflow run jekyll.yml --ref "$GITHUB_REF_NAME"
-          echo "Pinned and asked the deploy workflow to publish it."
+          # Only this step can push: the token goes into the remote now, after the build.
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          # Someone may have pushed to master since this run started. Put the pin on top and try
+          # again; the deploy builds and checks the result before it goes live.
+          for attempt in 1 2 3; do
+            if git push origin "HEAD:refs/heads/$GITHUB_REF_NAME"; then break; fi
+            if [ "$attempt" -eq 3 ]; then echo "::error::Couldn't push the pin to $GITHUB_REF_NAME after 3 tries."; exit 1; fi
+            sleep $((attempt * 5))
+            git pull --rebase origin "$GITHUB_REF_NAME"
+          done
+          echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "Pinned: $(git log -1 --format=%s)"
+
+  deploy:
+    name: Deploy
+    needs: [look, pin]
+    if: >-
+      !cancelled() && needs.look.result == 'success' && (needs.pin.result == 'success'
+      || (needs.pin.result == 'skipped' && needs.look.outputs.redeploy == 'true'))
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/jekyll.yml
+    with:
+      ref: ${{ needs.pin.outputs.commit || needs.look.outputs.head }}
+
+  report:
+    name: Report a component that wasn't updated
+    needs: [look, deploy]
+    if: ${{ !cancelled() && needs.look.outputs.failed == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Fail the run
+        run: |
+          echo "::error title=A component wasn't updated::A component's newest release couldn't be read or pinned; the log of 'Look for new releases' says which and why. The other components were handled."
+          exit 1

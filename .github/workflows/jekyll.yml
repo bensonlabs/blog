@@ -1,15 +1,22 @@
 name: Deploy Jekyll to GitHub Pages
+# Builds the whole site (the blog plus its pinned components), checks it and publishes it. Runs on
+# every push to master and by hand. The Update components workflow also runs it inside its own run
+# (workflow_call) after pinning a release, or when the live site isn't serving master, so a failed
+# deploy turns that run red too.
 
 on:
   push:
     branches:
       - master
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      ref:
+        description: "The commit to build and deploy"
+        type: string
+        required: true
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+permissions: {}
 
 concurrency:
   group: "pages"
@@ -19,15 +26,25 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
+      pages: read
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          persist-credentials: false
 
       - name: Test the site scripts
         run: python3 -m unittest discover -s .github/scripts -p 'test_*.py'
 
       - name: Put the components in place (games, projects)
         run: python3 .github/scripts/components.py assemble
+
+      # Update components reads this file to tell whether the live site serves master.
+      - name: Record the commit being deployed
+        run: git rev-parse HEAD > deployed-commit.txt
 
       - name: Setup Pages
         uses: actions/configure-pages@v6
@@ -44,9 +61,10 @@ jobs:
       - name: Inspect Pages artifact contents
         run: |
           test -d _site
+          test -s _site/deployed-commit.txt
           du -sh _site
-          find _site -type l -print -quit | grep . && exit 1 || true
-          find _site -path '*/node_modules/*' -print -quit | grep . && exit 1 || true
+          if find _site -type l -print -quit | grep -q .; then echo "::error::_site holds a symbolic link"; exit 1; fi
+          if find _site -path '*/node_modules/*' -print -quit | grep -q .; then echo "::error::_site holds node_modules"; exit 1; fi
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
@@ -60,6 +78,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: build
+    permissions:
+      pages: write
+      id-token: write
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
