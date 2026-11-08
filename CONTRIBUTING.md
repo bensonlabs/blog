@@ -153,15 +153,18 @@ the YAML `head: |` literal (metadata, CSP, fonts, styles, scripts), and any body
 attributes in `body_attributes`. The project layout adds no content-width wrapper.
 Never put a complete HTML document inside a layout.
 
-### Components: everything under /projects/
+### Components: everything under /projects/, and /bootstraps/
 
-Everything under `/projects/` comes from two other repositories, each as a release
-pinned by version and sha256 in `_data/components.json`:
+Everything under `/projects/`, and the Bootstraps page at `/bootstraps/`, come from three
+other repositories, each as a release pinned by version and sha256 in
+`_data/components.json`. A component's folder must be `projects/` or `bootstraps/`, or
+inside one (`COMPONENT_FOLDERS` in `components.py`):
 
 | Component | Repository | Folder | Holds |
 |---|---|---|---|
-| `projects` | [bensonlabs/projects](https://github.com/bensonlabs/projects) | `projects/` | the Projects page, each project, Workouts and Bootstraps |
+| `projects` | [bensonlabs/projects](https://github.com/bensonlabs/projects) | `projects/` | the Projects page, each project and Workouts |
 | `games` | [bensonlabs/games](https://github.com/bensonlabs/games) | `projects/games/` | the games and their catalogue |
+| `bootstraps` | [bensonlabs/bootstraps](https://github.com/bensonlabs/bootstraps) | `bootstraps/` | the Bootstraps page (`index.md`, rendered with the post layout; nothing to wrap) |
 
 The games folder sits inside the projects folder: `assemble` places the outer
 component first, and a projects release may not contain anything under `games/`.
@@ -179,7 +182,7 @@ never edit them here; change the component's own repository. A wrapped page's
 body still goes through Liquid, so the workout plans' `{% raw %}` blocks keep working.
 
 New releases are pinned by the **Update components** workflow
-(`.github/workflows/update-components.yml`). The games and projects repos start it
+(`.github/workflows/update-components.yml`). The games, projects and bootstraps repos start it
 right after each release (their Release workflows, with the dispatch token below);
 it also runs daily at 13:17 UTC, and by hand from the Actions tab for any component.
 Its jobs:
@@ -208,14 +211,15 @@ refused: a component's pages stay in its own folder. Why it works this way:
 
 #### The dispatch token
 
-The games and projects Release workflows start Update components with
+The games, projects and bootstraps Release workflows start Update components with
 `BLOG_DISPATCH_TOKEN`, a fine-grained personal access token:
 
 - resource owner bensonlabs, repository access **only** bensonlabs/blog;
 - one permission, **Actions: read and write** (it can start, rerun and cancel this
   repo's workflows, and nothing else);
 - an expiry date you choose;
-- saved as a repository secret in **both** bensonlabs/games and bensonlabs/projects.
+- saved as a secret in each of bensonlabs/games, bensonlabs/projects and bensonlabs/bootstraps
+  (bootstraps has none yet: until it does, its releases go live at the daily run).
 
 When it expires or is revoked, a Release run goes red at "Tell the blog to publish
 it", but the release is already published, and the daily Update components run
@@ -233,8 +237,10 @@ Games are complete standalone documents without front matter, a site header,
 copied snippets, canonical markers, or auto-hide code; their controls, layout,
 audio and storage belong to the game. How to add one: the
 [bensonlabs/games](https://github.com/bensonlabs/games) README (its `add-game` skill);
-for a project, workout plan or Bootstraps guide, the
-[bensonlabs/projects](https://github.com/bensonlabs/projects) README (its `add` skill).
+for a project or workout plan, the
+[bensonlabs/projects](https://github.com/bensonlabs/projects) README (its `add` skill); for a
+bootstrap command, the [bensonlabs/bootstraps](https://github.com/bensonlabs/bootstraps) README
+(its `site/index.md`).
 
 Four pages are App Store URLs, registered in App Store Connect as 2ndPaste's and
 Tracro's support and privacy pages: `/projects/2ndPaste/`, `/projects/2ndPaste/privacy.html`,
@@ -242,8 +248,8 @@ Tracro's support and privacy pages: `/projects/2ndPaste/`, `/projects/2ndPaste/p
 check requires all four (`APP_STORE_PAGES` in `check_rendered_pages.py`), so a release
 that moves, renames or drops one never deploys and the site keeps the previous release.
 Besides those, the page check requires only the home page and the menu's pages, and
-that every redirect lands on a page (`/bootstraps/` needs
-`/projects/bootstraps/workstations/`). Other project pages may come and go with the
+that every redirect lands on a page (the old `/projects/bootstraps/` pages need
+`/bootstraps/`). Other project pages may come and go with the
 projects releases.
 
 Validate with `python3 -m unittest discover -s .github/scripts -p 'test_*.py'`
@@ -298,7 +304,8 @@ To preview changes before publishing:
 - Reference in post: `![description](/media/image.png)`
 
 ### Static page not showing?
-- Everything under `/projects/` comes from bensonlabs/projects or bensonlabs/games (see
+- Everything under `/projects/` comes from bensonlabs/projects or bensonlabs/games, and
+  `/bootstraps/` from bensonlabs/bootstraps (see
   "Headers, project pages, and components"): change it there, not here
 - Check the file path matches the URL structure
 - Rebuild with `bundle exec jekyll serve` locally

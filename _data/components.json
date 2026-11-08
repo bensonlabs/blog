@@ -18,5 +18,14 @@
     "wrap": [
       "index.html"
     ]
+  },
+  {
+    "name": "bootstraps",
+    "repo": "bensonlabs/bootstraps",
+    "version": "v1.0.0",
+    "asset": "bootstraps-{version}.tar.gz",
+    "sha256": "3450aea221f15570cb065279f277c35cb8c9096147b3bca8c119dc5cb6d228b0",
+    "path": "bootstraps",
+    "wrap": []
   }
 ]

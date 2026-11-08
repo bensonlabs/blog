@@ -110,6 +110,11 @@ class Manifest(unittest.TestCase):
     def test_accepts_the_real_version_list(self):
         self.assertTrue(components.load_manifest())
 
+    def test_components_live_in_projects_or_bootstraps(self):
+        for path in ("projects", "projects/games", "bootstraps"):
+            with self.subTest(path=path):
+                self.assertEqual(self.load([entry(path=path)])[0]["path"], path)
+
     def test_rejects_bad_entries(self):
         bad = [
             [entry(path="../outside")], [entry(path="/projects/games")], [entry(path="projects/./games")],
@@ -117,6 +122,7 @@ class Manifest(unittest.TestCase):
             [entry(version="1.0.0")], [entry(asset="games.tar.gz")], [entry(repo="no-owner")],
             [dict(entry(), extra=1)], [entry(), entry()], [entry(), entry(name="other")],
             [entry(path="about")], [entry(path="projectsx/games")], [entry(path="assets/projects")],
+            [entry(path="bootstrapsx")],
         ]
         for entries in bad:
             with self.subTest(entries=entries), self.assertRaises(components.ComponentError):

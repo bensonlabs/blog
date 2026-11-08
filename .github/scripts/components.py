@@ -50,8 +50,10 @@ VERSION_RE = re.compile(r"v\d+\.\d+\.\d+")
 SHA256_RE = re.compile(r"[0-9a-f]{64}")
 # With "wrap": "release", the release lists the pages to wrap in this file at its root.
 WRAP_FILE = ".components-wrap.json"
-# Every component lives in this folder or inside it; the blog's own pages stay out of reach.
-COMPONENTS_FOLDER = "projects"
+# Every component lives in one of these folders (or inside one); the blog's own pages stay out of
+# reach. /projects/ (bensonlabs/projects, with bensonlabs/games inside) and /bootstraps/
+# (bensonlabs/bootstraps).
+COMPONENT_FOLDERS = ("projects", "bootstraps")
 # Limits for unpacking a release, far above today's (a few MB in a few hundred files), so a broken
 # or hostile release is refused with a message instead of filling the disk or the memory.
 MAX_FILES = 20_000
@@ -106,9 +108,9 @@ def load_manifest(path: Path = MANIFEST) -> list[dict]:
             if not ok:
                 raise ComponentError(f"{name!r}: invalid {field}")
         path = safe_relative(entry["path"])
-        if path.parts[0] != COMPONENTS_FOLDER:
-            raise ComponentError(f"{name!r}: a component's folder must be {COMPONENTS_FOLDER}/ or inside it, "
-                                 f"not {entry['path']}/")
+        if path.parts[0] not in COMPONENT_FOLDERS:
+            raise ComponentError(f"{name!r}: a component's folder must be one of "
+                                 f"{', '.join(f + '/' for f in COMPONENT_FOLDERS)} or inside one, not {entry['path']}/")
         paths.append(path)
         for page in entry["wrap"] if isinstance(entry["wrap"], list) else []:
             safe_relative(page)

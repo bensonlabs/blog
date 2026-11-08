@@ -1,7 +1,7 @@
 # ADR 3: Everything under /projects/ comes from two components
 
 **Date:** 2026-11-07
-**Status:** accepted (refines ADR 1's list of components)
+**Status:** accepted (refines ADR 1's list of components). ADR 5 moved Bootstraps out of /projects/.
 
 ## Context
 

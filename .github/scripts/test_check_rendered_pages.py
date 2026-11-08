@@ -8,7 +8,7 @@ from pathlib import Path
 
 from check_rendered_pages import APP_STORE_PAGES, Page, check
 
-MENU = ['/', '/projects/', '/projects/games/', '/projects/workouts/', '/projects/bootstraps/', '/about/']
+MENU = ['/', '/projects/', '/projects/games/', '/projects/workouts/', '/bootstraps/', '/about/']
 
 
 def normal_page(links=MENU, body=''):
@@ -55,11 +55,11 @@ class WholeSite(unittest.TestCase):
         self.assertIn('header links differ', self.check({'about/index.html': normal_page(MENU[:-1])}))
 
     def test_a_redirect_must_land_on_a_page(self):
-        self.assertEqual(self.check({'bootstraps/index.html': redirect('/projects/bootstraps/')}), '')
+        self.assertEqual(self.check({'projects/bootstraps/index.html': redirect('/bootstraps/')}), '')
         self.assertEqual(self.check({'projects/ai/index.html': redirect('latest/'),
                                      'projects/ai/latest/index.html': normal_page()}), '')
-        self.assertIn('bootstraps/index.html: redirects to /projects/bootstraps/workstations/, which is missing',
-                      self.check({'bootstraps/index.html': redirect('/projects/bootstraps/workstations/#setup')}))
+        self.assertIn('projects/bootstraps/index.html: redirects to /bootstraps/gone/, which is missing',
+                      self.check({'projects/bootstraps/index.html': redirect('/bootstraps/gone/#setup')}))
         self.assertIn('projects/ai/index.html: redirects to latest/, which is missing',
                       self.check({'projects/ai/index.html': redirect('latest/')}))
         self.assertEqual(self.check({'elsewhere/index.html': redirect('https://example.com/')}), '')

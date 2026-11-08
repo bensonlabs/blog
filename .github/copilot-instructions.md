@@ -7,7 +7,7 @@ The project and game cards come from bensonlabs/projects and bensonlabs/games, n
 ## Headers, project pages, and components
 
 The rules for the site header, project pages and the components (everything under
-/projects/, which comes from two other repositories as pinned releases) are in
+/projects/ and /bootstraps/, which come from three other repositories as pinned releases) are in
 [CONTRIBUTING.md](CONTRIBUTING.md#headers-project-pages-and-components), section
 "Headers, project pages, and components". Read it before changing layouts, project
 pages, `_data/components.json` or `.github/scripts/components.py`. Games are built in

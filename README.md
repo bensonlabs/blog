@@ -12,7 +12,8 @@ Built with [Jekyll](https://jekyllrb.com) and hosted on [GitHub Pages](https://p
 |---|---|---|
 | A blog post | this repo, `_posts/` | the `add-post` skill (`.claude/skills/add-post/`), or by hand: "Adding a New Blog Post" below |
 | A game | [bensonlabs/games](https://github.com/bensonlabs/games) | its `add-game` skill |
-| A project, workout plan or Bootstraps guide | [bensonlabs/projects](https://github.com/bensonlabs/projects) | its `add` skill |
+| A project or workout plan | [bensonlabs/projects](https://github.com/bensonlabs/projects) | its `add` skill |
+| A bootstrap command | [bensonlabs/bootstraps](https://github.com/bensonlabs/bootstraps) | its `site/index.md`, changed with the script |
 
 A push to either of those repositories that changes what the site shows goes live by itself:
 the repository publishes a release, and this repo's Update components workflow pins it, checks
@@ -34,8 +35,10 @@ the whole site and deploys (CONTRIBUTING.md, "Headers, project pages, and compon
 
 Posts and About live in this repo. Everything under `/projects/` comes from two other
 repositories: the games from [bensonlabs/games](https://github.com/bensonlabs/games), and the
-Projects page, each project, Workouts and Bootstraps from
-[bensonlabs/projects](https://github.com/bensonlabs/projects). The Projects page
+Projects page, each project and Workouts from
+[bensonlabs/projects](https://github.com/bensonlabs/projects). `/bootstraps/` comes from
+[bensonlabs/bootstraps](https://github.com/bensonlabs/bootstraps), next to the scripts it runs.
+The Projects page
 ([bensonlabs.org/projects/](https://bensonlabs.org/projects/)) lists them all. 2ndPaste's and
 Tracro's support and privacy pages are App Store URLs, registered in App Store Connect: their
 addresses must never change (CONTRIBUTING.md, "Headers, project pages, and components").
@@ -48,11 +51,16 @@ Interactive browser games. The current catalogue is maintained at [bensonlabs.or
 
 Games are built and released in [bensonlabs/games](https://github.com/bensonlabs/games) and pinned here in `_data/components.json`; see CONTRIBUTING.md, "Headers, project pages, and components".
 
-### **Projects, Workouts and Bootstraps** (`/projects/`)
-Each project, the workout plans and the Bootstraps guides come from
+### **Projects and Workouts** (`/projects/`)
+Each project and the workout plans come from
 [bensonlabs/projects](https://github.com/bensonlabs/projects), and each one's card there describes
-it; the [Projects page](https://bensonlabs.org/projects/) lists them all. The old `/bootstraps/`
-address redirects to the first guide, `/projects/bootstraps/workstations/`.
+it; the [Projects page](https://bensonlabs.org/projects/) lists them all.
+
+### **Bootstraps** (`/bootstraps/`)
+Every bootstrap command on one page, typed as bensonlabs.org/bootstraps with no tiles to click
+through (Justin, 2026-11-08). It's published from
+[bensonlabs/bootstraps](https://github.com/bensonlabs/bootstraps), next to the scripts it runs. The
+old `/projects/bootstraps/` addresses redirect there.
 
 ---
 
@@ -141,7 +149,7 @@ deploy (CONTRIBUTING.md, "Headers, project pages, and components").
 ## Headers, project pages, and components
 
 The rules for the site header, project pages and the components (everything under
-/projects/, which comes from two other repositories as pinned releases) are in
+/projects/ and /bootstraps/, which come from three other repositories as pinned releases) are in
 [CONTRIBUTING.md](CONTRIBUTING.md#headers-project-pages-and-components), section
 "Headers, project pages, and components". Read it before changing layouts, project
 pages, `_data/components.json` or `.github/scripts/components.py`. Games are built in
@@ -156,7 +164,7 @@ If you want to preview the site locally before pushing:
 # Install dependencies (first time only)
 bundle install
 
-# Put the components (everything under /projects/) in place, then run the local server
+# Put the components (/projects/ and /bootstraps/) in place, then run the local server
 python3 .github/scripts/components.py assemble
 bundle exec jekyll serve
 
@@ -207,7 +215,7 @@ blog/
 │       └── header.js    # Shared-header mobile menu behavior
 ├── projects/            # Built from bensonlabs/projects (ignored by git)
 │   └── games/           # Built from bensonlabs/games (ignored by git)
-├── bootstraps/          # Redirects the old /bootstraps/ address to the first guide
+├── bootstraps/          # Built from bensonlabs/bootstraps (ignored by git)
 ├── about.md             # About page
 ├── docs/decisions/      # Why the site is built the way it is
 ├── index.html           # Blog homepage (post list)
