@@ -4,7 +4,11 @@ This blog uses **Jekyll** and is hosted on **GitHub Pages** at [bensonlabs.org](
 
 ## Publishing a New Post
 
-### Workflow Option 1: Obsidian → GitHub Web UI (Recommended)
+The quickest way is to hand the post to Claude in this repo: the `add-post` skill
+(`.claude/skills/add-post/`) writes it in `_posts/` with its front matter and pushes it, and the
+site deploys by itself. Away from a computer, the GitHub web flow below works from a phone.
+
+### Workflow Option 1: Obsidian → GitHub web UI (works from a phone)
 
 1. **Write your post in Obsidian**
    - Create a new note in your vault
@@ -129,29 +133,12 @@ Get-Process | Where-Object { $_.Name -eq "explorer" }
 
 ### Images
 ```markdown
-![Alt text](../media/image.png)
+![Alt text](/media/image.png)
 ```
 
 ## Directory Structure
 
-```
-blog/
-├── _posts/                    # Blog posts (Markdown files)
-├── _layouts/                  # HTML templates
-│   ├── base.html
-│   ├── project.html
-│   ├── default.html
-│   └── post.html
-├── assets/
-│   └── css/
-│       └── main.css
-├── media/                     # Images and other assets
-├── projects/                 # Built from bensonlabs/projects, games/ from bensonlabs/games (ignored by git)
-├── _config.yml                # Jekyll configuration
-├── CNAME                       # Custom domain (bensonlabs.org)
-├── Gemfile                     # Ruby dependencies
-└── README.md
-```
+README.md, "Project Structure", shows the repo's folders.
 
 ## Headers, project pages, and components
 
@@ -237,6 +224,11 @@ Settings → Developer settings → Personal access tokens → Fine-grained toke
 replace `BLOG_DISPATCH_TOKEN` in both repos (Settings → Secrets and variables →
 Actions).
 
+Better, when you renew it: save it as a secret of the `release` environment in each
+repo (Settings → Environments → release → Add environment secret, same name) and
+delete the repository secret. Only the publish job on `main` can use that environment,
+so no other job or branch can read the token.
+
 Games are complete standalone documents without front matter, a site header,
 copied snippets, canonical markers, or auto-hide code; their controls, layout,
 audio and storage belong to the game. How to add one: the
@@ -258,11 +250,6 @@ Validate with `python3 -m unittest discover -s .github/scripts -p 'test_*.py'`
 and, after Jekyll, `bash .github/scripts/check-nav.sh _site`. The last check is
 read-only and checks rendered normal pages; it never requires a site header
 inside a game, and it fails if a game has one.
-
-AI Trending's generator, now in the archived
-[bensonlabs/ai-trending](https://github.com/bensonlabs/ai-trending), wrote
-`latest/index.html` and dated `YYYY-MM-DD/index.html` fragments here. The root
-`projects/ai-trending/index.html` stays a redirect to `latest/`.
 
 ## Viewing Your Site Locally
 
@@ -308,7 +295,7 @@ To preview changes before publishing:
 
 ### Need to add images?
 - Upload to `media/` folder
-- Reference in post: `![description](../media/image.png)`
+- Reference in post: `![description](/media/image.png)`
 
 ### Static page not showing?
 - Everything under `/projects/` comes from bensonlabs/projects or bensonlabs/games (see

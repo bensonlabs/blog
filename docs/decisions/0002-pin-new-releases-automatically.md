@@ -1,13 +1,13 @@
 # ADR 2: Pin new component releases automatically, after the checks
 
-**Date:** 2026-11-08
+**Date:** 2026-11-07
 **Status:** accepted (changes how ADR 1's pins are updated; ADR 1 stands). ADR 4 changes how its runs deploy.
 
 ## Context
 
 With ADR 1, a new game reached the site only after a release in bensonlabs/games and a pin
 change here, each with its own PR: about eight steps. Justin wants adding a game to be
-effortless and live within minutes (2026-11-08); he is the site's only user.
+effortless and live within minutes (2026-11-07); he is the site's only user.
 
 ## Decision
 

@@ -1,7 +1,7 @@
 # ADR 1: Assemble the site's components from pinned releases
 
 **Date:** 2026-11-07
-**Status:** accepted
+**Status:** accepted; ADR 3 replaced its list of components
 
 ## Context
 

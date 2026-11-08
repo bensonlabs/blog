@@ -4,13 +4,13 @@
     Content-Security-Policy:
     - 'unsafe-inline' is required for script-src and style-src because posts can contain inline scripts
       and styles. The shared header itself uses external assets.
-    - frame-ancestors 'none' prevents clickjacking but is ignored in <meta> tags per spec;
-      it only works via an HTTP response header, which GitHub Pages does not support.
+    - No frame-ancestors: browsers ignore it in a <meta> tag (and log an error); it only works as
+      an HTTP response header, which GitHub Pages can't send.
   -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% if page.title %}{{ page.title }} | {{ site.title }}{% else %}{{ site.title }}{% endif %}</title>
-  <meta name="description" content="{% if page.excerpt %}{{ page.excerpt | strip_html | truncate: 160 }}{% else %}{{ site.description }}{% endif %}">
   <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
   <link rel="alternate" type="application/atom+xml" title="{{ site.title }}" href="{{ '/feed.xml' | relative_url }}">
-  {% seo %}
+  {%- comment -%} The title above stays as it was; jekyll-seo-tag adds the description and the social tags. {%- endcomment %}
+  {% seo title=false %}

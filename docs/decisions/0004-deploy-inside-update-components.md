@@ -5,7 +5,7 @@
 
 ## Context
 
-The site review on 2026-11-08 found three ways the automatic path could fail silently or stall:
+The site review on the night of 2026-11-07 found three ways the automatic path could fail silently or stall:
 
 - Update components committed the pin and then only *started* the deploy workflow, so its own run
   was green even when the deploy failed. The next daily run saw the pin already committed and did

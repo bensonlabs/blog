@@ -29,6 +29,20 @@ defaults:
     values:
       layout: "post"
       author: "Justin Benson"
+  # Kept out of the sitemap: redirects, and pages the site doesn't list (their card says
+  # listed: no). Defaults reach static pages too.
+  - scope:
+      path: "bootstraps/index.html"
+    values:
+      sitemap: false
+  - scope:
+      path: "projects/ai-trending/index.html"
+    values:
+      sitemap: false
+  - scope:
+      path: "projects/weight-room"
+    values:
+      sitemap: false
 
 # Exclude from build
 exclude:
