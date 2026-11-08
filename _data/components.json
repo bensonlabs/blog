@@ -1,5 +1,14 @@
 [
   {
+    "name": "projects",
+    "repo": "bensonlabs/projects",
+    "version": "v1.0.0",
+    "asset": "projects-{version}.tar.gz",
+    "sha256": "14221e87438f5436e17bfd064397ee14a3e62486e48bfc2242fa0693a37d0d93",
+    "path": "projects",
+    "wrap": "release"
+  },
+  {
     "name": "games",
     "repo": "bensonlabs/games",
     "version": "v1.0.0",
@@ -8,18 +17,6 @@
     "path": "projects/games",
     "wrap": [
       "index.html"
-    ]
-  },
-  {
-    "name": "workouts",
-    "repo": "bensonlabs/workouts",
-    "version": "v1.0.0",
-    "asset": "workouts-{version}.tar.gz",
-    "sha256": "58717d4becfb518bc16dfa87bb0c426a84189cadeed6302808bf729cbc70c6de",
-    "path": "projects/workouts",
-    "wrap": [
-      "index.html",
-      "cl/index.html"
     ]
   }
 ]

@@ -3,6 +3,7 @@
 
     python3 .github/scripts/components.py assemble             # before every Jekyll build
     python3 .github/scripts/components.py bump games v1.2.0    # pin another release
+    python3 .github/scripts/components.py update all           # pin each component's newest release
 
 A component is a part of the site that another repository owns and publishes as
 a GitHub release: one .tar.gz, pinned in _data/components.json by version and
@@ -15,7 +16,9 @@ blocks keep working.
 
 `bump` downloads a release, checks it against the release's own .sha256 file,
 checks that it unpacks cleanly and has the pages to wrap, and records its
-version and sha256.
+version and sha256. `update` bumps to a component's newest release (or a given
+one), never backwards, and leaves a commit message for the Update components
+workflow, which builds and checks the site before it commits the pin and deploys.
 """
 from __future__ import annotations
 
@@ -30,6 +33,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import os
 import time
 import urllib.error
 import urllib.request
@@ -43,6 +47,8 @@ NAME_RE = re.compile(r"[a-z0-9][a-z0-9-]*")
 REPO_RE = re.compile(r"[A-Za-z0-9-]+/[A-Za-z0-9._-]+")
 VERSION_RE = re.compile(r"v\d+\.\d+\.\d+")
 SHA256_RE = re.compile(r"[0-9a-f]{64}")
+# With "wrap": "release", the release lists the pages to wrap in this file at its root.
+WRAP_FILE = ".components-wrap.json"
 
 # The same document parts stage_workout.py read before components existed.
 DOCUMENT_PART = re.compile(
@@ -83,21 +89,22 @@ def load_manifest(path: Path = MANIFEST) -> list[dict]:
             (strings and VERSION_RE.fullmatch(entry["version"]), "version (like v1.2.0)"),
             (strings and "{version}" in entry["asset"] and "/" not in entry["asset"], "asset (a file name with {version})"),
             (strings and SHA256_RE.fullmatch(entry["sha256"]), "sha256"),
-            (isinstance(entry["wrap"], list), "wrap (a list of pages)"),
+            (isinstance(entry["wrap"], list) or entry["wrap"] == "release",
+             "wrap (a list of pages, or \"release\" to use the release's own list)"),
         ]
         for ok, field in checks:
             if not ok:
                 raise ComponentError(f"{name!r}: invalid {field}")
         paths.append(safe_relative(entry["path"]))
-        for page in entry["wrap"]:
+        for page in entry["wrap"] if isinstance(entry["wrap"], list) else []:
             safe_relative(page)
         if name in names:
             raise ComponentError(f"{name}: listed twice")
         names.add(name)
     for a in paths:
         for b in paths:
-            if a is not b and (a == b or a in b.parents):
-                raise ComponentError(f"components overlap: {a} and {b}")
+            if a is not b and a == b:
+                raise ComponentError(f"two components use the same folder: {a}")
     return entries
 
 
@@ -195,14 +202,32 @@ def wrap(page: Path) -> None:
     page.write_text("\n".join(lines) + body + "\n", encoding="utf-8", newline="\n")
 
 
+def pages_to_wrap(entry: dict, folder: Path, files: list[str]) -> list[str]:
+    """The pages to wrap: listed in the entry, or by the release itself (and that list isn't published)."""
+    if entry["wrap"] != "release":
+        return entry["wrap"]
+    if WRAP_FILE not in files:
+        raise ComponentError(f"{entry['name']} {entry['version']} has no {WRAP_FILE} listing the pages to wrap")
+    listed = json.loads((folder / WRAP_FILE).read_text(encoding="utf-8"))
+    if not isinstance(listed, list):
+        raise ComponentError(f"{WRAP_FILE} must be a list of pages")
+    for page in listed:
+        safe_relative(page)
+    (folder / WRAP_FILE).unlink()
+    return listed
+
+
 def tracked_files(root: Path, folder: Path) -> list[str]:
     result = subprocess.run(["git", "ls-files", "--", folder.relative_to(root).as_posix()],
                             cwd=root, capture_output=True, text=True)
     return result.stdout.split() if result.returncode == 0 else []
 
 
-def place(entry: dict, data: bytes, root: Path) -> list[str]:
-    """Replace the component's folder with the release, then wrap the listed pages."""
+def place(entry: dict, data: bytes, root: Path, inner: tuple[str, ...] = ()) -> list[str]:
+    """Replace the component's folder with the release, then wrap the listed pages.
+
+    `inner` are folders (relative to this one) where other components go afterwards; this
+    release may not contain anything there."""
     folder = root.joinpath(*safe_relative(entry["path"]).parts)
     tracked = tracked_files(root, folder)
     if tracked:
@@ -212,18 +237,28 @@ def place(entry: dict, data: bytes, root: Path) -> list[str]:
     if folder.exists():
         shutil.rmtree(folder)
     files = unpack(data, folder)
-    for page in entry["wrap"]:
+    clashes = [f for f in files if any(f == i or f.startswith(i + "/") for i in inner)]
+    if clashes:
+        raise ComponentError(f"{entry['name']} {entry['version']} has {clashes[0]}, inside another component's folder")
+    wrapped = pages_to_wrap(entry, folder, files)
+    for page in wrapped:
         if page not in files:
             raise ComponentError(f"{entry['name']} {entry['version']} has no {page} to wrap")
         wrap(folder.joinpath(*PurePosixPath(page).parts))
+    place.wrapped = len(wrapped)
     return files
 
 
 def assemble(root: Path = ROOT, manifest: Path = MANIFEST) -> None:
-    for entry in load_manifest(manifest):
-        files = place(entry, fetch(entry), root)
+    """Outer folders first (projects/ before projects/games/), so placing one never wipes another."""
+    entries = sorted(load_manifest(manifest), key=lambda e: len(PurePosixPath(e["path"]).parts))
+    for entry in entries:
+        own = PurePosixPath(entry["path"])
+        inner = tuple(PurePosixPath(e["path"]).relative_to(own).as_posix() for e in entries
+                      if own in PurePosixPath(e["path"]).parents)
+        files = place(entry, fetch(entry), root, inner)
         print(f"{entry['name']} {entry['version']}: {len(files)} files in /{entry['path']}/, "
-              f"{len(entry['wrap'])} wrapped in the site header")
+              f"{place.wrapped} wrapped in the site header")
 
 
 def bump(name: str, version: str, manifest: Path = MANIFEST) -> None:
@@ -242,13 +277,67 @@ def bump(name: str, version: str, manifest: Path = MANIFEST) -> None:
         raise ComponentError(f"{url}: downloaded sha256 {sha256} differs from the release's own {published}")
     with tempfile.TemporaryDirectory() as tmp:
         files = unpack(data, Path(tmp))
-    missing = [page for page in entry["wrap"] if page not in files]
+        wanted = pages_to_wrap(candidate, Path(tmp), files)
+    missing = [page for page in wanted if page not in files]
     if missing:
         raise ComponentError(f"{name} {version} has no {', '.join(missing)} to wrap")
     old = f"{entry['version']} ({entry['sha256'][:12]})"
     entry.update(version=version, sha256=sha256)
     manifest.write_text(json.dumps(entries, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
     print(f"{name}: {old} -> {version} ({sha256[:12]}), {len(files)} files. Commit {manifest.name} and open a PR.")
+
+
+def version_key(version: str) -> tuple[int, int, int]:
+    if not VERSION_RE.fullmatch(version):
+        raise ComponentError(f"version must look like v1.2.0, not {version!r}")
+    major, minor, patch = (int(part) for part in version[1:].split("."))
+    return major, minor, patch
+
+
+def latest_version(repo: str) -> str:
+    """The tag of the repo's newest release, from GitHub's API (with a token when one is set)."""
+    request = urllib.request.Request(f"https://api.github.com/repos/{repo}/releases/latest",
+                                     headers={"Accept": "application/vnd.github+json"})
+    token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
+    if token:
+        request.add_header("Authorization", f"Bearer {token}")
+    try:
+        with urllib.request.urlopen(request, timeout=60) as response:
+            return json.load(response)["tag_name"]
+    except (OSError, KeyError, ValueError) as error:
+        raise ComponentError(f"could not read the newest release of {repo}: {error}") from error
+
+
+def update(name: str, version: str = "latest", manifest: Path = MANIFEST) -> list[str]:
+    """Pin the newest release of one component (or all), or a given version; never backwards.
+
+    Returns what changed, and leaves a commit message in .components-cache/ when something did."""
+    entries = load_manifest(manifest)
+    if name == "all" and version != "latest":
+        raise ComponentError("a specific version needs one component's name, not all")
+    targets = entries if name == "all" else [e for e in entries if e["name"] == name]
+    if not targets:
+        raise ComponentError(f"no component named {name!r} in {manifest.name}")
+    changes = []
+    for entry in targets:
+        current = entry["version"]
+        wanted = latest_version(entry["repo"]) if version == "latest" else version
+        if version_key(wanted) == version_key(current):
+            print(f"{entry['name']}: {current} is already pinned.")
+            continue
+        if version_key(wanted) < version_key(current):
+            print(f"{entry['name']}: {wanted} is older than the pinned {current}; left alone.")
+            continue
+        bump(entry["name"], wanted, manifest)
+        changes.append(f"{entry['name']} {current} -> {wanted}")
+    if changes:
+        CACHE.mkdir(exist_ok=True)
+        names = ", ".join(change.split(" -> ")[0].split(" ")[0] + " " + change.split(" -> ")[1] for change in changes)
+        (CACHE / "commit-message.txt").write_text(
+            f"Pin {names}\n\n" + "\n".join(changes) + "\n\n"
+            "Pinned by the Update components workflow after the site built and passed its checks.\n",
+            encoding="utf-8", newline="\n")
+    return changes
 
 
 def main() -> None:
@@ -258,10 +347,15 @@ def main() -> None:
     bump_parser = commands.add_parser("bump", help="pin another release of a component")
     bump_parser.add_argument("name")
     bump_parser.add_argument("version")
+    update_parser = commands.add_parser("update", help="pin the newest (or a given) release; never backwards")
+    update_parser.add_argument("name", help="a component's name, or all")
+    update_parser.add_argument("version", nargs="?", default="latest")
     args = parser.parse_args()
     try:
         if args.command == "assemble":
             assemble()
+        elif args.command == "update":
+            update(args.name, args.version)
         else:
             bump(args.name, args.version)
     except ComponentError as error:

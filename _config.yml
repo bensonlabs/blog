@@ -40,7 +40,4 @@ exclude:
   - vendor/bundle/
   - node_modules/
   - CONTRIBUTING.md
-  - projects/README.md
-  - projects/gravitas/README.md
-  - projects/to-do-app/README.md
   - docs/

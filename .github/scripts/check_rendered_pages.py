@@ -49,7 +49,8 @@ def check(site):
     errors = []; checked = 0; reference = None
     required = ['index.html', 'projects/index.html', 'projects/games/index.html',
                 'projects/workouts/index.html', 'projects/focus-lab/index.html',
-                'projects/gravitas/index.html', 'projects/ai-trending/latest/index.html']
+                'projects/gravitas/index.html', 'projects/ai-trending/latest/index.html',
+                'projects/workouts/justin/index.html', 'projects/bootstraps/index.html']
     for path in required:
         if not (site / path).is_file(): errors.append(f'missing rendered page: {path}')
     for path in sorted(site.rglob('*.html')):

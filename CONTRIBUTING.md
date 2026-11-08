@@ -146,8 +146,7 @@ blog/
 │   └── css/
 │       └── main.css
 ├── media/                     # Images and other assets
-├── projects/games/            # Component from bensonlabs/games (ignored by git)
-├── projects/workouts/         # Component from bensonlabs/workouts (ignored by git)
+├── projects/                 # From bensonlabs/projects at build time (ignored by git)
 ├── _config.yml                # Jekyll configuration
 ├── CNAME                       # Custom domain (bensonlabs.org)
 ├── Gemfile                     # Ruby dependencies
@@ -167,15 +166,14 @@ the YAML `head: |` literal (metadata, CSP, fonts, styles, scripts), and any body
 attributes in `body_attributes`. The project layout adds no content-width wrapper.
 Never put a complete HTML document inside a layout.
 
-### Components: games and workouts
+### Components: everything under /projects/
 
-Two parts of the site come from their own repositories, as releases pinned by
-version and sha256 in `_data/components.json`:
-
-| Path | Repository | Pages wrapped in the site header |
-|---|---|---|
-| `/projects/games/` | [bensonlabs/games](https://github.com/bensonlabs/games) | `index.html` (the catalogue) |
-| `/projects/workouts/` | [bensonlabs/workouts](https://github.com/bensonlabs/workouts) | `index.html` and `cl/index.html` |
+Everything under `/projects/` (the Projects page, Games, Workouts, Bootstraps and
+each project) comes from [bensonlabs/projects](https://github.com/bensonlabs/projects),
+as a release pinned by version and sha256 in `_data/components.json`. The release
+itself lists the pages to wrap in the site header (`"wrap": "release"`), so a new
+page there needs no change here. Posts and About stay in this repo; add a post with
+the `add-post` skill (`.claude/skills/add-post/`).
 
 `python3 .github/scripts/components.py assemble` puts them in place before every
 Jekyll build; the PR check, the deploy and local previews all run it. It
@@ -185,17 +183,21 @@ head, title, language and body attributes. Those folders are ignored by git:
 never edit them here; change the component's own repository. A wrapped page's
 body still goes through Liquid, so the workout plans' `{% raw %}` blocks keep working.
 
-To publish a new version of a component, tag it in its repository (the release
-workflow there publishes the file and its sha256), then run
-`python3 .github/scripts/components.py bump <name> <version>` here and open a PR.
-`bump` checks the download against the release's own sha256, checks that it
-unpacks cleanly and has the pages to wrap, and records the new version. Why it
-works this way: `docs/decisions/0001-assemble-components-from-pinned-releases.md`.
+New releases are pinned by the **Update components** workflow
+(`.github/workflows/update-components.yml`). The games repo starts it right after
+each release; it also runs daily, and by hand from the Actions tab for any
+component. It runs `components.py update` (the newest release, never backwards),
+builds the whole site with it and runs the page checks; only if they pass does it
+commit the pin and start the deploy. A failed run leaves the site on the previous
+release. By hand: `python3 .github/scripts/components.py bump <name> <version>`
+and a PR. `bump` checks the download against the release's own sha256, checks
+that it unpacks cleanly and has the pages to wrap, and records the new version.
+Why it works this way: `docs/decisions/0001` and `0002`.
 
 Games are complete standalone documents without front matter, a site header,
 copied snippets, canonical markers, or auto-hide code; their controls, layout,
 audio and storage belong to the game. How to add one: the
-[bensonlabs/games](https://github.com/bensonlabs/games) README.
+[bensonlabs/projects](https://github.com/bensonlabs/projects) README (its add skill).
 
 Validate with `python3 -m unittest discover -s .github/scripts -p 'test_*.py'`
 and, after Jekyll, `bash .github/scripts/check-nav.sh _site`. The last check is
