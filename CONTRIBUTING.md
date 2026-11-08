@@ -146,15 +146,15 @@ blog/
 │   └── css/
 │       └── main.css
 ├── media/                     # Images and other assets
-├── projects/workouts/         # Layout-backed project fragment
-│   └── index.html
+├── projects/games/            # Component from bensonlabs/games (ignored by git)
+├── projects/workouts/         # Component from bensonlabs/workouts (ignored by git)
 ├── _config.yml                # Jekyll configuration
 ├── CNAME                       # Custom domain (bensonlabs.org)
 ├── Gemfile                     # Ruby dependencies
 └── README.md
 ```
 
-## Headers, project pages, and standalone games
+## Headers, project pages, and components
 
 `_includes/nav.html` is the only site-header markup source; `_data/navigation.yml`
 is the only source of its links. Header styling and behavior live in
@@ -165,35 +165,47 @@ Normal project pages use `layout: project` (which inherits `base`) and contain
 only body content after front matter. Preserve their original head elements in
 the YAML `head: |` literal (metadata, CSP, fonts, styles, scripts), and any body
 attributes in `body_attributes`. The project layout adds no content-width wrapper.
-Never put a complete HTML document inside a layout. Keep Workouts' Liquid raw
-blocks and JavaScript template placeholders intact.
+Never put a complete HTML document inside a layout.
 
-Games at `projects/games/<slug>/` are complete standalone documents without front
-matter, a site header, copied snippets, canonical markers, or auto-hide code.
-Their controls, body layout, fullscreen, audio, and storage belong to the game;
-no corner needs to be reserved for a site menu. Game-owned navigation and an
-optional back-to-games link are fine. Choose CSP for the game's own assets.
+### Components: games and workouts
 
-Run `python3 .github/scripts/build_games_registry.py` **before** Jekyll. It validates
-authored metadata and creates ignored `_data/games.json`; the catalogue fragment
-reads that data without changing its presentation. Neither the generator nor CI
-edits game files or commits generated catalogue data. The Pages job generates
-this data in the same build that renders and uploads the site.
+Two parts of the site come from their own repositories, as releases pinned by
+version and sha256 in `_data/components.json`:
 
-See `.github/scripts/GAME_METADATA.md` for metadata precedence and fallbacks.
-For Dungeon Crawler, edit `game.json` for the catalogue and `index.source.html`
-for the Vite shell; keep the existing Vite input, base path, and hashed assets.
-Its unrelated `metadata.json` is not catalogue input. After `npm ci && npm run build`
-in its directory, copy `dist/assets` to `assets` and `dist/index.source.html` to
-`index.html`, without injecting anything. Treat `index.html` as generated output.
+| Path | Repository | Pages wrapped in the site header |
+|---|---|---|
+| `/projects/games/` | [bensonlabs/games](https://github.com/bensonlabs/games) | `index.html` (the catalogue) |
+| `/projects/workouts/` | [bensonlabs/workouts](https://github.com/bensonlabs/workouts) | `index.html` and `cl/index.html` |
 
-Validate with `python3 -m unittest discover -s .github/scripts -p 'test_*.py'`,
-`python3 .github/scripts/check_dungeon_build.py`, and, after Jekyll,
-`bash .github/scripts/check-nav.sh _site`. The last check is read-only and checks
-rendered normal pages; it never requires a site header inside a game.
+`python3 .github/scripts/components.py assemble` puts them in place before every
+Jekyll build; the PR check, the deploy and local previews all run it. It
+downloads each pinned release, refuses it if the sha256 doesn't match, unpacks it
+into its folder, and wraps the listed pages in `layout: project`, keeping their
+head, title, language and body attributes. Those folders are ignored by git:
+never edit them here; change the component's own repository. A wrapped page's
+body still goes through Liquid, so the workout plans' `{% raw %}` blocks keep working.
 
-AI Trending's generator writes `latest/index.html` and a dated `YYYY-MM-DD/index.html`
-fragment. The root `projects/ai-trending/index.html` stays a redirect to `latest/`.
+To publish a new version of a component, tag it in its repository (the release
+workflow there publishes the file and its sha256), then run
+`python3 .github/scripts/components.py bump <name> <version>` here and open a PR.
+`bump` checks the download against the release's own sha256, checks that it
+unpacks cleanly and has the pages to wrap, and records the new version. Why it
+works this way: `docs/decisions/0001-assemble-components-from-pinned-releases.md`.
+
+Games are complete standalone documents without front matter, a site header,
+copied snippets, canonical markers, or auto-hide code; their controls, layout,
+audio and storage belong to the game. How to add one: the
+[bensonlabs/games](https://github.com/bensonlabs/games) README.
+
+Validate with `python3 -m unittest discover -s .github/scripts -p 'test_*.py'`
+and, after Jekyll, `bash .github/scripts/check-nav.sh _site`. The last check is
+read-only and checks rendered normal pages; it never requires a site header
+inside a game, and it fails if a game has one.
+
+AI Trending's generator, now in the archived
+[bensonlabs/ai-trending](https://github.com/bensonlabs/ai-trending), wrote
+`latest/index.html` and dated `YYYY-MM-DD/index.html` fragments here. The root
+`projects/ai-trending/index.html` stays a redirect to `latest/`.
 
 ## Viewing Your Site Locally
 
@@ -212,7 +224,7 @@ To preview changes before publishing:
 
 3. Start local server:
    ```bash
-   python3 .github/scripts/build_games_registry.py
+   python3 .github/scripts/components.py assemble
    bundle exec jekyll serve
    ```
 
@@ -235,7 +247,8 @@ To preview changes before publishing:
 - Reference in post: `![description](../media/image.png)`
 
 ### Static page not showing?
-- Standalone games have no front matter; normal project fragments use `layout: project`
+- Normal project fragments use `layout: project`; games and workouts come from their own
+  repositories (see "Headers, project pages, and components")
 - Check the file path matches the URL structure
 - Rebuild with `bundle exec jekyll serve` locally
 

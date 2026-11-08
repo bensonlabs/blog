@@ -10,34 +10,11 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
-      # Same as jekyll.yml: the workout pages live in bensonlabs/workouts, and the
-      # header links to them, so the rendered-pages check needs them staged too.
-      - name: Checkout public workout source
-        uses: actions/checkout@v7
-        with:
-          repository: bensonlabs/workouts
-          ref: main
-          path: .workouts-source
-      - name: Stage workout pages
-        run: |
-          python3 .github/scripts/stage_workout.py .workouts-source/justin/index.html projects/workouts/index.html
-          python3 .github/scripts/stage_workout.py .workouts-source/cl/index.html projects/workouts/cl/index.html
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: projects/games/dungeon-crawler/package-lock.json
-      - name: Build Dungeon Crawler without injection
-        working-directory: projects/games/dungeon-crawler
-        run: |
-          npm ci
-          npm run build
-          rm -rf assets
-          cp -r dist/assets assets
-          cp dist/index.source.html index.html
-      - run: python3 .github/scripts/check_dungeon_build.py
-      - name: Generate catalogue for this Jekyll build
-        run: python3 .github/scripts/build_games_registry.py
+      - name: Test the site scripts
+        run: python3 -m unittest discover -s .github/scripts -p 'test_*.py'
+      # Same assembly as the deploy (jekyll.yml): the pinned games and workouts releases.
+      - name: Put the components in place (games, workouts)
+        run: python3 .github/scripts/components.py assemble
       - uses: actions/jekyll-build-pages@v1
         with:
           source: ./

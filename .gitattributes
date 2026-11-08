@@ -1,0 +1,8 @@
+# Text files are stored and checked out with LF line endings on every machine
+# (this matters on Windows, where git otherwise checks out CRLF).
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.webp binary
