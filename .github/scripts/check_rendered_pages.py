@@ -76,7 +76,7 @@ def check(site):
     # The home page and the site menu's targets. Other project pages come and go with their
     # component's releases; the menu and redirect checks below catch any that the site still needs.
     required = ['index.html', 'projects/index.html', 'projects/games/index.html',
-                'projects/workouts/index.html', 'projects/bootstraps/index.html']
+                'projects/workouts/index.html', 'bootstraps/index.html']
     for path in required:
         if not (site / path).is_file(): errors.append(f'missing rendered page: {path}')
     for path in APP_STORE_PAGES:

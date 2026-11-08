@@ -32,7 +32,7 @@ defaults:
   # Kept out of the sitemap: redirects, and pages the site doesn't list (their card says
   # listed: no). Defaults reach static pages too.
   - scope:
-      path: "bootstraps/index.html"
+      path: "projects/bootstraps"
     values:
       sitemap: false
   - scope:

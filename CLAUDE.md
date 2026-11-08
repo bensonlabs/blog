@@ -173,10 +173,11 @@ Doc (where each convention came from): `conventions.md`.
 
 - What it owns: bensonlabs.org itself. The blog posts, About, the site header and layouts, and the
   build and deploy of the whole site (GitHub Pages, from `master`). Everything under `/projects/`
-  comes from bensonlabs/projects and bensonlabs/games as pinned releases ("components"); this repo
-  assembles them and never edits them (CONTRIBUTING.md, "Headers, project pages, and components").
+  comes from bensonlabs/projects and bensonlabs/games, and `/bootstraps/` from bensonlabs/bootstraps,
+  as pinned releases ("components"); this repo assembles them and never edits them
+  (CONTRIBUTING.md, "Headers, project pages, and components").
 - Lifecycle stage (experiment, project, maintained, product, archived): maintained. A personal
-  site with one user, Justin; the hub that deploys the whole site since 2026-11-07 (ADRs 1 to 4).
+  site with one user, Justin; the hub that deploys the whole site since 2026-11-07 (ADRs 1 to 5).
 
 ### Core rules not used here
 
@@ -192,7 +193,7 @@ Listed 2026-11-08 (Justin's choice of how rules fit a project; architectureOS AD
 | When | Do |
 |---|---|
 | Adding, changing or removing a post | Use the `add-post` skill; it pushes straight to `master` and the site deploys by itself (owner decision, 2026-11-07). |
-| Anything under `/projects/` (a game, a project, a workout plan, a guide) | Change it in bensonlabs/games or bensonlabs/projects, never here: those folders are assembled from pinned releases and ignored by git. |
+| Anything under `/projects/` (a game, a project, a workout plan) or the Bootstraps page | Change it in bensonlabs/games, bensonlabs/projects or bensonlabs/bootstraps (`site/index.md`), never here: those folders are assembled from pinned releases and ignored by git. |
 | 2ndPaste's and Tracro's support and privacy pages | Their URLs are registered in App Store Connect: `/projects/2ndPaste/`, `/projects/2ndPaste/privacy.html`, `/projects/tracro/`, `/projects/tracro/privacy.html`. Never move, rename or drop them; the page check refuses a release without them. |
 | The site header | `_includes/nav.html` is its only markup and `_data/navigation.yml` its only list of links; the page check requires the same links on every normal page. |
 | The pipeline (`.github/workflows/`, `.github/scripts/`) | A PR, checked by the "Rendered pages" workflow (page check and actionlint); merge when green (owner decision, 2026-11-08). Keep one deploy definition, `jekyll.yml` (ADR 4). |
