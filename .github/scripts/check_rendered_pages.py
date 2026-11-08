@@ -13,6 +13,11 @@ STANDALONE_STATIC_DIRS = {
     ('projects', 'tracro'),
 }
 
+# 2ndPaste's and Tracro's support and privacy pages: their URLs are registered in App Store
+# Connect, so every release must keep them at exactly these paths (the case counts).
+APP_STORE_PAGES = ('projects/2ndPaste/index.html', 'projects/2ndPaste/privacy.html',
+                   'projects/tracro/index.html', 'projects/tracro/privacy.html')
+
 class Page(HTMLParser):
     def __init__(self, text):
         super().__init__(convert_charrefs=True)
@@ -53,6 +58,9 @@ def check(site):
                 'projects/workouts/justin/index.html', 'projects/bootstraps/index.html']
     for path in required:
         if not (site / path).is_file(): errors.append(f'missing rendered page: {path}')
+    for path in APP_STORE_PAGES:
+        if not (site / path).is_file():
+            errors.append(f'missing App Store page: {path} (its URL is registered in App Store Connect)')
     for path in sorted(site.rglob('*.html')):
         rel = path.relative_to(site); parts = rel.parts
         if 'old' in parts: continue

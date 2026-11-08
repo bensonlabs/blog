@@ -26,7 +26,7 @@ jobs:
       - name: Test the site scripts
         run: python3 -m unittest discover -s .github/scripts -p 'test_*.py'
 
-      - name: Put the components in place (games, workouts)
+      - name: Put the components in place (games, projects)
         run: python3 .github/scripts/components.py assemble
 
       - name: Setup Pages
