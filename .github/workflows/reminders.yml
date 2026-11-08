@@ -1,0 +1,21 @@
+# architectureOS: runs the push reminder over each pull request's commits, so work pushed from a clone
+# without the git hook, or edited in GitHub's web editor, gets the same reminders. Each reminder shows
+# as a warning on the PR; the check never fails. Don't want it? Delete this file; sync leaves it out.
+name: Reminders
+on:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  reminders:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Push reminder (warnings only)
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: node .claude/hooks/push-reminder.mjs --base "origin/$BASE_REF"

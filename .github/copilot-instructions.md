@@ -1,6 +1,7 @@
 # Copilot / agent instructions for bensonlabs/blog
 
 This is a GitHub Pages Jekyll site in safe mode. Do not add unsupported plugins.
+The rules for agents working in this repo are in [CLAUDE.md](../CLAUDE.md).
 The project and game cards come from bensonlabs/projects and bensonlabs/games, not this repo.
 
 ## Headers, project pages, and components

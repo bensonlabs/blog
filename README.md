@@ -214,6 +214,7 @@ blog/
 ├── CNAME                # Custom domain (bensonlabs.org)
 ├── robots.txt           # Search engine instructions
 ├── README.md            # This file
+├── CLAUDE.md            # Rules for AI agents working here (architectureOS)
 └── .github/
   ├── scripts/         # Component assembly, page checks and their tests
   └── workflows/       # Deploy, the PR check, and Update components (pins new releases)
