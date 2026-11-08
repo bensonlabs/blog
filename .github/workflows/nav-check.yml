@@ -10,6 +10,18 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
+      # Same as jekyll.yml: the workout pages live in bensonlabs/workouts, and the
+      # header links to them, so the rendered-pages check needs them staged too.
+      - name: Checkout public workout source
+        uses: actions/checkout@v7
+        with:
+          repository: bensonlabs/workouts
+          ref: main
+          path: .workouts-source
+      - name: Stage workout pages
+        run: |
+          python3 .github/scripts/stage_workout.py .workouts-source/justin/index.html projects/workouts/index.html
+          python3 .github/scripts/stage_workout.py .workouts-source/cl/index.html projects/workouts/cl/index.html
       - uses: actions/setup-node@v7
         with:
           node-version: 22
