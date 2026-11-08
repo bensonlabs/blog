@@ -6,18 +6,17 @@ Built with [Jekyll](https://jekyllrb.com) and hosted on [GitHub Pages](https://p
 
 ---
 
-## Copilot Prompt — Sync New Content
+## Adding Content
 
-After adding a new project to the repo, paste this into GitHub Copilot to keep the docs in sync (games live in [bensonlabs/projects](https://github.com/bensonlabs/projects)):
+| To add | Where | How |
+|---|---|---|
+| A blog post | this repo, `_posts/` | the `add-post` skill (`.claude/skills/add-post/`), or by hand: "Adding a New Blog Post" below |
+| A game | [bensonlabs/games](https://github.com/bensonlabs/games) | its `add-game` skill |
+| A project, workout plan or Bootstraps guide | [bensonlabs/projects](https://github.com/bensonlabs/projects) | its `add` skill |
 
-```
-I've added new content to this repo. Check the `projects/` folder for any
-projects that aren't already reflected in the site docs, and update the Site
-Sections and Project Structure in README.md to reflect everything that now
-exists. Games and workouts are components from their own repositories; don't
-add them here.
-When done, commit the changes and open a pull request.
-```
+A push to either of those repositories that changes what the site shows goes live by itself:
+the repository publishes a release, and this repo's Update components workflow pins it, checks
+the whole site and deploys (CONTRIBUTING.md, "Headers, project pages, and components").
 
 ---
 
@@ -33,13 +32,21 @@ When done, commit the changes and open a pull request.
 
 ## Site Sections
 
+Posts and About live in this repo. Everything under `/projects/` comes from two other
+repositories: the games from [bensonlabs/games](https://github.com/bensonlabs/games), and the
+Projects page, each project, Workouts and Bootstraps from
+[bensonlabs/projects](https://github.com/bensonlabs/projects). The Projects page
+([bensonlabs.org/projects/](https://bensonlabs.org/projects/)) lists them all. 2ndPaste's and
+Tracro's support and privacy pages are App Store URLs, registered in App Store Connect: their
+addresses must never change (CONTRIBUTING.md, "Headers, project pages, and components").
+
 ### **Blog** (`/`)
 Technical troubleshooting and notes on Windows, PowerShell, networking, security, and more.
 
 ### **Games** (`/projects/games/`)
 Interactive browser games. The current catalogue is maintained at [bensonlabs.org/projects/games/](https://bensonlabs.org/projects/games/).
 
-Games are built and released in [bensonlabs/projects](https://github.com/bensonlabs/projects) and pinned here in `_data/components.json`; see CONTRIBUTING.md, "Headers, project pages, and components".
+Games are built and released in [bensonlabs/games](https://github.com/bensonlabs/games) and pinned here in `_data/components.json`; see CONTRIBUTING.md, "Headers, project pages, and components".
 
 ### **Focus Lab** (`/projects/focus-lab/`)
 Premium productivity dashboard with Pomodoro timer, focus tasks, synthesized ambient sounds, and weekly metrics.
@@ -57,9 +64,12 @@ Full-stack todo app backed by Neon Postgres. Source: [bensonlabs/database-demo](
 Owner-only work context tracker for resuming interrupted work. Phase 1 is deployed and smoke-tested at [context-console.onrender.com](https://context-console.onrender.com), backed by Supabase project `buvlsrccvrnnbxtwiozn`. Source: [bensonlabs/context-console](https://github.com/bensonlabs/context-console).
 
 ### **Workouts** (`/projects/workouts/`)
-Justin’s 12-week mesocycle strength-training plan with phase-based strength progressions, Olympic-lifting skill work, MetCon conditioning, accessory volume, and a mobile-friendly day-by-day interface.
+Workout plans, each on its own page. Justin’s is a 12-week mesocycle strength-training plan with phase-based strength progressions, Olympic-lifting skill work, MetCon conditioning, accessory volume, and a mobile-friendly day-by-day interface.
 
-The canonical source lives in [bensonlabs/projects](https://github.com/bensonlabs/projects), not this repository; it's published here as a pinned release (see CONTRIBUTING.md, "Headers, project pages, and components"). Justin's plan is at [bensonlabs.org/projects/workouts/](https://bensonlabs.org/projects/workouts/), and the separate [CL · 12-Week Strength Restart](https://bensonlabs.org/projects/workouts/cl/) at `/projects/workouts/cl/`.
+The canonical source lives in [bensonlabs/projects](https://github.com/bensonlabs/projects), not this repository; it's published here as a pinned release (see CONTRIBUTING.md, "Headers, project pages, and components"). The Workouts page lists the plans: Justin's at [bensonlabs.org/projects/workouts/justin/](https://bensonlabs.org/projects/workouts/justin/), and the separate [CL · 12-Week Strength Restart](https://bensonlabs.org/projects/workouts/cl/) at `/projects/workouts/cl/`.
+
+### **Bootstraps** (`/projects/bootstraps/`)
+Guides for rebuilding a workstation from a clean install: Windows, macOS, Fedora, Ubuntu and WSL. The old `/bootstraps/` address redirects to the first guide, `/projects/bootstraps/workstations/`.
 
 ---
 
@@ -138,19 +148,21 @@ Pushing to `master` triggers the **Deploy Jekyll to GitHub Pages** workflow. If 
 
 ## Adding a New Game
 
-Games are built and released in [bensonlabs/projects](https://github.com/bensonlabs/projects);
-its README explains how to add one. Publishing a new release here is one command; see
-CONTRIBUTING.md, "Headers, project pages, and components".
+Games are built and released in [bensonlabs/games](https://github.com/bensonlabs/games); its
+README and its `add-game` skill explain how to add one. A new release goes live by itself: the
+games repo asks this repo's Update components workflow to pin it, check the whole site and
+deploy (CONTRIBUTING.md, "Headers, project pages, and components").
 
 ---
 
 ## Headers, project pages, and components
 
-The rules for the site header, project pages and the components (the games and
-workouts, which come from their own repositories as pinned releases) are in
+The rules for the site header, project pages and the components (everything under
+/projects/, which comes from two other repositories as pinned releases) are in
 [CONTRIBUTING.md](CONTRIBUTING.md#headers-project-pages-and-components), section
 "Headers, project pages, and components". Read it before changing layouts, project
 pages, `_data/components.json` or `.github/scripts/components.py`. Games are built in
+[bensonlabs/games](https://github.com/bensonlabs/games) and the rest of /projects/ in
 [bensonlabs/projects](https://github.com/bensonlabs/projects), never here.
 
 ## Local Development (Optional)
@@ -161,7 +173,7 @@ If you want to preview the site locally before pushing:
 # Install dependencies (first time only)
 bundle install
 
-# Put the games and workouts in place, then run the local server
+# Put the components (everything under /projects/) in place, then run the local server
 python3 .github/scripts/components.py assemble
 bundle exec jekyll serve
 
@@ -193,7 +205,7 @@ blog/
 ├── _config.yml          # Jekyll configuration
 ├── _data/
 │   ├── navigation.yml   # Shared-header links
-│   └── components.json  # Releases of the games and workouts this site pins
+│   └── components.json  # The projects and games releases this site pins
 ├── _includes/
 │   ├── nav.html         # Sole shared-header markup source
 │   └── blog-head.html   # Default blog head elements
@@ -210,15 +222,9 @@ blog/
 │   │   └── header.css   # Shared-header styles
 │   └── js/
 │       └── header.js    # Shared-header mobile menu behavior
-├── projects/
-│   ├── index.html       # Projects hub page
-│   ├── games/           # From bensonlabs/projects (ignored by git)
-│   ├── ai-trending/     # AI/ML trending repositories dashboard
-│   ├── focus-lab/       # Productivity dashboard
-│   ├── gravitas/        # N-body gravity simulator
-│   ├── to-do-app/       # Neon Postgres todo app
-│   ├── context-console/  # Owner-only work context tracker
-│   └── workouts/        # From bensonlabs/projects (ignored by git)
+├── projects/            # Built from bensonlabs/projects (ignored by git)
+│   └── games/           # Built from bensonlabs/games (ignored by git)
+├── bootstraps/          # Redirects the old /bootstraps/ address to the first guide
 ├── about.md             # About page
 ├── docs/decisions/      # Why the site is built the way it is
 ├── index.html           # Blog homepage (post list)
@@ -227,7 +233,7 @@ blog/
 ├── README.md            # This file
 └── .github/
   ├── scripts/         # Component assembly, page checks and their tests
-  └── workflows/       # Pages deployment and the PR check
+  └── workflows/       # Deploy, the PR check, and Update components (pins new releases)
 ```
 
 ---

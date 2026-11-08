@@ -12,8 +12,8 @@ jobs:
       - uses: actions/checkout@v7
       - name: Test the site scripts
         run: python3 -m unittest discover -s .github/scripts -p 'test_*.py'
-      # Same assembly as the deploy (jekyll.yml): the pinned games and workouts releases.
-      - name: Put the components in place (games, workouts)
+      # Same assembly as the deploy (jekyll.yml): the pinned games and projects releases.
+      - name: Put the components in place (games, projects)
         run: python3 .github/scripts/components.py assemble
       - uses: actions/jekyll-build-pages@v1
         with:

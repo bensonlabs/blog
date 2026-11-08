@@ -1,6 +1,6 @@
 ---
 name: add-post
-description: Add a blog post to bensonlabs.org in one step - write it as Markdown in _posts/ with its front matter and push; the site deploys by itself. Use whenever Justin hands over a post (text, notes, a draft or an HTML page) or asks to publish, change or remove one. Games, projects, workouts and bootstrap guides are not posts - they go in bensonlabs/projects (its add skill).
+description: Add a blog post to bensonlabs.org in one step - write it as Markdown in _posts/ with its front matter and push; the site deploys by itself. Use whenever Justin hands over a post (text, notes, a draft or an HTML page) or asks to publish, change or remove one. Games, projects, workouts and bootstrap guides are not posts - games go in bensonlabs/games (its add-game skill), the rest in bensonlabs/projects (its add skill).
 ---
 
 # Add a post

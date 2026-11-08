@@ -1,13 +1,13 @@
 name: Update components
 # Pins a component's new release and deploys, after the whole site builds and passes its checks.
-# The games repo's Release workflow starts it right after publishing (gh workflow run, with its
-# BLOG_DISPATCH_TOKEN). It also runs daily, so a release whose request didn't arrive still goes
-# live, and by hand from the Actions tab ("Run workflow") for any component.
+# The games and projects repos' Release workflows start it right after publishing (gh workflow
+# run, with their BLOG_DISPATCH_TOKEN). It also runs daily, so a release whose request didn't
+# arrive still goes live, and by hand from the Actions tab ("Run workflow") for any component.
 on:
   workflow_dispatch:
     inputs:
       component:
-        description: "Component to update (games, workouts), or all"
+        description: "Component to update (games, projects), or all"
         default: all
       version:
         description: "Version to pin, or latest"

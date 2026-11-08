@@ -146,7 +146,7 @@ blog/
 │   └── css/
 │       └── main.css
 ├── media/                     # Images and other assets
-├── projects/                 # From bensonlabs/projects at build time (ignored by git)
+├── projects/                 # Built from bensonlabs/projects, games/ from bensonlabs/games (ignored by git)
 ├── _config.yml                # Jekyll configuration
 ├── CNAME                       # Custom domain (bensonlabs.org)
 ├── Gemfile                     # Ruby dependencies
@@ -168,12 +168,20 @@ Never put a complete HTML document inside a layout.
 
 ### Components: everything under /projects/
 
-Everything under `/projects/` (the Projects page, Games, Workouts, Bootstraps and
-each project) comes from [bensonlabs/projects](https://github.com/bensonlabs/projects),
-as a release pinned by version and sha256 in `_data/components.json`. The release
-itself lists the pages to wrap in the site header (`"wrap": "release"`), so a new
-page there needs no change here. Posts and About stay in this repo; add a post with
-the `add-post` skill (`.claude/skills/add-post/`).
+Everything under `/projects/` comes from two other repositories, each as a release
+pinned by version and sha256 in `_data/components.json`:
+
+| Component | Repository | Folder | Holds |
+|---|---|---|---|
+| `projects` | [bensonlabs/projects](https://github.com/bensonlabs/projects) | `projects/` | the Projects page, each project, Workouts and Bootstraps |
+| `games` | [bensonlabs/games](https://github.com/bensonlabs/games) | `projects/games/` | the games and their catalogue |
+
+The games folder sits inside the projects folder: `assemble` places the outer
+component first, and a projects release may not contain anything under `games/`.
+The projects release lists the pages to wrap in the site header itself
+(`"wrap": "release"`), so a new page there needs no change here; the games
+component wraps only its catalogue (`"wrap": ["index.html"]`). Posts and About stay
+in this repo; add a post with the `add-post` skill (`.claude/skills/add-post/`).
 
 `python3 .github/scripts/components.py assemble` puts them in place before every
 Jekyll build; the PR check, the deploy and local previews all run it. It
@@ -184,20 +192,29 @@ never edit them here; change the component's own repository. A wrapped page's
 body still goes through Liquid, so the workout plans' `{% raw %}` blocks keep working.
 
 New releases are pinned by the **Update components** workflow
-(`.github/workflows/update-components.yml`). The games repo starts it right after
-each release; it also runs daily, and by hand from the Actions tab for any
-component. It runs `components.py update` (the newest release, never backwards),
+(`.github/workflows/update-components.yml`). The games and projects repos start it
+right after each release (their Release workflows, with a `BLOG_DISPATCH_TOKEN`
+secret); it also runs daily, and by hand from the Actions tab for any component.
+It runs `components.py update` (the newest release, never backwards),
 builds the whole site with it and runs the page checks; only if they pass does it
 commit the pin and start the deploy. A failed run leaves the site on the previous
 release. By hand: `python3 .github/scripts/components.py bump <name> <version>`
 and a PR. `bump` checks the download against the release's own sha256, checks
 that it unpacks cleanly and has the pages to wrap, and records the new version.
-Why it works this way: `docs/decisions/0001` and `0002`.
+Why it works this way: `docs/decisions/0001` to `0003`.
 
 Games are complete standalone documents without front matter, a site header,
 copied snippets, canonical markers, or auto-hide code; their controls, layout,
 audio and storage belong to the game. How to add one: the
-[bensonlabs/projects](https://github.com/bensonlabs/projects) README (its add skill).
+[bensonlabs/games](https://github.com/bensonlabs/games) README (its `add-game` skill);
+for a project, workout plan or Bootstraps guide, the
+[bensonlabs/projects](https://github.com/bensonlabs/projects) README (its `add` skill).
+
+Four pages are App Store URLs, registered in App Store Connect as 2ndPaste's and
+Tracro's support and privacy pages: `/projects/2ndPaste/`, `/projects/2ndPaste/privacy.html`,
+`/projects/tracro/` and `/projects/tracro/privacy.html` (the case counts). The page
+check requires all four (`APP_STORE_PAGES` in `check_rendered_pages.py`), so a release
+that moves, renames or drops one never deploys and the site keeps the previous release.
 
 Validate with `python3 -m unittest discover -s .github/scripts -p 'test_*.py'`
 and, after Jekyll, `bash .github/scripts/check-nav.sh _site`. The last check is
@@ -249,8 +266,8 @@ To preview changes before publishing:
 - Reference in post: `![description](../media/image.png)`
 
 ### Static page not showing?
-- Normal project fragments use `layout: project`; games and workouts come from their own
-  repositories (see "Headers, project pages, and components")
+- Everything under `/projects/` comes from bensonlabs/projects or bensonlabs/games (see
+  "Headers, project pages, and components"): change it there, not here
 - Check the file path matches the URL structure
 - Rebuild with `bundle exec jekyll serve` locally
 
