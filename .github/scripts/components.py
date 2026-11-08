@@ -240,10 +240,12 @@ def place(entry: dict, data: bytes, root: Path, inner: tuple[str, ...] = ()) -> 
     clashes = [f for f in files if any(f == i or f.startswith(i + "/") for i in inner)]
     if clashes:
         raise ComponentError(f"{entry['name']} {entry['version']} has {clashes[0]}, inside another component's folder")
-    for page in pages_to_wrap(entry, folder, files):
+    wrapped = pages_to_wrap(entry, folder, files)
+    for page in wrapped:
         if page not in files:
             raise ComponentError(f"{entry['name']} {entry['version']} has no {page} to wrap")
         wrap(folder.joinpath(*PurePosixPath(page).parts))
+    place.wrapped = len(wrapped)
     return files
 
 
@@ -256,7 +258,7 @@ def assemble(root: Path = ROOT, manifest: Path = MANIFEST) -> None:
                       if own in PurePosixPath(e["path"]).parents)
         files = place(entry, fetch(entry), root, inner)
         print(f"{entry['name']} {entry['version']}: {len(files)} files in /{entry['path']}/, "
-              f"{len(entry['wrap'])} wrapped in the site header")
+              f"{place.wrapped} wrapped in the site header")
 
 
 def bump(name: str, version: str, manifest: Path = MANIFEST) -> None:
