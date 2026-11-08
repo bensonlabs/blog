@@ -11,9 +11,9 @@
   {
     "name": "games",
     "repo": "bensonlabs/games",
-    "version": "v1.0.1",
+    "version": "v1.0.2",
     "asset": "games-{version}.tar.gz",
-    "sha256": "7751593ecb9c1b07f73d619c94c5ad0efb8391750f414114e548a5ecb9593574",
+    "sha256": "1bec77b798c11ec189f77687d47d817a63b75e250e5ffa61aab1562f6d94fec2",
     "path": "projects/games",
     "wrap": [
       "index.html"
