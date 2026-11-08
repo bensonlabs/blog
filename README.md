@@ -8,16 +8,14 @@ Built with [Jekyll](https://jekyllrb.com) and hosted on [GitHub Pages](https://p
 
 ## Copilot Prompt — Sync New Content
 
-After adding a new project or game to the repo, paste this into GitHub Copilot to automatically keep the docs and registry in sync:
+After adding a new project to the repo, paste this into GitHub Copilot to keep the docs in sync (games live in [bensonlabs/games](https://github.com/bensonlabs/games)):
 
 ```
 I've added new content to this repo. Check the `projects/` folder for any
-projects or games that aren't already reflected in the site docs.
-For standalone games, read the authored `index.html` and add a `bl-game-meta`
-block if needed. For compiled games, use `game.json`; never edit generated
-`index.html` for metadata. Run `.github/scripts/build_games_registry.py` to
-generate ignored `_data/games.json` for Jekyll. Also update the Site Sections
-and Project Structure in README.md to reflect everything that now exists.
+projects that aren't already reflected in the site docs, and update the Site
+Sections and Project Structure in README.md to reflect everything that now
+exists. Games and workouts are components from their own repositories; don't
+add them here.
 When done, commit the changes and open a pull request.
 ```
 
@@ -41,7 +39,7 @@ Technical troubleshooting and notes on Windows, PowerShell, networking, security
 ### **Games** (`/projects/games/`)
 Interactive browser games. The current catalogue is maintained at [bensonlabs.org/projects/games/](https://bensonlabs.org/projects/games/).
 
-Adding a new game: add a `<!-- bl-game-meta ... -->` block to the game's own `index.html`, then run `python3 .github/scripts/build_games_registry.py`. For compiled games use `game.json`; do not hand-edit generated `_data/games.json`.
+Games are built and released in [bensonlabs/games](https://github.com/bensonlabs/games) and pinned here in `_data/components.json`; see CONTRIBUTING.md, "Headers, project pages, and components".
 
 ### **Focus Lab** (`/projects/focus-lab/`)
 Premium productivity dashboard with Pomodoro timer, focus tasks, synthesized ambient sounds, and weekly metrics.
@@ -61,7 +59,7 @@ Owner-only work context tracker for resuming interrupted work. Phase 1 is deploy
 ### **Workouts** (`/projects/workouts/`)
 Justin’s 12-week mesocycle strength-training plan with phase-based strength progressions, Olympic-lifting skill work, MetCon conditioning, accessory volume, and a mobile-friendly day-by-day interface.
 
-The canonical source lives in [bensonlabs/workouts](https://github.com/bensonlabs/workouts), not this repository. The Pages workflow checks out `workouts/justin/index.html`, converts it into the site’s `project` layout, and publishes it at [bensonlabs.org/projects/workouts/](https://bensonlabs.org/projects/workouts/). The separate [CL · 12-Week Strength Restart](https://bensonlabs.org/projects/workouts/cl/) is published at `/projects/workouts/cl/`.
+The canonical source lives in [bensonlabs/workouts](https://github.com/bensonlabs/workouts), not this repository; it's published here as a pinned release (see CONTRIBUTING.md, "Headers, project pages, and components"). Justin's plan is at [bensonlabs.org/projects/workouts/](https://bensonlabs.org/projects/workouts/), and the separate [CL · 12-Week Strength Restart](https://bensonlabs.org/projects/workouts/cl/) at `/projects/workouts/cl/`.
 
 ---
 
@@ -140,84 +138,20 @@ Pushing to `master` triggers the **Deploy Jekyll to GitHub Pages** workflow. If 
 
 ## Adding a New Game
 
-Games are stored in `/projects/games/` with a hub at `/projects/games/index.html`.
-
-### 1. Create Game Folder
-
-```
-projects/games/your-game/
-├── index.html
-├── styles.css (optional, can be inline)
-└── script.js (optional, can be inline)
-```
-
-### 2. Register in Games Hub
-
-Add this metadata block in the game's `index.html` `<head>`, then generate the hub listing:
-
-```html
-<!-- bl-game-meta
-title: Your Game
-emoji: 🎮
-order: 999
-description: Brief description of gameplay.
--->
-```
-
-```bash
-python3 .github/scripts/build_games_registry.py
-```
-
-### 3. Commit and Push
-
-The game card will automatically appear on the games hub once deployed.
+Games are built and released in [bensonlabs/games](https://github.com/bensonlabs/games);
+its README explains how to add one. Publishing a new release here is one command; see
+CONTRIBUTING.md, "Headers, project pages, and components".
 
 ---
 
-## Headers, project pages, and standalone games
+## Headers, project pages, and components
 
-`_includes/nav.html` is the only site-header markup source; `_data/navigation.yml`
-is the only source of its links. Header styling and behavior live in
-`assets/css/header.css` and `assets/js/header.js`.
-
-Blog pages inherit `default → base`; posts inherit `post → default → base`.
-Normal project pages use `layout: project` (which inherits `base`) and contain
-only body content after front matter. Preserve their original head elements in
-the YAML `head: |` literal (metadata, CSP, fonts, styles, scripts), and any body
-attributes in `body_attributes`. The project layout adds no content-width wrapper.
-Never put a complete HTML document inside a layout. Workout plans are authored as
-standalone documents in [bensonlabs/workouts](https://github.com/bensonlabs/workouts).
-During Pages deployment, `.github/scripts/stage_workout.py` extracts each plan's
-head and body, then generates layout-backed sources at
-`projects/workouts/index.html` and `projects/workouts/cl/index.html`. Keep the
-workout source's Liquid raw blocks and JavaScript template placeholders intact.
-
-Games at `projects/games/<slug>/` are complete standalone documents without front
-matter, a site header, copied snippets, canonical markers, or auto-hide code.
-Their controls, body layout, fullscreen, audio, and storage belong to the game;
-no corner needs to be reserved for a site menu. Game-owned navigation and an
-optional back-to-games link are fine. Choose CSP for the game's own assets.
-
-Run `python3 .github/scripts/build_games_registry.py` **before** Jekyll. It validates
-authored metadata and creates ignored `_data/games.json`; the catalogue fragment
-reads that data without changing its presentation. Neither the generator nor CI
-edits game files or commits generated catalogue data. The Pages job generates
-this data in the same build that renders and uploads the site.
-
-See `.github/scripts/GAME_METADATA.md` for metadata precedence and fallbacks.
-For Dungeon Crawler, edit `game.json` for the catalogue and `index.source.html`
-for the Vite shell; keep the existing Vite input, base path, and hashed assets.
-Its unrelated `metadata.json` is not catalogue input. After `npm ci && npm run build`
-in its directory, copy `dist/assets` to `assets` and `dist/index.source.html` to
-`index.html`, without injecting anything. Treat `index.html` as generated output.
-
-Validate with `python3 -m unittest discover -s .github/scripts -p 'test_*.py'`,
-`python3 .github/scripts/check_dungeon_build.py`, and, after Jekyll,
-`bash .github/scripts/check-nav.sh _site`. The last check is read-only and checks
-rendered normal pages; it never requires a site header inside a game.
-
-AI Trending's generator writes `latest/index.html` and a dated `YYYY-MM-DD/index.html`
-fragment. The root `projects/ai-trending/index.html` stays a redirect to `latest/`.
+The rules for the site header, project pages and the components (the games and
+workouts, which come from their own repositories as pinned releases) are in
+[CONTRIBUTING.md](CONTRIBUTING.md#headers-project-pages-and-components), section
+"Headers, project pages, and components". Read it before changing layouts, project
+pages, `_data/components.json` or `.github/scripts/components.py`. Games are built in
+[bensonlabs/games](https://github.com/bensonlabs/games), never here.
 
 ## Local Development (Optional)
 
@@ -227,8 +161,8 @@ If you want to preview the site locally before pushing:
 # Install dependencies (first time only)
 bundle install
 
-# Generate catalogue and run local server
-python3 .github/scripts/build_games_registry.py
+# Put the games and workouts in place, then run the local server
+python3 .github/scripts/components.py assemble
 bundle exec jekyll serve
 
 # Open in browser
@@ -259,7 +193,7 @@ blog/
 ├── _config.yml          # Jekyll configuration
 ├── _data/
 │   ├── navigation.yml   # Shared-header links
-│   └── games.json       # Ignored catalogue generated before Jekyll
+│   └── components.json  # Releases of the games and workouts this site pins
 ├── _includes/
 │   ├── nav.html         # Sole shared-header markup source
 │   └── blog-head.html   # Default blog head elements
@@ -278,24 +212,22 @@ blog/
 │       └── header.js    # Shared-header mobile menu behavior
 ├── projects/
 │   ├── index.html       # Projects hub page
-│   ├── games/           # Interactive games hub
-│   │   ├── index.html
-│   │   ├── <game-slug>/ # Individual standalone games
-│   │   └── dungeon-crawler/ # React/Vite game built during Pages deployment
+│   ├── games/           # Component from bensonlabs/games (ignored by git)
 │   ├── ai-trending/     # AI/ML trending repositories dashboard
 │   ├── focus-lab/       # Productivity dashboard
 │   ├── gravitas/        # N-body gravity simulator
 │   ├── to-do-app/       # Neon Postgres todo app
 │   ├── context-console/  # Owner-only work context tracker
-│   └── workouts/        # Created during Pages build from bensonlabs/workouts
+│   └── workouts/        # Component from bensonlabs/workouts (ignored by git)
 ├── about.md             # About page
+├── docs/decisions/      # Why the site is built the way it is
 ├── index.html           # Blog homepage (post list)
 ├── CNAME                # Custom domain (bensonlabs.org)
 ├── robots.txt           # Search engine instructions
 ├── README.md            # This file
 └── .github/
-  ├── scripts/         # Navigation and games-registry validation/generation
-  └── workflows/       # Pages deployment and registry checks
+  ├── scripts/         # Component assembly, page checks and their tests
+  └── workflows/       # Pages deployment and the PR check
 ```
 
 ---

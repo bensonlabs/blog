@@ -49,7 +49,7 @@ The simulator uses vanilla JavaScript modules, but `index.html` is a Jekyll cont
 2.  From the repository root, install dependencies and start Jekyll:
     ```bash
     bundle install
-    python3 .github/scripts/build_games_registry.py
+    python3 .github/scripts/components.py assemble
     bundle exec jekyll serve
     ```
 3.  Open `http://localhost:4000/projects/gravitas/` in your web browser.
