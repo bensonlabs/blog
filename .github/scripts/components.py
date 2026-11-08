@@ -103,8 +103,8 @@ def load_manifest(path: Path = MANIFEST) -> list[dict]:
         names.add(name)
     for a in paths:
         for b in paths:
-            if a is not b and (a == b or a in b.parents):
-                raise ComponentError(f"components overlap: {a} and {b}")
+            if a is not b and a == b:
+                raise ComponentError(f"two components use the same folder: {a}")
     return entries
 
 
@@ -223,8 +223,11 @@ def tracked_files(root: Path, folder: Path) -> list[str]:
     return result.stdout.split() if result.returncode == 0 else []
 
 
-def place(entry: dict, data: bytes, root: Path) -> list[str]:
-    """Replace the component's folder with the release, then wrap the listed pages."""
+def place(entry: dict, data: bytes, root: Path, inner: tuple[str, ...] = ()) -> list[str]:
+    """Replace the component's folder with the release, then wrap the listed pages.
+
+    `inner` are folders (relative to this one) where other components go afterwards; this
+    release may not contain anything there."""
     folder = root.joinpath(*safe_relative(entry["path"]).parts)
     tracked = tracked_files(root, folder)
     if tracked:
@@ -234,6 +237,9 @@ def place(entry: dict, data: bytes, root: Path) -> list[str]:
     if folder.exists():
         shutil.rmtree(folder)
     files = unpack(data, folder)
+    clashes = [f for f in files if any(f == i or f.startswith(i + "/") for i in inner)]
+    if clashes:
+        raise ComponentError(f"{entry['name']} {entry['version']} has {clashes[0]}, inside another component's folder")
     for page in pages_to_wrap(entry, folder, files):
         if page not in files:
             raise ComponentError(f"{entry['name']} {entry['version']} has no {page} to wrap")
@@ -242,8 +248,13 @@ def place(entry: dict, data: bytes, root: Path) -> list[str]:
 
 
 def assemble(root: Path = ROOT, manifest: Path = MANIFEST) -> None:
-    for entry in load_manifest(manifest):
-        files = place(entry, fetch(entry), root)
+    """Outer folders first (projects/ before projects/games/), so placing one never wipes another."""
+    entries = sorted(load_manifest(manifest), key=lambda e: len(PurePosixPath(e["path"]).parts))
+    for entry in entries:
+        own = PurePosixPath(entry["path"])
+        inner = tuple(PurePosixPath(e["path"]).relative_to(own).as_posix() for e in entries
+                      if own in PurePosixPath(e["path"]).parents)
+        files = place(entry, fetch(entry), root, inner)
         print(f"{entry['name']} {entry['version']}: {len(files)} files in /{entry['path']}/, "
               f"{len(entry['wrap'])} wrapped in the site header")
 

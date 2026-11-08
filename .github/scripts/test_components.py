@@ -100,7 +100,6 @@ class Manifest(unittest.TestCase):
             [entry(path="projects/games/")], [entry(wrap=["../index.html"])], [entry(sha256="abc")],
             [entry(version="1.0.0")], [entry(asset="games.tar.gz")], [entry(repo="no-owner")],
             [dict(entry(), extra=1)], [entry(), entry()], [entry(), entry(name="other")],
-            [entry(), entry(name="inner", path="projects/games/inner")],
         ]
         for entries in bad:
             with self.subTest(entries=entries), self.assertRaises(components.ComponentError):
@@ -161,6 +160,32 @@ class Assemble(unittest.TestCase):
             with self.assertRaises(components.ComponentError):
                 components.place(entry(sha256=hashlib.sha256(data).hexdigest()), data, root)
             self.assertTrue(kept.exists())
+
+
+class Nested(unittest.TestCase):
+    def test_outer_first_then_inner_and_no_clashes(self):
+        outer = archive({"index.html": STANDALONE, "tool/index.html": "<html><body>tool</body></html>"})
+        inner = archive({"index.html": STANDALONE, "pong/index.html": "<html><body>pong</body></html>"})
+        entries = [entry(name="games", path="projects/games", sha256=hashlib.sha256(inner).hexdigest()),
+                   entry(name="projects", repo="bensonlabs/projects", path="projects", wrap=[],
+                         sha256=hashlib.sha256(outer).hexdigest())]
+        data = {e["sha256"]: (outer if e["name"] == "projects" else inner) for e in entries}
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest = root / "components.json"
+            manifest.write_text(json.dumps(entries), encoding="utf-8")
+            with patch.object(components, "CACHE", root / "cache"), \
+                    patch.object(components, "fetch", side_effect=lambda e: data[e["sha256"]]):
+                components.assemble(root, manifest)
+            self.assertTrue((root / "projects/tool/index.html").is_file())
+            self.assertTrue((root / "projects/games/pong/index.html").is_file())
+
+    def test_an_outer_release_may_not_fill_an_inner_folder(self):
+        outer = archive({"index.html": STANDALONE, "games/index.html": "<html></html>"})
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaises(components.ComponentError):
+                components.place(entry(name="projects", path="projects", wrap=[],
+                                       sha256=hashlib.sha256(outer).hexdigest()), outer, Path(tmp), ("games",))
 
 
 class WrapFromRelease(unittest.TestCase):
