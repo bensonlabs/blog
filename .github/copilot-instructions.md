@@ -1,7 +1,7 @@
 # Copilot / agent instructions for bensonlabs/blog
 
 This is a GitHub Pages Jekyll site in safe mode. Do not add unsupported plugins.
-Emoji on catalogue cards are intentional; preserve their ordering and presentation.
+The project and game cards come from bensonlabs/projects and bensonlabs/games, not this repo.
 
 ## Headers, project pages, and components
 

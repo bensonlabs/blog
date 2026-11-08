@@ -6,7 +6,7 @@ description: Add a blog post to bensonlabs.org in one step - write it as Markdow
 # Add a post
 
 Posts are Markdown files in `_posts/`; the home page lists them by itself, and every push to
-`master` deploys the site (owner decision, 2026-11-08: posts go straight to `master`).
+`master` deploys the site (owner decision, 2026-11-07: posts go straight to `master`).
 
 1. **Write the post** as `_posts/YYYY-MM-DD-<slug>.md` (today's date unless Justin gives one; the
    slug is short, lowercase, words joined by hyphens). It is published at `/<slug>/`.
@@ -26,7 +26,7 @@ Posts are Markdown files in `_posts/`; the home page lists them by itself, and e
    that arrives as HTML keeps its HTML body under the front matter (Markdown allows it).
 3. **Images** go in `media/` and are linked as `/media/<file>`. Never a person's photo or details
    without Justin saying so.
-4. **Check**: `python3 -m unittest discover -s .github/scripts -p 'test_*.py'`. There is no local
+4. **Check** (`py` instead of `python3` on Windows): `python3 -m unittest discover -s .github/scripts -p 'test_*.py'`. There is no local
    Jekyll; the deploy builds the site and runs the page checks, and stops before publishing if one
    fails.
 5. **Commit and push** only the post (and its images): a commit "Post: <title>", `git push` to

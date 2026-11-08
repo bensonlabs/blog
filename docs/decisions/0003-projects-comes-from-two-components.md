@@ -1,11 +1,11 @@
 # ADR 3: Everything under /projects/ comes from two components
 
-**Date:** 2026-11-08
+**Date:** 2026-11-07
 **Status:** accepted (refines ADR 1's list of components)
 
 ## Context
 
-Justin wants anything in the site menu to be added in one step (2026-11-08). The games came from
+Justin wants anything in the site menu to be added in one step (2026-11-07). The games came from
 bensonlabs/games, the workout plans from bensonlabs/workouts, and the other project pages and the
 Bootstraps post lived here.
 
@@ -25,7 +25,7 @@ Bootstraps post lived here.
 ## Alternatives considered
 
 - One repo for all of /projects/, games included (bensonlabs/games renamed to
-  bensonlabs/projects): rejected by Justin (2026-11-08); games keep their own repo.
+  bensonlabs/projects): rejected by Justin (2026-11-07); games keep their own repo.
 
 ## Consequences
 
@@ -36,6 +36,6 @@ Bootstraps post lived here.
   App Store Connect; the page check requires them.
 - bensonlabs/workouts is archived.
 
-Corrected 2026-11-08: the first text of this record (merged in PR #71) described the one-repo plan,
+Corrected 2026-11-07: the first text of this record (merged in PR #71) described the one-repo plan,
 with games renamed into bensonlabs/projects, although what was built and merged is the two
 components above.

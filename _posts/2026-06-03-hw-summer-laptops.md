@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "hw-summer-laptops"
+title: "HW summer laptop setup"
 date: 2026-06-03
 author: Justin Benson
 categories: [powershell, windows, dell]

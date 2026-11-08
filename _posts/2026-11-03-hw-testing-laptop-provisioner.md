@@ -6,7 +6,7 @@ author: Justin Benson
 categories: [windows, powershell, libreoffice, testing]
 ---
 
-Run this in **Windows PowerShell as Administrator** while the laptop is online. The same command is also available on the [bootstraps page]({{ '/bootstraps/#windows---offline-testing-laptop-provisioner' | relative_url }}).
+Run this in **Windows PowerShell as Administrator** while the laptop is online. The same command is also available on the [bootstraps page]({{ '/projects/bootstraps/workstations/#windows---offline-testing-laptop-provisioner' | relative_url }}).
 
 ```powershell
 Set-ExecutionPolicy Bypass -Scope Process -Force; irm https://raw.githubusercontent.com/bensonlabs/hw-testing-laptop-provisioner/main/scripts/provision.ps1 -OutFile $env:TEMP\hw-testing-laptop-provision.ps1 -ErrorAction Stop; & $env:TEMP\hw-testing-laptop-provision.ps1

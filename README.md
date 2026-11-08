@@ -1,6 +1,6 @@
 # bensonlabs.org blog
 
-Personal blog, games, and fitness tracking at [bensonlabs.org](https://bensonlabs.org) — troubleshooting fixes, technical notes, interactive games, and a 12-week workout program.
+Personal blog and projects at [bensonlabs.org](https://bensonlabs.org): troubleshooting fixes, technical notes, browser games, projects, workout plans and workstation guides.
 
 Built with [Jekyll](https://jekyllrb.com) and hosted on [GitHub Pages](https://pages.github.com).
 
@@ -25,7 +25,7 @@ the whole site and deploys (CONTRIBUTING.md, "Headers, project pages, and compon
 - **Static Site Generator**: Jekyll (Ruby)
 - **Hosting**: GitHub Pages
 - **Styling**: Custom CSS with Obsidian dark theme
-- **Games**: Standalone HTML/CSS/JavaScript games plus one React, TypeScript, and Vite game
+- **Games**: Standalone HTML/CSS/JavaScript games, one React, TypeScript and Vite game, and one Rust game compiled to WebAssembly (all in bensonlabs/games)
 - **Version Control**: Git + GitHub
 
 ---
@@ -48,28 +48,11 @@ Interactive browser games. The current catalogue is maintained at [bensonlabs.or
 
 Games are built and released in [bensonlabs/games](https://github.com/bensonlabs/games) and pinned here in `_data/components.json`; see CONTRIBUTING.md, "Headers, project pages, and components".
 
-### **Focus Lab** (`/projects/focus-lab/`)
-Premium productivity dashboard with Pomodoro timer, focus tasks, synthesized ambient sounds, and weekly metrics.
-
-### **Gravitas** (`/projects/gravitas/`)
-High-fidelity N-body gravity simulator with real-time orbital projection, procedural ambient audio, and a glassmorphic telemetry dashboard.
-
-### **AI Trending** (`/projects/ai-trending/`)
-Daily analysis of trending AI/ML repositories on GitHub with ranked results, category filtering, and repository scoring.
-
-### **Neon To-Do** (external — [todo-app-l3m0.onrender.com](https://todo-app-l3m0.onrender.com))
-Full-stack todo app backed by Neon Postgres. Source: [bensonlabs/database-demo](https://github.com/bensonlabs/database-demo).
-
-### **Context Console** (`/projects/context-console/`)
-Owner-only work context tracker for resuming interrupted work. Phase 1 is deployed and smoke-tested at [context-console.onrender.com](https://context-console.onrender.com), backed by Supabase project `buvlsrccvrnnbxtwiozn`. Source: [bensonlabs/context-console](https://github.com/bensonlabs/context-console).
-
-### **Workouts** (`/projects/workouts/`)
-Workout plans, each on its own page. Justin’s is a 12-week mesocycle strength-training plan with phase-based strength progressions, Olympic-lifting skill work, MetCon conditioning, accessory volume, and a mobile-friendly day-by-day interface.
-
-The canonical source lives in [bensonlabs/projects](https://github.com/bensonlabs/projects), not this repository; it's published here as a pinned release (see CONTRIBUTING.md, "Headers, project pages, and components"). The Workouts page lists the plans: Justin's at [bensonlabs.org/projects/workouts/justin/](https://bensonlabs.org/projects/workouts/justin/), and the separate [CL · 12-Week Strength Restart](https://bensonlabs.org/projects/workouts/cl/) at `/projects/workouts/cl/`.
-
-### **Bootstraps** (`/projects/bootstraps/`)
-Guides for rebuilding a workstation from a clean install: Windows, macOS, Fedora, Ubuntu and WSL. The old `/bootstraps/` address redirects to the first guide, `/projects/bootstraps/workstations/`.
+### **Projects, Workouts and Bootstraps** (`/projects/`)
+Each project, the workout plans and the Bootstraps guides come from
+[bensonlabs/projects](https://github.com/bensonlabs/projects), and each one's card there describes
+it; the [Projects page](https://bensonlabs.org/projects/) lists them all. The old `/bootstraps/`
+address redirects to the first guide, `/projects/bootstraps/workstations/`.
 
 ---
 
