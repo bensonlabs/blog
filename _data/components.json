@@ -2,9 +2,9 @@
   {
     "name": "projects",
     "repo": "bensonlabs/projects",
-    "version": "v1.0.0",
+    "version": "v1.0.1",
     "asset": "projects-{version}.tar.gz",
-    "sha256": "14221e87438f5436e17bfd064397ee14a3e62486e48bfc2242fa0693a37d0d93",
+    "sha256": "fa34e717c0e2b2c0d41f5dad0ec3ebd2d8869202042db020282be74b66318f31",
     "path": "projects",
     "wrap": "release"
   },
