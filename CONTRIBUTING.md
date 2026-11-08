@@ -193,15 +193,49 @@ body still goes through Liquid, so the workout plans' `{% raw %}` blocks keep wo
 
 New releases are pinned by the **Update components** workflow
 (`.github/workflows/update-components.yml`). The games and projects repos start it
-right after each release (their Release workflows, with a `BLOG_DISPATCH_TOKEN`
-secret); it also runs daily, and by hand from the Actions tab for any component.
-It runs `components.py update` (the newest release, never backwards),
-builds the whole site with it and runs the page checks; only if they pass does it
-commit the pin and start the deploy. A failed run leaves the site on the previous
-release. By hand: `python3 .github/scripts/components.py bump <name> <version>`
-and a PR. `bump` checks the download against the release's own sha256, checks
-that it unpacks cleanly and has the pages to wrap, and records the new version.
-Why it works this way: `docs/decisions/0001` to `0003`.
+right after each release (their Release workflows, with the dispatch token below);
+it also runs daily at 13:17 UTC, and by hand from the Actions tab for any component.
+Its jobs:
+
+1. **Look for new releases** reads master as it is when the run starts (a run that
+   waited behind another sees that run's pin) and runs `components.py update` (the
+   newest release, never backwards). It also checks that the live site serves master:
+   the deploy publishes the commit it built as `/deployed-commit.txt`.
+2. **Check the site and pin**, only when something is new, builds the whole site with
+   the new pins and runs the page checks. Only if they pass does it commit the pin and
+   push it; if master moved meanwhile, it puts the pin on top and tries again.
+3. **Deploy** runs `jekyll.yml` inside the same run, so a failed deploy turns the
+   Update components run red. It also runs when the live site isn't serving master,
+   so the next run (the daily one at the latest) repairs a deploy that failed.
+4. A component whose newest release can't be read or pinned doesn't hold up the
+   others: they are pinned and deployed, then the run turns red, and the log of
+   "Look for new releases" says which component failed and why.
+
+A failed check leaves the site on the previous release. By hand:
+`python3 .github/scripts/components.py bump <name> <version>` and a PR. `bump` checks
+the download against the release's own sha256, checks that it unpacks cleanly, stays
+within the size limits and has the pages to wrap, and records the new version. A
+release whose page sets `permalink` (or `redirect_from`) in its front matter is
+refused: a component's pages stay in its own folder. Why it works this way:
+`docs/decisions/0001` to `0004`.
+
+#### The dispatch token
+
+The games and projects Release workflows start Update components with
+`BLOG_DISPATCH_TOKEN`, a fine-grained personal access token:
+
+- resource owner bensonlabs, repository access **only** bensonlabs/blog;
+- one permission, **Actions: read and write** (it can start, rerun and cancel this
+  repo's workflows, and nothing else);
+- an expiry date you choose;
+- saved as a repository secret in **both** bensonlabs/games and bensonlabs/projects.
+
+When it expires or is revoked, a Release run goes red at "Tell the blog to publish
+it", but the release is already published, and the daily Update components run
+pins it. To renew it, create a new token with the same settings (github.com →
+Settings → Developer settings → Personal access tokens → Fine-grained tokens), then
+replace `BLOG_DISPATCH_TOKEN` in both repos (Settings → Secrets and variables →
+Actions).
 
 Games are complete standalone documents without front matter, a site header,
 copied snippets, canonical markers, or auto-hide code; their controls, layout,
@@ -215,6 +249,10 @@ Tracro's support and privacy pages: `/projects/2ndPaste/`, `/projects/2ndPaste/p
 `/projects/tracro/` and `/projects/tracro/privacy.html` (the case counts). The page
 check requires all four (`APP_STORE_PAGES` in `check_rendered_pages.py`), so a release
 that moves, renames or drops one never deploys and the site keeps the previous release.
+Besides those, the page check requires only the home page and the menu's pages, and
+that every redirect lands on a page (`/bootstraps/` needs
+`/projects/bootstraps/workstations/`). Other project pages may come and go with the
+projects releases.
 
 Validate with `python3 -m unittest discover -s .github/scripts -p 'test_*.py'`
 and, after Jekyll, `bash .github/scripts/check-nav.sh _site`. The last check is
@@ -255,6 +293,13 @@ To preview changes before publishing:
 - Check the filename format: `YYYY-MM-DD-title.md`
 - Verify frontmatter is valid YAML (proper spacing, quotes)
 - Check GitHub Actions: https://github.com/bensonlabs/blog/actions
+
+### A new game or project isn't live yet?
+- Its repo's Actions tab: the Release run publishes it. Red at "Tell the blog to publish
+  it" means the dispatch token was refused ("The dispatch token" above); the release is
+  out and the daily run pins it.
+- This repo's Actions tab: the Update components run pins and deploys it. Red there means
+  a check failed or a component couldn't be read; the site keeps the previous release.
 
 ### Want to edit an existing post?
 - Edit the `.md` file directly on GitHub or locally

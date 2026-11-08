@@ -51,6 +51,12 @@ def entry(**overrides):
     return base
 
 
+def git_repo(path):
+    """Make path a git repo: placing a component asks git which files are committed."""
+    subprocess.run(["git", "init", "-q"], cwd=path, check=True)
+    return path
+
+
 class Wrap(unittest.TestCase):
     def test_keeps_head_title_lang_and_body_attributes_and_leaves_the_body_alone(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -76,6 +82,16 @@ class Wrap(unittest.TestCase):
         ])
         self.assertEqual(text, expected)
 
+    def test_a_title_with_line_breaks_stays_on_its_line(self):
+        page_text = STANDALONE.replace('Plan &amp; More "Quoted"', "Two\n---\nlines")
+        with tempfile.TemporaryDirectory() as tmp:
+            page = Path(tmp) / "index.html"
+            page.write_text(page_text, encoding="utf-8")
+            components.wrap(page)
+            lines = page.read_text(encoding="utf-8").splitlines()
+        self.assertEqual(lines[2], 'title: "Two\\n---\\nlines"')
+        self.assertEqual(lines.count("---"), 2)  # the front matter's own two markers, nothing more
+
     def test_a_page_without_head_or_body_cannot_be_wrapped(self):
         with tempfile.TemporaryDirectory() as tmp:
             page = Path(tmp) / "index.html"
@@ -100,6 +116,7 @@ class Manifest(unittest.TestCase):
             [entry(path="projects/games/")], [entry(wrap=["../index.html"])], [entry(sha256="abc")],
             [entry(version="1.0.0")], [entry(asset="games.tar.gz")], [entry(repo="no-owner")],
             [dict(entry(), extra=1)], [entry(), entry()], [entry(), entry(name="other")],
+            [entry(path="about")], [entry(path="projectsx/games")], [entry(path="assets/projects")],
         ]
         for entries in bad:
             with self.subTest(entries=entries), self.assertRaises(components.ComponentError):
@@ -128,12 +145,41 @@ class Releases(unittest.TestCase):
                     components.unpack(archive(files), Path(tmp))
                 self.assertEqual(list(Path(tmp).iterdir()), [])
 
+    def test_releases_over_the_size_limits_are_refused_before_anything_is_written(self):
+        files = {"a.html": "x" * 10, "b.html": "y" * 10}
+        for limit, value in (("MAX_FILE_BYTES", 9), ("MAX_TOTAL_BYTES", 19), ("MAX_FILES", 1)):
+            with self.subTest(limit=limit), tempfile.TemporaryDirectory() as tmp, \
+                    patch.object(components, limit, value):
+                with self.assertRaises(components.ComponentError):
+                    components.unpack(archive(files), Path(tmp))
+                self.assertEqual(list(Path(tmp).iterdir()), [])
+        with tempfile.TemporaryDirectory() as tmp:  # just within them
+            with patch.object(components, "MAX_FILE_BYTES", 10), patch.object(components, "MAX_TOTAL_BYTES", 20), \
+                    patch.object(components, "MAX_FILES", 2):
+                self.assertEqual(sorted(components.unpack(archive(files), Path(tmp))), ["a.html", "b.html"])
+
+    def test_a_page_may_not_choose_its_own_address(self):
+        for front_matter in ("permalink: /about/", "redirect_from: /about/", '"permalink": /x/'):
+            for start in ("", "﻿"):  # Jekyll reads front matter after a byte order mark too
+                files = {"ok.html": "x", "page.md": f"{start}---\ntitle: Hi\n{front_matter}\n---\nHello"}
+                with self.subTest(front_matter=front_matter, bom=bool(start)), tempfile.TemporaryDirectory() as tmp:
+                    with self.assertRaises(components.ComponentError) as caught:
+                        components.unpack(archive(files), Path(tmp))
+                    self.assertIn("page.md", str(caught.exception))
+                    self.assertEqual(list(Path(tmp).iterdir()), [])
+
+    def test_the_words_alone_are_fine(self):
+        files = {"a.md": "---\ntitle: Links\n---\npermalink: is a word here", "b.html": "<p>permalink: x</p>",
+                 "c.md": "---\nhead: |\n  permalink: inside a block\n---\n"}
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertEqual(sorted(components.unpack(archive(files), Path(tmp))), ["a.md", "b.html", "c.md"])
+
 
 class Assemble(unittest.TestCase):
     def test_replaces_the_folder_and_wraps_the_listed_pages(self):
         data = archive({"index.html": STANDALONE, "game/index.html": "<html><body>game</body></html>"})
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
+            root = git_repo(Path(tmp))
             manifest = root / "components.json"
             manifest.write_text(json.dumps([entry(sha256=hashlib.sha256(data).hexdigest())]), encoding="utf-8")
             stale = root / "projects/games/old-game/index.html"
@@ -161,6 +207,18 @@ class Assemble(unittest.TestCase):
                 components.place(entry(sha256=hashlib.sha256(data).hexdigest()), data, root)
             self.assertTrue(kept.exists())
 
+    def test_replaces_nothing_when_git_cant_say_what_is_committed(self):
+        data = archive({"index.html": STANDALONE})
+        with tempfile.TemporaryDirectory() as tmp:  # not a git repo
+            root = Path(tmp)
+            kept = root / "projects/games/keep.html"
+            kept.parent.mkdir(parents=True)
+            kept.write_text("maybe committed", encoding="utf-8")
+            with self.assertRaises(components.ComponentError) as caught:
+                components.place(entry(sha256=hashlib.sha256(data).hexdigest()), data, root)
+            self.assertIn("git", str(caught.exception))
+            self.assertTrue(kept.exists())
+
 
 class Nested(unittest.TestCase):
     def test_outer_first_then_inner_and_no_clashes(self):
@@ -171,7 +229,7 @@ class Nested(unittest.TestCase):
                          sha256=hashlib.sha256(outer).hexdigest())]
         data = {e["sha256"]: (outer if e["name"] == "projects" else inner) for e in entries}
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
+            root = git_repo(Path(tmp))
             manifest = root / "components.json"
             manifest.write_text(json.dumps(entries), encoding="utf-8")
             with patch.object(components, "CACHE", root / "cache"), \
@@ -183,9 +241,10 @@ class Nested(unittest.TestCase):
     def test_an_outer_release_may_not_fill_an_inner_folder(self):
         outer = archive({"index.html": STANDALONE, "games/index.html": "<html></html>"})
         with tempfile.TemporaryDirectory() as tmp:
-            with self.assertRaises(components.ComponentError):
+            with self.assertRaises(components.ComponentError) as caught:
                 components.place(entry(name="projects", path="projects", wrap=[],
-                                       sha256=hashlib.sha256(outer).hexdigest()), outer, Path(tmp), ("games",))
+                                       sha256=hashlib.sha256(outer).hexdigest()), outer, git_repo(Path(tmp)), ("games",))
+            self.assertIn("inside another component's folder", str(caught.exception))
 
 
 class WrapFromRelease(unittest.TestCase):
@@ -193,7 +252,7 @@ class WrapFromRelease(unittest.TestCase):
         data = archive({"index.html": STANDALONE, "game/index.html": "<html><body>game</body></html>",
                         components.WRAP_FILE: json.dumps(["index.html"])})
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
+            root = git_repo(Path(tmp))
             components.place(entry(wrap="release", sha256=hashlib.sha256(data).hexdigest()), data, root)
             folder = root / "projects/games"
             self.assertTrue((folder / "index.html").read_text(encoding="utf-8").startswith("---\nlayout: project\n"))
@@ -203,8 +262,10 @@ class WrapFromRelease(unittest.TestCase):
     def test_a_release_without_its_list_is_refused(self):
         data = archive({"index.html": STANDALONE})
         with tempfile.TemporaryDirectory() as tmp:
-            with self.assertRaises(components.ComponentError):
-                components.place(entry(wrap="release", sha256=hashlib.sha256(data).hexdigest()), data, Path(tmp))
+            with self.assertRaises(components.ComponentError) as caught:
+                components.place(entry(wrap="release", sha256=hashlib.sha256(data).hexdigest()), data,
+                                 git_repo(Path(tmp)))
+            self.assertIn(components.WRAP_FILE, str(caught.exception))
 
     def test_the_version_list_accepts_release(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -226,8 +287,12 @@ class Bump(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             manifest = Path(tmp) / "components.json"
             manifest.write_text(json.dumps([entry()]), encoding="utf-8")
-            with patch.object(components, "download", side_effect=responses.__getitem__):
+            with patch.object(components, "CACHE", Path(tmp) / "cache"), \
+                    patch.object(components, "download", side_effect=responses.__getitem__):
                 components.bump("games", "v1.1.0", manifest)
+                # Kept for assemble, which then needs no second download.
+                self.assertEqual((Path(tmp) / "cache" / f"{digest}.tar.gz").read_bytes(), data)
+                self.assertEqual(components.fetch(json.loads(manifest.read_text(encoding="utf-8"))[0]), data)
             saved = json.loads(manifest.read_text(encoding="utf-8"))[0]
         self.assertEqual((saved["version"], saved["sha256"]), ("v1.1.0", digest))
 
@@ -239,9 +304,11 @@ class Bump(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             manifest = Path(tmp) / "components.json"
             manifest.write_text(json.dumps([entry()]), encoding="utf-8")
-            with patch.object(components, "download", side_effect=responses.__getitem__):
+            with patch.object(components, "CACHE", Path(tmp) / "cache"), \
+                    patch.object(components, "download", side_effect=responses.__getitem__):
                 with self.assertRaises(components.ComponentError):
                     components.bump("games", "v1.1.0", manifest)
+            self.assertFalse((Path(tmp) / "cache").exists())
             self.assertEqual(json.loads(manifest.read_text(encoding="utf-8"))[0]["version"], "v1.0.0")
 
 
@@ -294,6 +361,25 @@ class Update(unittest.TestCase):
     def test_a_specific_version_needs_one_component(self):
         with self.assertRaises(components.ComponentError):
             components.update("all", "v1.0.1", self.manifest)
+
+    def test_one_failing_component_doesnt_stop_the_others(self):
+        self.manifest.write_text(json.dumps([
+            entry(name="broken", repo="bensonlabs/broken", path="projects/broken"), entry()]), encoding="utf-8")
+
+        def newest(repo):
+            if repo == "bensonlabs/broken":
+                raise components.ComponentError("could not read the newest release of bensonlabs/broken")
+            return "v1.0.1"
+
+        with patch.object(components, "latest_version", side_effect=newest):
+            with self.assertRaises(components.ComponentError) as caught:
+                components.update("all", manifest=self.manifest)
+        self.assertIn("broken", str(caught.exception))
+        self.assertIn("1 other change made", str(caught.exception))
+        versions = {e["name"]: e["version"] for e in json.loads(self.manifest.read_text(encoding="utf-8"))}
+        self.assertEqual(versions, {"broken": "v1.0.0", "games": "v1.0.1"})
+        message = (self.root / "cache" / "commit-message.txt").read_text(encoding="utf-8")
+        self.assertTrue(message.startswith("Pin games v1.0.1"))
 
 
 if __name__ == "__main__":

@@ -9,10 +9,11 @@ A component is a part of the site that another repository owns and publishes as
 a GitHub release: one .tar.gz, pinned in _data/components.json by version and
 sha256. `assemble` downloads each pinned release (cached in .components-cache/),
 refuses it if its sha256 differs, unpacks it into its folder (nothing may land
-outside it), and wraps the pages the entry lists in the `project` layout, which
-adds the site header. The PR check, the deploy and local runs all use this one
-script. A wrapped page's body still goes through Liquid, so its own {% raw %}
-blocks keep working.
+outside it, it must stay within size limits, and no page may choose its own
+address with `permalink` front matter), and wraps the pages the entry lists in
+the `project` layout, which adds the site header. The PR check, the deploy and
+local runs all use this one script. A wrapped page's body still goes through
+Liquid, so its own {% raw %} blocks keep working.
 
 `bump` downloads a release, checks it against the release's own .sha256 file,
 checks that it unpacks cleanly and has the pages to wrap, and records its
@@ -49,6 +50,15 @@ VERSION_RE = re.compile(r"v\d+\.\d+\.\d+")
 SHA256_RE = re.compile(r"[0-9a-f]{64}")
 # With "wrap": "release", the release lists the pages to wrap in this file at its root.
 WRAP_FILE = ".components-wrap.json"
+# Every component lives in this folder or inside it; the blog's own pages stay out of reach.
+COMPONENTS_FOLDER = "projects"
+# Limits for unpacking a release, far above today's (a few MB in a few hundred files), so a broken
+# or hostile release is refused with a message instead of filling the disk or the memory.
+MAX_FILES = 20_000
+MAX_FILE_BYTES = 50 * 1024 * 1024
+MAX_TOTAL_BYTES = 300 * 1024 * 1024
+# Front matter keys that would let a component's page claim an address outside its folder.
+CLAIMING_KEYS = re.compile(r"""^["']?(permalink|redirect_from)["']?\s*:""")
 
 # The same document parts stage_workout.py read before components existed.
 DOCUMENT_PART = re.compile(
@@ -95,7 +105,11 @@ def load_manifest(path: Path = MANIFEST) -> list[dict]:
         for ok, field in checks:
             if not ok:
                 raise ComponentError(f"{name!r}: invalid {field}")
-        paths.append(safe_relative(entry["path"]))
+        path = safe_relative(entry["path"])
+        if path.parts[0] != COMPONENTS_FOLDER:
+            raise ComponentError(f"{name!r}: a component's folder must be {COMPONENTS_FOLDER}/ or inside it, "
+                                 f"not {entry['path']}/")
+        paths.append(path)
         for page in entry["wrap"] if isinstance(entry["wrap"], list) else []:
             safe_relative(page)
         if name in names:
@@ -148,28 +162,63 @@ def fetch(entry: dict) -> bytes:
 
 
 def unpack(data: bytes, dest: Path) -> list[str]:
-    """Unpack a release into dest. Only files and folders, all inside dest; checked before writing."""
+    """Unpack a release into dest. Only files and folders, all inside dest, within the size
+    limits, and no page that claims another address; all checked before anything is written."""
     files = []
     with tarfile.open(fileobj=io.BytesIO(data), mode="r:gz") as tar:
         members = tar.getmembers()
+        total = 0
         for member in members:
             if not (member.isfile() or member.isdir()):
                 raise ComponentError(f"{member.name}: a release may contain only files and folders")
             safe_relative(member.name.rstrip("/") if member.isdir() else member.name)
+            if member.size > MAX_FILE_BYTES:
+                raise ComponentError(f"{member.name}: {member.size} bytes, more than a release file may hold "
+                                     f"({MAX_FILE_BYTES})")
+            total += member.size
+        if len(members) > MAX_FILES:
+            raise ComponentError(f"the release has {len(members)} entries, more than {MAX_FILES}")
+        if total > MAX_TOTAL_BYTES:
+            raise ComponentError(f"the release unpacks to {total} bytes, more than {MAX_TOTAL_BYTES}")
+        for member in members:
+            if member.isfile():
+                with tar.extractfile(member) as source:
+                    claimed = claimed_address(source.read(65536))
+                if claimed:
+                    raise ComponentError(f"{member.name}: its front matter sets {claimed}, which could put the "
+                                         f"page at any address on the site; a component's pages stay in its folder")
         for member in members:
             if member.isfile():
                 target = dest.joinpath(*PurePosixPath(member.name).parts)
                 target.parent.mkdir(parents=True, exist_ok=True)
-                with tar.extractfile(member) as source:
-                    target.write_bytes(source.read())
+                with tar.extractfile(member) as source, target.open("wb") as written:
+                    shutil.copyfileobj(source, written, 1024 * 1024)
                 files.append(member.name)
     if not files:
         raise ComponentError("the release is empty")
     return files
 
 
+def claimed_address(start: bytes) -> str | None:
+    """The front matter key, if any, with which a file would choose its own address on the site.
+
+    Jekyll reads front matter only from a file that starts with a '---' line; it ends at the
+    next '---' (or '...') line."""
+    lines = start.decode("utf-8-sig", errors="replace").splitlines()
+    if not lines or lines[0].rstrip() != "---":
+        return None
+    for line in lines[1:]:
+        if line.rstrip() in ("---", "..."):
+            break
+        match = CLAIMING_KEYS.match(line)
+        if match:
+            return match.group(1)
+    return None
+
+
 def yaml_string(value: str) -> str:
-    return '"' + value.replace("\\", "\\\\").replace('"', '\\"') + '"'
+    """A YAML string that stays on one line whatever it holds (JSON strings are YAML strings)."""
+    return json.dumps(value)
 
 
 def wrap(page: Path) -> None:
@@ -218,9 +267,13 @@ def pages_to_wrap(entry: dict, folder: Path, files: list[str]) -> list[str]:
 
 
 def tracked_files(root: Path, folder: Path) -> list[str]:
+    """Files under folder that are committed to the repo. If git can't tell, nothing is replaced."""
     result = subprocess.run(["git", "ls-files", "--", folder.relative_to(root).as_posix()],
                             cwd=root, capture_output=True, text=True)
-    return result.stdout.split() if result.returncode == 0 else []
+    if result.returncode != 0:
+        raise ComponentError(f"couldn't ask git which files under {folder.relative_to(root).as_posix()}/ are "
+                             f"committed, so nothing was replaced: {result.stderr.strip()}")
+    return result.stdout.split()
 
 
 def place(entry: dict, data: bytes, root: Path, inner: tuple[str, ...] = ()) -> list[str]:
@@ -281,6 +334,9 @@ def bump(name: str, version: str, manifest: Path = MANIFEST) -> None:
     missing = [page for page in wanted if page not in files]
     if missing:
         raise ComponentError(f"{name} {version} has no {', '.join(missing)} to wrap")
+    # Keep it for assemble, which would otherwise download it again.
+    CACHE.mkdir(exist_ok=True)
+    (CACHE / f"{sha256}.tar.gz").write_bytes(data)
     old = f"{entry['version']} ({entry['sha256'][:12]})"
     entry.update(version=version, sha256=sha256)
     manifest.write_text(json.dumps(entries, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
@@ -311,24 +367,30 @@ def latest_version(repo: str) -> str:
 def update(name: str, version: str = "latest", manifest: Path = MANIFEST) -> list[str]:
     """Pin the newest release of one component (or all), or a given version; never backwards.
 
-    Returns what changed, and leaves a commit message in .components-cache/ when something did."""
+    Returns what changed, and leaves a commit message in .components-cache/ when something did.
+    A component that fails doesn't stop the others: they are pinned first, then the error is raised."""
     entries = load_manifest(manifest)
     if name == "all" and version != "latest":
         raise ComponentError("a specific version needs one component's name, not all")
     targets = entries if name == "all" else [e for e in entries if e["name"] == name]
     if not targets:
         raise ComponentError(f"no component named {name!r} in {manifest.name}")
-    changes = []
+    changes, failures = [], []
     for entry in targets:
         current = entry["version"]
-        wanted = latest_version(entry["repo"]) if version == "latest" else version
-        if version_key(wanted) == version_key(current):
-            print(f"{entry['name']}: {current} is already pinned.")
+        try:
+            wanted = latest_version(entry["repo"]) if version == "latest" else version
+            if version_key(wanted) == version_key(current):
+                print(f"{entry['name']}: {current} is already pinned.")
+                continue
+            if version_key(wanted) < version_key(current):
+                print(f"{entry['name']}: {wanted} is older than the pinned {current}; left alone.")
+                continue
+            bump(entry["name"], wanted, manifest)
+        except ComponentError as error:
+            print(f"{entry['name']}: not updated: {error}", file=sys.stderr)
+            failures.append(f"{entry['name']} ({error})")
             continue
-        if version_key(wanted) < version_key(current):
-            print(f"{entry['name']}: {wanted} is older than the pinned {current}; left alone.")
-            continue
-        bump(entry["name"], wanted, manifest)
         changes.append(f"{entry['name']} {current} -> {wanted}")
     if changes:
         CACHE.mkdir(exist_ok=True)
@@ -337,6 +399,9 @@ def update(name: str, version: str = "latest", manifest: Path = MANIFEST) -> lis
             f"Pin {names}\n\n" + "\n".join(changes) + "\n\n"
             "Pinned by the Update components workflow after the site built and passed its checks.\n",
             encoding="utf-8", newline="\n")
+    if failures:
+        pinned = f" ({len(changes)} other change{'s' if len(changes) != 1 else ''} made)" if changes else ""
+        raise ComponentError("not updated: " + "; ".join(failures) + pinned)
     return changes
 
 

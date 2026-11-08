@@ -1,7 +1,7 @@
 # ADR 2: Pin new component releases automatically, after the checks
 
 **Date:** 2026-11-08
-**Status:** accepted (changes how ADR 1's pins are updated; ADR 1 stands)
+**Status:** accepted (changes how ADR 1's pins are updated; ADR 1 stands). ADR 4 changes how its runs deploy.
 
 ## Context
 

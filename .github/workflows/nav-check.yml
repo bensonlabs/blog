@@ -1,4 +1,6 @@
 name: Rendered pages
+# The PR check: builds the whole site the way the deploy does and checks the rendered pages, and
+# lints the workflow files (actionlint, with shellcheck on their scripts).
 on:
   pull_request:
   workflow_dispatch:
@@ -10,6 +12,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - name: Test the site scripts
         run: python3 -m unittest discover -s .github/scripts -p 'test_*.py'
       # Same assembly as the deploy (jekyll.yml): the pinned games and projects releases.
@@ -20,3 +24,23 @@ jobs:
           source: ./
           destination: ./_site
       - run: bash .github/scripts/check-nav.sh _site
+
+  workflows:
+    name: Lint the workflows
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      # A pinned actionlint release, checked against its published sha256 before it runs.
+      - name: actionlint
+        env:
+          VERSION: 1.7.12
+          SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/actionlint.tar.gz" \
+            "https://github.com/rhysd/actionlint/releases/download/v${VERSION}/actionlint_${VERSION}_linux_amd64.tar.gz"
+          echo "${SHA256}  $RUNNER_TEMP/actionlint.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/actionlint.tar.gz" -C "$RUNNER_TEMP" actionlint
+          "$RUNNER_TEMP/actionlint" -color

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Read-only checks of the actual Jekyll artifact (never inject navigation)."""
 import argparse
+import re
 from html.parser import HTMLParser
 from pathlib import Path
 
@@ -22,7 +23,7 @@ class Page(HTMLParser):
     def __init__(self, text):
         super().__init__(convert_charrefs=True)
         self.tags = {}; self.ids = {}; self.links = []; self.in_nav = False
-        self.redirect = False; self.assets = []
+        self.redirect = False; self.redirect_to = ''; self.assets = []
         # Traces of the shared site header: its elements (ids or classes starting with bl-nav,
         # or the old nav-autohide) or its CSS/JS files. A comment or string that merely
         # mentions bl-nav doesn't count.
@@ -42,7 +43,8 @@ class Page(HTMLParser):
             key = attrs['id']; self.ids[key] = self.ids.get(key, 0) + 1
         if tag == 'nav' and attrs.get('id') == 'bl-nav': self.in_nav = True
         if tag == 'a' and self.in_nav: self.links.append(attrs.get('href'))
-        if tag == 'meta' and attrs.get('http-equiv', '').lower() == 'refresh': self.redirect = True
+        if tag == 'meta' and (attrs.get('http-equiv') or '').lower() == 'refresh':
+            self.redirect = True; self.redirect_to = redirect_target(attrs.get('content') or '')
         if tag == 'script' and attrs.get('src'): self.assets.append(attrs['src'])
         if tag == 'link' and attrs.get('rel') == 'stylesheet': self.assets.append(attrs['href'])
 
@@ -50,12 +52,31 @@ class Page(HTMLParser):
         if tag == 'nav': self.in_nav = False
 
 
+def redirect_target(content):
+    """The address in a meta refresh's content ("0; url=/x/"), without its #fragment or ?query."""
+    match = re.search(r'url\s*=\s*["\']?([^"\'\s]+)', content, re.IGNORECASE)
+    return re.split(r'[#?]', match.group(1))[0] if match else ''
+
+
+def page_exists(site, page_path, target):
+    """Whether a redirect from page_path (a file in site) to target lands on a page in site.
+    Addresses on other sites count as present."""
+    if not target or re.match(r'[a-z][a-z0-9+.-]*:', target, re.IGNORECASE) or target.startswith('//'):
+        return True
+    base = site if target.startswith('/') else page_path.parent
+    landing = (base / target.lstrip('/')).resolve()
+    if site.resolve() not in (landing, *landing.parents):
+        return False
+    return (landing / 'index.html').is_file() if target.endswith('/') else (
+        landing.is_file() or (landing / 'index.html').is_file())
+
+
 def check(site):
     errors = []; checked = 0; reference = None
+    # The home page and the site menu's targets. Other project pages come and go with their
+    # component's releases; the menu and redirect checks below catch any that the site still needs.
     required = ['index.html', 'projects/index.html', 'projects/games/index.html',
-                'projects/workouts/index.html', 'projects/focus-lab/index.html',
-                'projects/gravitas/index.html', 'projects/ai-trending/latest/index.html',
-                'projects/workouts/justin/index.html', 'projects/bootstraps/index.html']
+                'projects/workouts/index.html', 'projects/bootstraps/index.html']
     for path in required:
         if not (site / path).is_file(): errors.append(f'missing rendered page: {path}')
     for path in APP_STORE_PAGES:
@@ -82,7 +103,10 @@ def check(site):
             if page.site_header or text.startswith('---\n'):
                 errors.append(f'{rel}: standalone static page contains site-header machinery/front matter')
             continue
-        if page.redirect: continue
+        if page.redirect:
+            if not page_exists(site, path, page.redirect_to):
+                errors.append(f'{rel.as_posix()}: redirects to {page.redirect_to or "nowhere"}, which is missing')
+            continue
         checked += 1
         for tag in ('html', 'head', 'body'):
             if page.tags.get(tag) != 1: errors.append(f'{rel}: expected one {tag} shell')
