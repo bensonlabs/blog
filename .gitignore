@@ -5,8 +5,11 @@ _site/
 vendor/
 .bundle/
 
-# Build-time catalogue
-_data/games.json
+# Components (games, workouts): put in place by .github/scripts/components.py assemble
+# from the releases pinned in _data/components.json. Never edit them here.
+projects/games/
+projects/workouts/
+.components-cache/
 
 # Python bytecode cache
 __pycache__/
