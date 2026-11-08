@@ -5,10 +5,9 @@ _site/
 vendor/
 .bundle/
 
-# Components (games, workouts): put in place by .github/scripts/components.py assemble
+# Components (everything under /projects/): put in place by .github/scripts/components.py assemble
 # from the releases pinned in _data/components.json. Never edit them here.
-projects/games/
-projects/workouts/
+projects/
 .components-cache/
 
 # Python bytecode cache

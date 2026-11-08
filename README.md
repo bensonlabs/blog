@@ -8,7 +8,7 @@ Built with [Jekyll](https://jekyllrb.com) and hosted on [GitHub Pages](https://p
 
 ## Copilot Prompt — Sync New Content
 
-After adding a new project to the repo, paste this into GitHub Copilot to keep the docs in sync (games live in [bensonlabs/games](https://github.com/bensonlabs/games)):
+After adding a new project to the repo, paste this into GitHub Copilot to keep the docs in sync (games live in [bensonlabs/projects](https://github.com/bensonlabs/projects)):
 
 ```
 I've added new content to this repo. Check the `projects/` folder for any
@@ -39,7 +39,7 @@ Technical troubleshooting and notes on Windows, PowerShell, networking, security
 ### **Games** (`/projects/games/`)
 Interactive browser games. The current catalogue is maintained at [bensonlabs.org/projects/games/](https://bensonlabs.org/projects/games/).
 
-Games are built and released in [bensonlabs/games](https://github.com/bensonlabs/games) and pinned here in `_data/components.json`; see CONTRIBUTING.md, "Headers, project pages, and components".
+Games are built and released in [bensonlabs/projects](https://github.com/bensonlabs/projects) and pinned here in `_data/components.json`; see CONTRIBUTING.md, "Headers, project pages, and components".
 
 ### **Focus Lab** (`/projects/focus-lab/`)
 Premium productivity dashboard with Pomodoro timer, focus tasks, synthesized ambient sounds, and weekly metrics.
@@ -59,7 +59,7 @@ Owner-only work context tracker for resuming interrupted work. Phase 1 is deploy
 ### **Workouts** (`/projects/workouts/`)
 Justin’s 12-week mesocycle strength-training plan with phase-based strength progressions, Olympic-lifting skill work, MetCon conditioning, accessory volume, and a mobile-friendly day-by-day interface.
 
-The canonical source lives in [bensonlabs/workouts](https://github.com/bensonlabs/workouts), not this repository; it's published here as a pinned release (see CONTRIBUTING.md, "Headers, project pages, and components"). Justin's plan is at [bensonlabs.org/projects/workouts/](https://bensonlabs.org/projects/workouts/), and the separate [CL · 12-Week Strength Restart](https://bensonlabs.org/projects/workouts/cl/) at `/projects/workouts/cl/`.
+The canonical source lives in [bensonlabs/projects](https://github.com/bensonlabs/projects), not this repository; it's published here as a pinned release (see CONTRIBUTING.md, "Headers, project pages, and components"). Justin's plan is at [bensonlabs.org/projects/workouts/](https://bensonlabs.org/projects/workouts/), and the separate [CL · 12-Week Strength Restart](https://bensonlabs.org/projects/workouts/cl/) at `/projects/workouts/cl/`.
 
 ---
 
@@ -138,7 +138,7 @@ Pushing to `master` triggers the **Deploy Jekyll to GitHub Pages** workflow. If 
 
 ## Adding a New Game
 
-Games are built and released in [bensonlabs/games](https://github.com/bensonlabs/games);
+Games are built and released in [bensonlabs/projects](https://github.com/bensonlabs/projects);
 its README explains how to add one. Publishing a new release here is one command; see
 CONTRIBUTING.md, "Headers, project pages, and components".
 
@@ -151,7 +151,7 @@ workouts, which come from their own repositories as pinned releases) are in
 [CONTRIBUTING.md](CONTRIBUTING.md#headers-project-pages-and-components), section
 "Headers, project pages, and components". Read it before changing layouts, project
 pages, `_data/components.json` or `.github/scripts/components.py`. Games are built in
-[bensonlabs/games](https://github.com/bensonlabs/games), never here.
+[bensonlabs/projects](https://github.com/bensonlabs/projects), never here.
 
 ## Local Development (Optional)
 
@@ -212,13 +212,13 @@ blog/
 │       └── header.js    # Shared-header mobile menu behavior
 ├── projects/
 │   ├── index.html       # Projects hub page
-│   ├── games/           # Component from bensonlabs/games (ignored by git)
+│   ├── games/           # From bensonlabs/projects (ignored by git)
 │   ├── ai-trending/     # AI/ML trending repositories dashboard
 │   ├── focus-lab/       # Productivity dashboard
 │   ├── gravitas/        # N-body gravity simulator
 │   ├── to-do-app/       # Neon Postgres todo app
 │   ├── context-console/  # Owner-only work context tracker
-│   └── workouts/        # Component from bensonlabs/workouts (ignored by git)
+│   └── workouts/        # From bensonlabs/projects (ignored by git)
 ├── about.md             # About page
 ├── docs/decisions/      # Why the site is built the way it is
 ├── index.html           # Blog homepage (post list)

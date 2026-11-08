@@ -163,6 +163,34 @@ class Assemble(unittest.TestCase):
             self.assertTrue(kept.exists())
 
 
+class WrapFromRelease(unittest.TestCase):
+    def test_the_release_lists_the_pages_and_the_list_is_not_published(self):
+        data = archive({"index.html": STANDALONE, "game/index.html": "<html><body>game</body></html>",
+                        components.WRAP_FILE: json.dumps(["index.html"])})
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            components.place(entry(wrap="release", sha256=hashlib.sha256(data).hexdigest()), data, root)
+            folder = root / "projects/games"
+            self.assertTrue((folder / "index.html").read_text(encoding="utf-8").startswith("---\nlayout: project\n"))
+            self.assertEqual((folder / "game/index.html").read_text(encoding="utf-8"), "<html><body>game</body></html>")
+            self.assertFalse((folder / components.WRAP_FILE).exists())
+
+    def test_a_release_without_its_list_is_refused(self):
+        data = archive({"index.html": STANDALONE})
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaises(components.ComponentError):
+                components.place(entry(wrap="release", sha256=hashlib.sha256(data).hexdigest()), data, Path(tmp))
+
+    def test_the_version_list_accepts_release(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "components.json"
+            path.write_text(json.dumps([entry(wrap="release")]), encoding="utf-8")
+            self.assertEqual(components.load_manifest(path)[0]["wrap"], "release")
+            path.write_text(json.dumps([entry(wrap="everything")]), encoding="utf-8")
+            with self.assertRaises(components.ComponentError):
+                components.load_manifest(path)
+
+
 class Bump(unittest.TestCase):
     def test_records_the_new_version_and_its_sha256(self):
         data = archive({"index.html": STANDALONE})
@@ -190,6 +218,57 @@ class Bump(unittest.TestCase):
                 with self.assertRaises(components.ComponentError):
                     components.bump("games", "v1.1.0", manifest)
             self.assertEqual(json.loads(manifest.read_text(encoding="utf-8"))[0]["version"], "v1.0.0")
+
+
+class Update(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self.tmp.name)
+        self.manifest = self.root / "components.json"
+        self.manifest.write_text(json.dumps([entry()]), encoding="utf-8")
+        data = archive({"index.html": STANDALONE})
+        self.digest = hashlib.sha256(data).hexdigest()
+        base = "https://github.com/bensonlabs/games/releases/download"
+        self.responses = {}
+        for version in ("v1.0.1", "v0.9.0"):
+            self.responses[f"{base}/{version}/games-{version}.tar.gz"] = data
+            self.responses[f"{base}/{version}/games-{version}.tar.gz.sha256"] = f"{self.digest}  x".encode()
+        self.patches = [patch.object(components, "CACHE", self.root / "cache"),
+                        patch.object(components, "download", side_effect=self.responses.__getitem__)]
+        for p in self.patches:
+            p.start()
+
+    def tearDown(self):
+        for p in self.patches:
+            p.stop()
+        self.tmp.cleanup()
+
+    def pinned(self):
+        return json.loads(self.manifest.read_text(encoding="utf-8"))[0]["version"]
+
+    def test_pins_the_newest_release_and_leaves_a_commit_message(self):
+        with patch.object(components, "latest_version", return_value="v1.0.1"):
+            self.assertEqual(components.update("all", manifest=self.manifest), ["games v1.0.0 -> v1.0.1"])
+        self.assertEqual(self.pinned(), "v1.0.1")
+        message = (self.root / "cache" / "commit-message.txt").read_text(encoding="utf-8")
+        self.assertTrue(message.startswith("Pin games v1.0.1"))
+
+    def test_a_given_version_for_one_component(self):
+        self.assertEqual(components.update("games", "v1.0.1", self.manifest), ["games v1.0.0 -> v1.0.1"])
+
+    def test_nothing_changes_when_the_newest_is_already_pinned(self):
+        with patch.object(components, "latest_version", return_value="v1.0.0"):
+            self.assertEqual(components.update("all", manifest=self.manifest), [])
+        self.assertEqual(self.pinned(), "v1.0.0")
+        self.assertFalse((self.root / "cache" / "commit-message.txt").exists())
+
+    def test_never_moves_a_pin_backwards(self):
+        self.assertEqual(components.update("games", "v0.9.0", self.manifest), [])
+        self.assertEqual(self.pinned(), "v1.0.0")
+
+    def test_a_specific_version_needs_one_component(self):
+        with self.assertRaises(components.ComponentError):
+            components.update("all", "v1.0.1", self.manifest)
 
 
 if __name__ == "__main__":
