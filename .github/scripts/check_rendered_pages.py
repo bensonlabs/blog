@@ -6,6 +6,8 @@ from pathlib import Path
 
 # Project folders that are intentionally static and must NOT carry the
 # shared site header/nav. Pages here are hand-authored standalone HTML.
+HEADER_ASSETS = ('/assets/css/header.css', '/assets/js/header.js')
+
 STANDALONE_STATIC_DIRS = {
     ('projects', '2ndPaste'),
     ('projects', 'tracro'),
@@ -16,10 +18,20 @@ class Page(HTMLParser):
         super().__init__(convert_charrefs=True)
         self.tags = {}; self.ids = {}; self.links = []; self.in_nav = False
         self.redirect = False; self.assets = []
+        # Traces of the shared site header: its elements (ids or classes starting with bl-nav,
+        # or the old nav-autohide) or its CSS/JS files. A comment or string that merely
+        # mentions bl-nav doesn't count.
+        self.site_header = []
         self.feed(text)
 
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
+        for name in [attrs.get('id') or '', *(attrs.get('class') or '').split()]:
+            if name.startswith('bl-nav') or name == 'nav-autohide':
+                self.site_header.append(f'<{tag}> "{name}"')
+        source = attrs.get('src') if tag == 'script' else attrs.get('href') if tag == 'link' else None
+        if source and (source in HEADER_ASSETS or 'nav-autohide' in source):
+            self.site_header.append(f'<{tag}> {source}')
         self.tags[tag] = self.tags.get(tag, 0) + 1
         if 'id' in attrs:
             key = attrs['id']; self.ids[key] = self.ids.get(key, 0) + 1
@@ -52,13 +64,13 @@ def check(site):
         # Never require a shared header anywhere inside a standalone game.
         if game_area and not game: continue
         if game:
-            if any(token in text for token in ('bl-nav', 'nav-autohide')) or text.startswith('---\n'):
+            if page.site_header or text.startswith('---\n'):
                 errors.append(f'{rel}: standalone game contains site-header machinery/front matter')
             continue
         if standalone_static:
             # Intentionally static product pages: never require or allow the
             # shared site header/nav here.
-            if any(token in text for token in ('bl-nav', 'nav-autohide')) or text.startswith('---\n'):
+            if page.site_header or text.startswith('---\n'):
                 errors.append(f'{rel}: standalone static page contains site-header machinery/front matter')
             continue
         if page.redirect: continue
