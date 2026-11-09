@@ -208,6 +208,7 @@ Shortcut: anything a visitor sees under `/projects/` is fixed in its own repo; t
   Windows) puts the pinned releases in place; then `bundle exec jekyll serve` if Jekyll is installed.
 - Tests, type check, lint (wrap-up runs these): `python3 -m unittest discover -s .github/scripts -p 'test_*.py'`;
   after a Jekyll build, `bash .github/scripts/check-nav.sh _site`. The PR check also runs actionlint.
+  `test_docs.py` fails when a doc cites a repo path that doesn't exist: fix the doc in the same commit.
 - Push reminder, once per clone: `node .claude/hooks/push-reminder.mjs --install`
 
 ### Environments
