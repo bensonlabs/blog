@@ -4,7 +4,7 @@
   Starter doc: read this before working in <module>. Copy this file next to the module's code.
   Sections marked auto: are regenerated from the code by a script, if the project has one; the
   manual: sections are written by hand and kept across regenerations. When this doc and the code
-  disagree, fix the source first, then this doc (core rule 6).
+  disagree, fix the source first, then this doc (core rule 2).
 -->
 
 ## Overview
@@ -23,7 +23,7 @@ What it is and why it exists, in one paragraph.
 ## Business rules
 
 <!-- BEGIN manual:business-rules -->
-- Each rule, with its source (core rule 4).
+- Each rule, and where it comes from (a spec, an issue, a person's decision).
 <!-- END manual:business-rules -->
 
 ## Interfaces
