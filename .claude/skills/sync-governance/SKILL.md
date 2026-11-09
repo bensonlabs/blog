@@ -1,6 +1,6 @@
 ---
 name: sync-governance
-description: Bring this project's governance files (the governance blocks in CLAUDE.md, the .claude skills and hooks, the doc templates) up to date with the architectureOS repo, without changing anything the project owns. Then offer to send improvements back.
+description: Bring this project's governance files (the governance blocks in CLAUDE.md, the .claude skills, the doc templates) up to date with the architectureOS repo, without changing anything the project owns. Then offer to send improvements back.
 ---
 
 # Sync governance
@@ -13,8 +13,8 @@ description: Bring this project's governance files (the governance blocks in CLA
    otherwise `git clone <source_repo> <tmp>/architectureOS`.
 3. Run `node <tmp>/architectureOS/scripts/sync.mjs --project <project root>`. It applies what's
    safe and prints a report. It opens with the architectureOS commits since the last sync: read the
-   ones behind any item that needs judgment (`git -C <tmp>/architectureOS show <hash>`), so you know
-   what the change was for. Then:
+   ones behind any item that needs judgment or is a suggestion
+   (`git -C <tmp>/architectureOS show <hash>`), so you know what the change was for. Then:
    - **Applied:** files and blocks this project hadn't changed, replaced with the new version.
      Nothing to do.
    - **Merged:** changed here and upstream in different places, merged by git. Read
@@ -34,12 +34,12 @@ description: Bring this project's governance files (the governance blocks in CLA
 
 ## Send improvements back
 
-6. **Governance improvements.** If this project improved a core rule, a skill, a hook or a template
-   in a way other projects should get, propose the same change to the architectureOS repo for the
+6. **Governance improvements.** If this project improved a core rule, a skill or a template in a
+   way other projects should get, propose the same change to the architectureOS repo for the
    person to approve, rather than letting this project's copy drift.
 
 ## Never
 
 - Change text outside a governance block, or a file set to `"project"` in `.governance-sync.json`.
-- Delete a file.
+- Delete a file, except one the template removed, once the person agrees to that suggestion.
 - Push.

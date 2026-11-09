@@ -5,17 +5,15 @@
 <!-- BEGIN governance:scaffold -->
 ## How this file works
 
-- **Personal preferences** of the person you're working with come from their own Claude settings
-  (their user-level `~/.claude/CLAUDE.md`), never from this file.
-- **Core rules** and **conventions** (the next two blocks) come from the architectureOS repo and are
-  the same in every project built from it. To change one, change it there (core rule 12).
-- **Core rules not used here** (in the project rules) lists any core rule this project can't use,
-  with the reason. Skip only those, and only while the reason holds. A rule that seems not to fit
-  but isn't listed still applies: ask the person rather than skip it.
-- **Project rules** (at the bottom) belong to this project. Write each one in three parts: when it
-  fires (a table of triggers), how to do it (files, commands), and a decision shortcut for the
-  usual edge cases. Give non-obvious rules a date and who decided ("owner decision, 2026-11-07").
-- **Background:** each rule names a doc in the architectureOS repo (`source_repo` in
+- **Personal preferences** come from the person's own `~/.claude/CLAUDE.md`, never from this file.
+- **Core rules** (the next block) come from the architectureOS repo and are the same in every
+  project. To change one, change it there; `/sync-governance` keeps this file in step.
+- **Project rules** (at the bottom) belong to this project: what it owns, its commands, what must
+  never move, and its own checks. Give a non-obvious one a date and who decided ("owner decision,
+  2026-11-07").
+- **Apps with users** add the product rules (architectureOS doc `product-rules.md`) to their
+  project rules when they reach the "product" stage.
+- **Background:** each core rule names a doc in the architectureOS repo (`source_repo` in
   `.governance-sync.json`). It's private; read a doc with
   `gh api repos/<owner>/<repo>/contents/docs/<name>.md -H "Accept: application/vnd.github.raw"`.
 <!-- END governance:scaffold -->
@@ -23,149 +21,27 @@
 <!-- BEGIN governance:core-rules -->
 ## Core rules
 
-### 1. Check what exists before building new surface
-
-- **Fires on:** a new page or route, screen, top-level command, permission or role, or menu entry.
-  **Not on:** a bug fix, a refactor, or a column, filter or action on an existing page.
-- **Do:** run the `feature-fit` skill before building. Write down the need, search what already
-  exists, show the person a fit matrix and a verdict (use as-is, extend, or new), and save a
-  one-page note in `docs/feature-fit/` that names what it adds. The person decides. Two reminders
-  catch what you miss: one while you write, one at push (what counts is set in
-  `.claude/hooks/reminders.config.json`).
-- **Shortcut:** people can already do it in a few steps → document how, don't build. It's an
-  existing page's job with one more column, filter or action → extend that page. Otherwise build
-  new, and say why in one sentence.
-- Doc: `check-before-building.md`.
-
-### 2. Docs change in the same commit as the code they describe
-
-- **Fires on:** a change to what people do or see, a business rule, a permission, an endpoint, a
-  data field, or a tracked status.
-- **Do:** update the help, starter doc, ledger or decision record that describes it in the same
-  commit, so undoing the commit undoes both. If nothing needs updating, say so with a line in the
-  commit message: `Docs-Impact: none - <why>`.
-- Doc: `same-commit.md`.
-
-### 3. Answer a reminder with a reason a reviewer can read
-
-- **Fires on:** a reminder (a hook, a check, a skill step) that applies to your change, when you
-  decide no action is needed.
-- **Do:** add a line at the end of the commit message, `<Check>: none - <reason>`, for example
-  `Feature-Fit: none - settings screen, not a new feature` or `Docs-Impact: none - styling only`.
-  Write the reason for a reviewer. Never skip hooks (`--no-verify`) instead.
-- Doc: `commit-trailers.md`.
-
-### 4. Cite where behavior comes from
-
-- **Fires on:** code that implements a requirement from somewhere else: a spec, an issue, a system
-  being replaced, a person's decision.
-- **Do:** name the source in a comment next to it: `// Source: <reference>` (a spec section, an
-  issue, `oldapp/orders.py:120-140`, "owner decision, 2026-11-04"). A file that ports one source
-  file says so at the top: `// Source-File: <path>`.
-- Doc: `provenance-markers.md`.
-
-### 5. Don't invent rules
-
-- **Fires on:** adding a validation, a permission check, a status rule, a limit or a default.
-- **Do:** every one traces to a source (rule 4). If one is genuinely needed but has no source, mark
-  it `// invented: <why>` and list it in the PR for a person to approve. Before changing code to
-  match a doc, check the doc against the source: docs go stale.
-- Doc: `no-invented-rules.md`.
-
-### 6. Trust order when sources disagree
-
-The source itself (the running system, the spec, the authoritative data file) wins, then current
-code, then docs and ledgers, then memory of past sessions. Fix the lower one to match the higher
-one. Fix stale docs you come across while working in that area, in the same commit; don't start a
-mass rewrite. Before recommending a file, function or flag you remember, check it still exists.
-Doc: `trust-order.md`.
-
-### 7. Record non-obvious decisions
-
-- **Fires on:** a choice a reasonable person could have made the other way, one that is expensive
-  to reverse, or one that makes code look surprising.
-- **Do:** add `docs/decisions/NNNN-<slug>.md` from `docs/decisions/TEMPLATE.md`. Reversing a
-  decision means a new record that supersedes the old one; never edit the old one.
-- Doc: `decision-records.md`.
-
-### 8. Analyze code structure with a parser, not text matching
-
-- **Fires on:** a script, audit or codemod that decides something from code structure (what calls
-  what, which attributes a class has, which routes exist).
-- **Do:** use the language's parser or compiler API (TypeScript compiler API, Roslyn, Python
-  `ast`). Regex and string search are fine for logs, prose, non-code files, reminders that only
-  nudge, and narrowing down which files to parse, never for the final decision.
-- Doc: `analyze-with-a-parser.md`.
-
-### 9. Access is enforced on the server, and widened only with a source
-
-- **Fires on:** a permission check, a role, a sharing or visibility rule, an endpoint that reads or
-  changes data, or anything else that changes who can see or do what.
-- **Do:**
-  - Check access on the server, against the stored record (whose it is, who it's shared with),
-    never against an ID, role or owner sent in the request. Checks in the browser only decide what
-    to show.
-  - Never run SQL or a query built from request text: accept IDs and structured filters.
-  - Widening access (more people, more records, fewer checks) cites its source (rule 4) and is
-    listed in the PR for the owner to approve. Never undo a security fix to make something work.
-- Doc: `access-on-the-server.md`.
-
-### 10. Report each work state as its own fact
-
-- **Fires on:** saying where a change stands: in a report, a PR, a handoff note, an issue.
-- **Do:** keep the states apart: **implemented** (the change exists), **verified** (the stated
-  check ran and passed, and you saw the result), **accepted** (the person approved it), **merged**
-  (it's on the target branch), **released** (users or the target environment have it). Never infer
-  a later state from an earlier one: a passing build isn't a release, and a check that didn't run
-  didn't pass.
-- Doc: `work-states.md`.
-
-### 11. Protect user data before changing it destructively
-
-- **Fires on:** a migration, bulk edit, import, cleanup, or anything else that deletes or rewrites
-  data people created.
-- **Do:** export it first, check the export is complete, and prove the restore works somewhere
-  disposable. Check inputs before changing anything, and make the change all-or-nothing so a
-  failure leaves no partial state. Ask the person before running it on real data.
-- Doc: `user-data-safety.md`.
-
-### 12. Keep governance in step with architectureOS
-
-Run `/sync-governance` now and then; it updates the governance blocks, skills, hooks and
-templates. To improve a core rule, a skill or a template, change it in the architectureOS repo so
-every project gets it, not only here. Doc: `keeping-projects-in-sync.md`.
+1. **Record decisions that aren't obvious.** A choice someone could reasonably have made the other
+   way, or one that's costly to undo, gets `docs/decisions/NNNN-<slug>.md` from `TEMPLATE.md`.
+   Reversing one is a new record that supersedes it; the old one gets only a "superseded by" line.
+   Doc: `decision-records.md`.
+2. **Docs change in the same commit as the code they describe,** so undoing the commit undoes both.
+   When code, docs and memory disagree, the source wins (the running system, the spec, the data),
+   then the code, then the docs: fix the lower one while you're there.
+   Docs: `same-commit.md`, `trust-order.md`.
+3. **Report each work state as its own fact:** built, checked (the check ran and passed, and you saw
+   it), approved, merged, live. Never infer a later state from an earlier one.
+   Doc: `work-states.md`.
+4. **Never start or re-run a deploy or CI run without a go for that run.** A go to merge isn't a go
+   to start a run. To find out whether something is reachable or allowed, use read-only calls.
+   Doc: `conventions.md`.
+5. **Secrets and people's data never go in git:** not in code, commits, PRs, issues, logs, test data
+   or screenshots. Committed config holds placeholders. If one slips in, tell the person at once.
+   Doc: `conventions.md`.
+6. **A mistake that happens twice becomes a check that fails.** Mechanical facts (a path exists,
+   copies match, a page is published) get a test or CI check, not a reminder. Judgment calls stay
+   with people. Doc: `checks-over-reminders.md`.
 <!-- END governance:core-rules -->
-
-<!-- BEGIN governance:conventions -->
-## Conventions
-
-- **Every project states its lifecycle stage**: experiment, project, maintained, product or
-  archived (in the project rules and the README). An experiment is labeled as one and makes no
-  production claims. Moving up a stage is a decision the person makes, not a reward for
-  accumulating code; a stage brings only the controls its risk needs.
-- **Boring, replaceable technology.** Prefer what the next person can understand, run and replace.
-  No shared infrastructure, service or library until a second real user of it exists. Settle who
-  owns a piece of data or behavior before splitting it into another service or repo.
-- **Every repo's README** says what the repo owns, its lifecycle stage, how to run or use it, and
-  where its guidance lives.
-- **Small, reversible steps.** Prefer a reviewable increment with a way back over a sweeping
-  change; keep existing users of a thing working until its replacement is proven.
-- **Never start or re-run a deploy or CI workflow** without an explicit go for that run. When asked
-  whether something is reachable or allowed, check with read-only calls and run nothing.
-- **Test data in a sandbox** (an environment the project rules name as safe for testing) is fine
-  without asking: label test records TEST, and say afterwards what was done. Anything shared or
-  live goes through the person first.
-- **People's data stays where it lives.** Users' personal data never goes into commits, PR
-  descriptions, issues, logs, test data or screenshots, nor into any service the project doesn't
-  already trust with it. Logs mask identifying values.
-- **Secrets never go in git.** Passwords, keys, tokens and connection strings stay in the
-  environment or a secrets store; committed config holds placeholders. If one is committed, tell
-  the person at once: rotating it matters more than rewriting history.
-- **Sample data is invented.** Mockups, demo data and fixtures use made-up people and places,
-  checked against real records for accidental matches.
-
-Doc (where each convention came from): `conventions.md`.
-<!-- END governance:conventions -->
 
 ## Project rules
 
@@ -178,15 +54,6 @@ Doc (where each convention came from): `conventions.md`.
   (CONTRIBUTING.md, "Headers, project pages, and components").
 - Lifecycle stage (experiment, project, maintained, product, archived): maintained. A personal
   site with one user, Justin; the hub that deploys the whole site since 2026-11-07 (ADRs 1 to 5).
-
-### Core rules not used here
-
-- 4 (cite where behavior comes from): the posts and pages implement no outside spec.
-- 5 (don't invent rules): the site's limits and defaults are design choices, not rules that need a source.
-- 9 (access on the server): a static site; there is no server.
-- 11 (protect user data): the blog keeps no visitor data.
-
-Listed 2026-11-08 (Justin's choice of how rules fit a project; architectureOS ADR 5).
 
 ### Site rules
 
@@ -209,7 +76,6 @@ Shortcut: anything a visitor sees under `/projects/` is fixed in its own repo; t
 - Tests, type check, lint (wrap-up runs these): `python3 -m unittest discover -s .github/scripts -p 'test_*.py'`;
   after a Jekyll build, `bash .github/scripts/check-nav.sh _site`. The PR check also runs actionlint.
   `test_docs.py` fails when a doc cites a repo path that doesn't exist: fix the doc in the same commit.
-- Push reminder, once per clone: `node .claude/hooks/push-reminder.mjs --install`
 
 ### Environments
 
@@ -229,7 +95,22 @@ Shortcut: anything a visitor sees under `/projects/` is fixed in its own repo; t
   component release is pinned and deployed by the Update components workflow, which also runs daily
   and repairs a deploy that failed (ADR 4).
 
-### Where things live (feature-fit searches these)
+### Checks this project relies on
+
+Each stops a mistake that happened once or would break the site (core rule 6):
+
+- The tests in `.github/scripts/` (every pull request, and before every deploy): the release
+  manifest and unpacking limits in `components.py`, the page check's own cases, and
+  `test_docs.py`: every repo path the docs cite in backticks exists.
+- `.github/scripts/check-nav.sh` after a build (same times): the home page and the menu's pages
+  exist, the four App Store pages exist (`APP_STORE_PAGES`), every redirect lands on a page,
+  normal pages have the site header and games don't.
+- actionlint (pull request job "Lint the workflows"): the workflow files are valid, and their
+  scripts pass shellcheck.
+- Update components compares the live `deployed-commit.txt` with master and redeploys a site
+  that's behind (ADR 4).
+
+### Where things live
 
 - Pages and navigation: posts in `_posts/`, About in `about.md`, the home page in `index.html`;
   the header in `_includes/nav.html` with its links in `_data/navigation.yml`; layouts in
@@ -237,8 +118,3 @@ Shortcut: anything a visitor sees under `/projects/` is fixed in its own repo; t
 - Help or user docs: `README.md`, `CONTRIBUTING.md`.
 - Starter docs: none yet.
 - API endpoints: none; a static site.
-
-### Commit-message answers this project uses
-
-- `Feature-Fit: none - <reason>` and `Docs-Impact: none - <reason>` (core rules 1 to 3). Add any of
-  the project's own here, with the check that reads them.

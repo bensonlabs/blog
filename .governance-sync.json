@@ -1,6 +1,6 @@
 {
   "source_repo": "https://github.com/bensonlabs/architectureOS.git",
-  "synced_commit": "93ef51f95c7f83a45d7453f8a1e83a4576511b7f",
+  "synced_commit": "ab98926a7a204062a40342229d3a791b1a15e5b1",
   "synced_at": "2026-11-08",
   "vars": {
     "PROJECT_NAME": "Blog"
@@ -8,22 +8,12 @@
   "managed": {
     "CLAUDE.md": "regions",
     ".gitattributes": "project",
-    ".github/workflows/reminders.yml": "file",
-    ".claude/settings.json": "seed",
-    ".claude/hooks/README.md": "file",
-    ".claude/hooks/new-surface-reminder.mjs": "file",
-    ".claude/hooks/push-reminder.mjs": "file",
-    ".claude/hooks/reminders-lib.mjs": "file",
-    ".claude/hooks/reminders.config.json": "seed",
-    ".claude/skills/feature-fit/SKILL.md": "file",
     ".claude/skills/handoff/SKILL.md": "file",
     ".claude/skills/kickoff/SKILL.md": "file",
     ".claude/skills/sync-governance/SKILL.md": "file",
     ".claude/skills/wrap-up/SKILL.md": "file",
-    "docs/FEATURE_BRIEF_TEMPLATE.md": "file",
     "docs/STARTER_DOC_TEMPLATE.md": "file",
     "docs/decisions/0001-use-decision-records.md": "project",
-    "docs/decisions/TEMPLATE.md": "file",
-    "docs/feature-fit/TEMPLATE.md": "file"
+    "docs/decisions/TEMPLATE.md": "file"
   }
 }
